@@ -1,0 +1,74 @@
+@startuml
+
+skinparam backgroundColor #2C2C2C
+skinparam rectangle {
+  BackgroundColor #444
+  BorderColor #FFFFFF
+  FontColor #FFFFFF
+}
+skinparam arrowColor #FFFFFF
+skinparam titleBorderRoundCorner 15
+skinparam titleBorderColor #FFFFFF
+skinparam titleBackgroundColor #333
+skinparam titleFontColor #FFFFFF
+skinparam sequenceArrowFontColor #FFFFFF
+skinparam sequenceActorFontColor #FFFFFF
+
+title Twitter System Architecture - Tweet Posting and Timeline Update Process
+
+rectangle Client
+
+rectangle CoreService {
+    rectangle LoadBalancer
+    rectangle WebServer
+    rectangle ApplicationServer
+    rectangle MonitoringService
+    rectangle AutoScalingService
+}
+
+rectangle TweetProcessingService {
+    rectangle TweetService
+    rectangle MessageQueue
+    rectangle Worker
+}
+
+rectangle SearchService
+rectangle NotificationService
+rectangle TimelineService
+
+rectangle "DataPersistenceService" as DPS {
+    rectangle "Redis Cluster" as Redis {
+        rectangle TweetCache
+            rectangle TimelineCache
+            rectangle HotTweetsAndTopicsCache
+    }
+    rectangle "Sharded Database" as Database
+}
+
+Client -down-> CoreService : Request to Post Tweet
+LoadBalancer -down-> WebServer : Forward Request
+WebServer -down-> ApplicationServer : Process Request
+ApplicationServer -> TweetProcessingService: Handle Tweet
+TweetService -down-> MessageQueue : Publish Tweet Event (Pub)
+MessageQueue -down-> Worker : Subscribe and Receive Tweet Event (Sub)
+Worker -down-> DPS : Update DPS
+Redis -> Database : Persist Cache Data
+Worker -down-> SearchService : Index Tweet
+Worker -down-> NotificationService : Notify Followers
+Worker -down-> TimelineService : Update User Timelines
+TimelineService -down-> DPS : Update Timeline Cache
+
+Client -down-> CoreService: Request to Read Timeline
+LoadBalancer -down-> WebServer : Forward Request
+WebServer -down-> ApplicationServer : Process Request
+ApplicationServer -> TimelineService : Handle Read Timeline Request
+TimelineService -> DPS: Check Timeline Cache
+Redis -> TimelineService : Return Cached Timeline
+TimelineService -> ApplicationServer : Return Timeline Data
+ApplicationServer -> WebServer : Forward Timeline Data
+WebServer -up-> Client : Return Timeline Data
+
+MonitoringService -> AutoScalingService : Monitor Load
+AutoScalingService -> LoadBalancer : Scale Resources
+
+@enduml

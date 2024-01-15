@@ -1,0 +1,34 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+!define Rectangle class
+
+package "Uber System" {
+
+    Rectangle "User App\n(Passenger Interface)" as UserApp
+    Rectangle "Driver App\n(Driver Interface)" as DriverApp
+    Rectangle "Backend Server\n(APIs & Core Logic)" as Backend
+    Rectangle "Geolocation Service\n(Location & Routing)" as Geolocation
+    Rectangle "Trip Matcher\n(Algorithm for Matching)" as Matcher
+    Rectangle "GPS Service\n(Real-time Location Tracking)" as GPSService
+    Rectangle "Location Data Processor\n(Handling Location Updates)" as LocationProcessor
+
+    UserApp -down-> Backend : Sends requests
+    DriverApp -down-> Backend : Updates status/accepts rides
+    Backend -right-> Geolocation : Requests location/routing
+    Backend -down-> Matcher : Matches drivers with riders
+    DriverApp -right-> GPSService : Sends real-time location
+    GPSService -down-> LocationProcessor : Transmits location data
+    LocationProcessor -down-> Backend : Updates driver location
+
+    package "Data Storage Layer" {
+        Rectangle "Database\n(User & Trip Data)" as Database
+        Rectangle "Redis Service\n(Real-time Data Cache)" as RedisService
+    }
+
+    Backend -down-> "Data Storage Layer" : Queries/Updates data
+    Geolocation -down-> "Data Storage Layer"
+    Matcher -down-> "Data Storage Layer"
+    LocationProcessor -left-> "Data Storage Layer"
+}
+
+@enduml

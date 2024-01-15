@@ -1,0 +1,49 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+
+package "IMVU Backend System" {
+    [Web Server] as WS
+    [API Server] as AS
+    [Cron Job Scheduler] as Cron
+    [User Data] as UD
+    [Real Time Data] as RTD
+    [User Interaction] as UI
+}
+
+package "Apache Spark Cluster" {
+    [Driver Program] as Driver
+    note right of Driver : 使用 Java
+    [Cluster Manager] as Manager
+    package "Worker Node 1" {
+        [Executor 1] as E1
+        note right of E1 : 使用 Java
+        [Task 1.1 - Data Processing\n(Shopping Habits Analysis, Activity History Analysis)] as T11
+        [Task 1.2 - Real Time Analysis\n(Real-time User Behavior Tracking, Social Interaction Monitoring)] as T12
+    }
+    package "Worker Node 2" {
+        [Executor 2] as E2
+        note right of E2 : 使用 Python
+        [Task 2.1 - User Behavior Analysis\n(User Behavior Patterns Analysis, User Profiling)] as T21
+        [Task 2.2 - Other Task] as T22
+    }
+    [Personalized Recommendation\n(Personalized Content)] as PR
+    [Machine Learning\n(Machine Learning Models)] as ML
+}
+
+WS --> Driver : Trigger Real-time Data Processing
+AS --> Driver : Trigger User Request Response
+Cron --> Driver : Trigger Scheduled Tasks
+UD --> Driver : Provides Data
+RTD --> Driver : Provides Data
+UI --> Driver : Provides Data
+Driver --> Manager : Request Resource Allocation
+Manager --> E1 : Assign Executors
+Manager --> E2 : Assign Executors
+E1 --> T11 : Execute Data Processing
+E1 --> T12 : Execute Real-time Analysis
+E2 --> T21 : Execute User Behavior Analysis
+T11 --> PR : Provide Inputs
+T21 --> ML : Feed Data to Models
+E2 --> T22 : Execute Other Tasks
+
+@enduml

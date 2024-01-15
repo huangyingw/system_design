@@ -1,0 +1,25 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+' 定义 CAP 理论的三个组成部分
+class Consistency {
+  +一致性
+}
+
+class Availability {
+  +可用性
+}
+
+class PartitionTolerance {
+  +分区容忍性
+}
+
+' 创建关联性说明
+note right of Consistency : 系统在\n所有节点间\n保持数据一致
+note left of Availability : 系统响应\n用户请求的能力
+note right of PartitionTolerance : 系统在\n网络分区时\n的运行能力
+
+' 描述它们之间的关系
+Consistency -- Availability : 不能同时满足
+Consistency -- PartitionTolerance : 不能同时满足
+Availability -- PartitionTolerance : 不能同时满足
+@enduml

@@ -1,0 +1,41 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+!define RedisNode(x) class x << (R,orchid) >>
+!define ClientNode(x) class x << (C,lightblue) >>
+
+package "Redis Cluster" {
+    RedisNode(Master1)
+    RedisNode(Master2)
+    RedisNode(Master3)
+    RedisNode(Slave1)
+    RedisNode(Slave2)
+    RedisNode(Slave3)
+
+    Master1 -[hidden]down- Master2
+    Master2 -[hidden]down- Master3
+    Slave1 -[hidden]right- Slave2
+    Slave2 -[hidden]right- Slave3
+
+    Master1 -down-> Slave1 : replication
+    Master2 -down-> Slave2 : replication
+    Master3 -down-> Slave3 : replication
+
+    interface "Cluster Communication" as ClusterComm
+
+    Master1 -right-> ClusterComm : heartbeat
+    Master2 -right-> ClusterComm
+    Master3 -right-> ClusterComm
+    Slave1 -left-> ClusterComm
+    Slave2 -left-> ClusterComm
+    Slave3 -left-> ClusterComm
+}
+
+ClientNode(Client1)
+ClientNode(Client2)
+
+Client1 -down-> Master1 : read/write
+Client1 -down-> Master2
+Client2 -down-> Master3 : read/write
+Client2 -down-> Slave3 : read
+
+@enduml

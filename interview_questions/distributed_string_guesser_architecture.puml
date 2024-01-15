@@ -1,0 +1,19 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+
+package "Distributed Guessing System" {
+    [Central Coordination Node] as Coordinator
+    [Private Cloud Compute Nodes] as PrivateCloud
+    [Free Compute Resources Nodes] as FreeCompute
+    [Thread API] as API
+    database "Results Database" as ResultsDB
+}
+
+Coordinator --> PrivateCloud : Assign Tasks
+Coordinator --> FreeCompute : Assign Tasks
+PrivateCloud --> API : Validate String
+FreeCompute --> API : Validate String
+API --> ResultsDB : Store Results
+Coordinator --> ResultsDB : Aggregate Results
+
+@enduml

@@ -1,0 +1,46 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+!define RECTANGLE class
+
+RECTANGLE NameNode {
+  +管理文件系统命名空间
+  +维护文件系统树
+  +映射数据块到DataNode
+  +处理客户端请求
+  +维护数据块列表和位置信息
+}
+
+RECTANGLE DataNode {
+  +存储数据
+  +向NameNode报告数据块信息
+  +执行数据块读写操作
+  +维护数据块的完整性
+}
+
+RECTANGLE SecondaryNameNode {
+  +辅助NameNode
+  +合并编辑日志和文件系统图像
+  +定期与NameNode同步
+  +帮助恢复NameNode
+}
+
+RECTANGLE Client {
+  +文件读取和写入
+  +与NameNode和DataNode交互
+  +处理文件的分块
+  +执行数据块定位
+}
+
+RECTANGLE Block {
+  +文件分块
+  +存储在DataNode上
+  +有唯一标识符
+}
+
+NameNode -down-> DataNode : 管理
+DataNode -up-> NameNode : 报告状态
+NameNode -right-> SecondaryNameNode : 交互
+Client -left-> NameNode : 请求文件信息
+Client -right-> DataNode : 读/写数据
+DataNode -down-> Block : 包含
+@enduml

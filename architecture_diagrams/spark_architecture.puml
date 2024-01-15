@@ -1,0 +1,83 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+
+package "Apache Spark Application" {
+    [Driver Program\n(Scala, Java, Python, R)] as Driver
+        [SparkContext\n(Scala, Java, Python, R)] as SC
+        [DAG Scheduler\n(Scala)] as DAG
+        [Task Scheduler\n(Scala)] as TS
+    [Cluster Manager\n(Java, Scala)] as Manager
+    database "Data Storage System\n(Java)" as Storage {
+        [HDFS\n(Java)]
+        [Elasticsearch]
+        [Other Sources] as Others
+    }
+
+    package "Worker Node 1" {
+        [Executor 1\n(Scala, Java, Python, R)] as E1
+        [Cache 1] as C1
+        [Task 1.1\n(Scala, Java, Python, R)] as T11
+        [Task 1.2\n(Scala, Java, Python, R)] as T12
+    }
+    package "Worker Node 2" {
+        [Executor 2\n(Scala, Java, Python, R)] as E2
+        [Cache 2] as C2
+        [Task 2.1\n(Scala, Java, Python, R)] as T21
+        [Task 2.2\n(Scala, Java, Python, R)] as T22
+    }
+}
+
+Driver --> SC : Use
+SC --> DAG : Convert to DAG
+SC --> TS : Submit Tasks
+SC --> Manager : Resource Request
+DAG --> TS : Execution Planning
+TS --> Manager : Task Allocation
+Manager --> E1 : Allocate Executor
+Manager --> E2 : Allocate Executor
+E1 --> T11 : Execute Task
+E1 --> T12 : Execute Task
+E2 --> T21 : Execute Task
+E2 --> T22 : Execute Task
+E1 --> C1 : Data Caching
+E2 --> C2 : Data Caching
+E1 --> Storage : Read/Write Data
+E2 --> Storage : Read/Write Data
+
+note right of DAG
+  DAG (Directed Acyclic Graph) represents:
+  - Data processing steps and their dependencies
+  - Optimizes task execution
+  - Provides a fault-tolerance mechanism
+  - No cyclic dependencies in the workflow
+  - Basis for execution planning and optimization
+end note
+
+note right of Elasticsearch
+  Elasticsearch is used for:
+  - Full-text Search and Complex Queries
+  - Real-time Analysis and Dashboards
+  - Log and Event Data Analysis
+  - Big Data Integration
+  - Data Enrichment
+end note
+
+note top of C1
+  Cache for Accelerating Data Access
+  Supports Various Persistence Levels
+end note
+
+note right of Storage
+  External Persistent Storage System
+  Provides Long-term Data Storage and Fault Tolerance
+end note
+
+note right of Manager
+  Fault Tolerance and Recovery Mechanism
+  Detect Node Failures
+  Reallocate Tasks
+  Lost Partitions Recomputed
+  Based on Original Data and RDD
+end note
+
+@enduml

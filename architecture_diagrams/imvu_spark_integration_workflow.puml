@@ -1,0 +1,18 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+
+actor "PHP应用程序" as PHP
+participant "Spark REST API" as SparkAPI
+participant "Spark集群" as SparkCluster
+    participant "数据处理" as DataProcess
+    participant "数据分析" as DataAnalyse
+database "数据源" as DataSource
+database "数据存储" as DataStorage
+
+PHP -> SparkAPI : 发送数据处理请求
+SparkAPI -> SparkCluster : 委派请求
+SparkCluster -> DataProcess : 数据处理
+DataProcess -> DataAnalyse : 数据分析
+DataAnalyse -> DataStorage : 存储结果
+DataStorage -> PHP : 返回处理后的数据
+@enduml

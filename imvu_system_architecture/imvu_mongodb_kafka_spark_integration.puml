@@ -1,0 +1,62 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+skinparam packageStyle rectangle
+!define SERVICE class
+
+SERVICE APP {
+  :Generates real-time user data;
+}
+
+SERVICE Kafka {
+  :Provides high-throughput message passing (Java);
+  :Ensures message order and durability (Kafka Streams);
+  :Includes topics for raw and processed data;
+}
+
+SERVICE "Spark Streaming" {
+  :Consumes raw data messages from Kafka (Java);
+  :Performs real-time data processing (Spark SQL);
+  :Publishes results back to Kafka (Java);
+}
+
+SERVICE "Spark Batch Processing" as BatchProcessing {
+  :Periodically processes large batches of data (Java);
+  :Executes complex data transformations and analysis (Spark MLlib);
+  :Publishes results back to Kafka (Java);
+}
+
+SERVICE "MongoDB Kafka Connector" as Connector {
+  :Captures real-time data changes from MongoDB (Java);
+  :Publishes changes as messages to Kafka topics (Java);
+}
+
+SERVICE MongoDB {
+  :Stores user and interaction data (Python);
+  :Supports complex queries (PyMongo);
+}
+
+SERVICE Elasticsearch {
+  :Stores and indexes processed data (Java);
+  :Supports fast search and real-time analytics (Elasticsearch DSL);
+}
+
+' Data flow from APP to Kafka
+APP -down-> Kafka : Sends real-time data\n(Java)
+
+' Data flow from Kafka to MongoDB
+Kafka -down-> "Spark Streaming" : Streams raw data for processing\n(Java)
+Kafka -down-> BatchProcessing : Batch processes raw data\n(Java)
+
+' Data flow from Processing to Kafka
+"Spark Streaming" -down-> Kafka : Publishes processed data messages\n(Java)
+BatchProcessing -down-> Kafka : Publishes batch-processed data messages\n(Java)
+
+' Data flow to storage
+Kafka -right-> MongoDB : Stores processed data\n(Java)
+Kafka -down-> Elasticsearch : Stores real-time processing results\n(Java)
+
+' Data flow from MongoDB to Kafka
+MongoDB -up-> Connector : Captures data changes\n(Java)
+Connector -up-> Kafka : Publishes raw data messages to Kafka\n(Java)
+
+@enduml

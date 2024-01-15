@@ -1,0 +1,49 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+skinparam class {
+    BackgroundColor White
+    ArrowColor Black
+    BorderColor Black
+}
+
+' 抽象类
+abstract class CacheConsistencySolution {
+    #strategyName: String
+    +applyStrategy(): void
+}
+
+' 具体策略类
+class InvalidateCacheStrategy
+class UpdateCacheOnWriteStrategy
+class TimestampOrVersioningStrategy
+class AsynchronousUpdateStrategy
+class ConsistentHashingStrategy
+class DistributedCacheStrategy
+class TransactionalCacheStrategy
+
+' 抽象类居中布局
+CacheConsistencySolution -left-|> InvalidateCacheStrategy
+CacheConsistencySolution -left-|> UpdateCacheOnWriteStrategy
+CacheConsistencySolution -up-|> TimestampOrVersioningStrategy
+CacheConsistencySolution -right-|> AsynchronousUpdateStrategy
+CacheConsistencySolution -right-|> ConsistentHashingStrategy
+CacheConsistencySolution -down-|> DistributedCacheStrategy
+CacheConsistencySolution -down-|> TransactionalCacheStrategy
+
+' 类细节
+InvalidateCacheStrategy : -cache: Cache
+InvalidateCacheStrategy : -dataService: DataService
+UpdateCacheOnWriteStrategy : -cache: Cache
+UpdateCacheOnWriteStrategy : -dataService: DataService
+TimestampOrVersioningStrategy : -cache: Cache
+TimestampOrVersioningStrategy : -dataService: DataService
+AsynchronousUpdateStrategy : -cache: Cache
+AsynchronousUpdateStrategy : -messageQueue: MessageQueue
+ConsistentHashingStrategy : -cacheNodes: List<CacheNode>
+ConsistentHashingStrategy : -hashFunction: HashFunction
+DistributedCacheStrategy : -cacheClusters: List<CacheCluster>
+DistributedCacheStrategy : -loadBalancer: LoadBalancer
+TransactionalCacheStrategy : -cache: Cache
+TransactionalCacheStrategy : -database: Database
+
+@enduml

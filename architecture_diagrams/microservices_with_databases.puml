@@ -1,0 +1,52 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+
+!define MICROSERVICE(x) component x <<Microservice>>
+!define MONGOS(x) database x <<Mongos>>
+!define SHARD(x) database x <<Shard>>
+!define CONFIGSVR(x) database x <<ConfigServer>>
+
+' 定义微服务
+MICROSERVICE(Service1)
+MICROSERVICE(Service2)
+
+' 定义路由服务器（Mongos）
+MONGOS(Mongos1)
+MONGOS(Mongos2)
+
+' 定义分片
+SHARD(Shard1)
+SHARD(Shard2)
+SHARD(Shard3)
+
+' 定义配置服务器
+CONFIGSVR(ConfigServer1)
+CONFIGSVR(ConfigServer2)
+CONFIGSVR(ConfigServer3)
+
+' 微服务连接到Mongos
+Service1 --> Mongos1 : 查询
+Service2 --> Mongos2 : 查询
+
+' Mongos连接到分片
+Mongos1 --> Shard1
+Mongos1 --> Shard2
+Mongos1 --> Shard3
+Mongos2 --> Shard1
+Mongos2 --> Shard2
+Mongos2 --> Shard3
+
+' Mongos连接到配置服务器
+Mongos1 --> ConfigServer1
+Mongos1 --> ConfigServer2
+Mongos1 --> ConfigServer3
+Mongos2 --> ConfigServer1
+Mongos2 --> ConfigServer2
+Mongos2 --> ConfigServer3
+
+' 分片间的副本集关系
+Shard1 .. Shard2 : 副本集
+Shard2 .. Shard3 : 副本集
+Shard3 .. Shard1 : 副本集
+
+@enduml
