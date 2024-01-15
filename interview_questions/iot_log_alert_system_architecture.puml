@@ -19,26 +19,26 @@ class "Message Queue" as MessageQueue {
 }
 
 class "Log Processing Service" as LogProcessing {
-    +Process and Analyze Logs
+    +Initial Log Processing
 }
 
 class "Database" as Database {
-    +Store Logs
+    +Store Processed Logs
+}
+
+class "Query Service" as QueryService {
+    +Handle Log Queries
 }
 
 class "Alert Service" as AlertService {
-    +Generate Alerts
-}
-
-class "User Interface" as UserInterface {
-    +Display Logs and Alerts
+    +Generate and Manage Alerts
 }
 
 IoTDevice -right-> LogCollector : Send Logs
 LogCollector -down-> MessageQueue : Push Logs
 MessageQueue -down-> LogProcessing : Transfer Logs
 LogProcessing -down-> Database : Store Logs
-LogProcessing -down-> AlertService : Trigger Alerts
-Database -right-> UserInterface : Fetch Logs
-AlertService -up-> UserInterface : Send Alert Information
+Database -left-> QueryService : Retrieve Logs
+LogProcessing -right-> AlertService : Analyze for Alerts
+AlertService -up-> QueryService : Alert Data
 @enduml
