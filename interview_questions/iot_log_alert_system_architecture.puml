@@ -22,8 +22,12 @@ class "Log Processing Service" as LogProcessing {
     +Initial Log Processing
 }
 
-class "Database" as Database {
+class "Master Database" as MasterDB {
     +Store Processed Logs
+}
+
+class "Replica Database" as ReplicaDB {
+    +Handle Read Queries
 }
 
 class "Query Service" as QueryService {
@@ -37,8 +41,15 @@ class "Alert Service" as AlertService {
 IoTDevice -right-> LogCollector : Send Logs
 LogCollector -down-> MessageQueue : Push Logs
 MessageQueue -down-> LogProcessing : Transfer Logs
-LogProcessing -down-> Database : Store Logs
-Database -left-> QueryService : Retrieve Logs
-LogProcessing -right-> AlertService : Analyze for Alerts
-AlertService -up-> QueryService : Alert Data
+LogProcessing -down-> MasterDB : Store Logs
+MasterDB -left-> ReplicaDB : Replicate Data
+ReplicaDB -up-> QueryService : Retrieve Logs for Queries
+ReplicaDB -right-> AlertService : Analyze for Alerts
+QueryService -up-> AlertService : Query for Specific Data
+
+note right of MasterDB
+  Composite Sharding Strategy:
+  - By Device
+  - By Time
+end note
 @enduml
