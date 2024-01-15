@@ -3,8 +3,13 @@ skinparam backgroundColor #D3D3D3
 
 package "Private Cloud Compute Nodes" {
     [Central Coordination Node] as Coordinator
-    [Producer Node 1] as PrivateProducer1
-    [Producer Node 2] as PrivateProducer2
+    frame "Apache Spark Cluster" {
+    [Distributed Producer Node 1] as DistProducer1
+    [Distributed Producer Node 2] as DistProducer2
+    }
+    frame "Kubernetes Cluster" {
+        [Kubernetes Autoscaler] as Autoscaler
+    }
     [Central Pub/Sub Messaging System] as PubSub
 }
 
@@ -15,12 +20,13 @@ package "Free Compute Resources Nodes" {
     
 [RESTful Thread API] as API
 
-Coordinator --> PrivateProducer1 : Manage
-Coordinator --> PrivateProducer2 : Manage
+Coordinator --> Autoscaler : Monitor & Adjust Resources
+Autoscaler --> DistProducer1 : Scale In/Out
+Autoscaler --> DistProducer2 : Scale In/Out
 Coordinator --> PubSub : Manage
     
-PrivateProducer1 --> PubSub : Publish Strings
-PrivateProducer2 --> PubSub : Publish Strings
+DistProducer1 --> PubSub : Publish Strings
+DistProducer2 --> PubSub : Publish Strings
 
 PubSub --> FreeConsumer1 : Subscribe & Get Strings
 PubSub --> FreeConsumer2 : Subscribe & Get Strings
