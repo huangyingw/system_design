@@ -2,11 +2,9 @@
 skinparam backgroundColor #D3D3D3
 
 package "Private Cloud Compute Nodes" {
-    [Central Coordination Node] as Coordinator
     [Producer Node 1] as PrivateProducer1
     [Producer Node 2] as PrivateProducer2
     [Consumer Node 1] as PrivateConsumer1
-    [Thread API] as API
 }
 
 package "Free Compute Resources Nodes" {
@@ -16,9 +14,14 @@ package "Free Compute Resources Nodes" {
     
 queue "Central Queue" as Queue
     
+[Central Coordination Node] as Coordinator
+[Thread API] as API
+
 Coordinator --> PrivateProducer1 : Manage
 Coordinator --> PrivateProducer2 : Manage
 Coordinator --> PrivateConsumer1 : Manage
+Coordinator --> FreeProducerN : Manage
+Coordinator --> FreeConsumerM : Manage
 Coordinator --> Queue : Manage
     
 PrivateProducer1 --> Queue : Put Strings
@@ -31,6 +34,8 @@ Queue --> FreeConsumerM : Get Strings
 PrivateConsumer1 --> API : Validate String
 FreeConsumerM --> API : Validate String
 
-API --> Coordinator : Return Results
+API --> Coordinator : Return Status Code
+
+Coordinator -up-> [Stop Signal] : If Correct String Found
 
 @enduml
