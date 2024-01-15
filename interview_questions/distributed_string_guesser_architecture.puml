@@ -9,6 +9,7 @@ package "Private Cloud Compute Nodes" {
     }
     frame "Kubernetes Cluster" {
         [Kubernetes Autoscaler] as Autoscaler
+        [Consumer Node 3 (Dynamic)] as DynamicConsumer3
     }
     [Central Pub/Sub Messaging System] as PubSub
 }
@@ -20,9 +21,10 @@ package "Free Compute Resources Nodes" {
     
 [RESTful Thread API] as API
 
-Coordinator --> Autoscaler : Monitor & Adjust Resources
+Coordinator --> Autoscaler : Monitor Queue & Adjust Resources
 Autoscaler --> DistProducer1 : Scale In/Out
 Autoscaler --> DistProducer2 : Scale In/Out
+Autoscaler --> DynamicConsumer3 : Scale In/Out
 Coordinator --> PubSub : Manage
     
 DistProducer1 --> PubSub : Publish Strings
@@ -30,12 +32,15 @@ DistProducer2 --> PubSub : Publish Strings
 
 PubSub --> FreeConsumer1 : Subscribe & Get Strings
 PubSub --> FreeConsumer2 : Subscribe & Get Strings
+PubSub --> DynamicConsumer3 : Subscribe & Get Strings
 
 FreeConsumer1 --> API : Validate String
 FreeConsumer2 --> API : Validate String
+DynamicConsumer3 --> API : Validate String
 
 API --> FreeConsumer1 : Return Status Code
 API --> FreeConsumer2 : Return Status Code
+API --> DynamicConsumer3 : Return Status Code
 
 Coordinator -up-> [Stop Signal] : If Correct String Found
 
