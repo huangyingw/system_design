@@ -5,33 +5,31 @@ package "Private Cloud Compute Nodes" {
     [Central Coordination Node] as Coordinator
     [Producer Node 1] as PrivateProducer1
     [Producer Node 2] as PrivateProducer2
-    queue "Central Queue" as Queue
+    [Central Pub/Sub Messaging System] as PubSub
 }
 
 package "Free Compute Resources Nodes" {
     [Consumer Node 1] as FreeConsumer1
     [Consumer Node 2] as FreeConsumer2
-    [Consumer Node N] as FreeConsumerN
 }
     
-[Thread API] as API
+[RESTful Thread API] as API
 
 Coordinator --> PrivateProducer1 : Manage
 Coordinator --> PrivateProducer2 : Manage
-Coordinator --> Queue : Manage
+Coordinator --> PubSub : Manage
     
-PrivateProducer1 --> Queue : Put Strings
-PrivateProducer2 --> Queue : Put Strings
+PrivateProducer1 --> PubSub : Publish Strings
+PrivateProducer2 --> PubSub : Publish Strings
 
-Queue --> FreeConsumer1 : Get Strings
-Queue --> FreeConsumer2 : Get Strings
-Queue --> FreeConsumerN : Get Strings
+PubSub --> FreeConsumer1 : Subscribe & Get Strings
+PubSub --> FreeConsumer2 : Subscribe & Get Strings
 
 FreeConsumer1 --> API : Validate String
 FreeConsumer2 --> API : Validate String
-FreeConsumerN --> API : Validate String
 
-API --> Coordinator : Return Status Code
+API --> FreeConsumer1 : Return Status Code
+API --> FreeConsumer2 : Return Status Code
 
 Coordinator -up-> [Stop Signal] : If Correct String Found
 
