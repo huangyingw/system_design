@@ -5,31 +5,31 @@ package "Private Cloud Compute Nodes" {
     [Central Coordination Node] as Coordinator
     [Producer Node 1] as PrivateProducer1
     [Producer Node 2] as PrivateProducer2
-    [Consumer Node 1] as PrivateConsumer1
     queue "Central Queue" as Queue
 }
 
 package "Free Compute Resources Nodes" {
-    [Producer Node N] as FreeProducerN
-    [Consumer Node M] as FreeConsumerM
+    [Consumer Node 1] as FreeConsumer1
+    [Consumer Node 2] as FreeConsumer2
+    [Consumer Node N] as FreeConsumerN
 }
     
 [Thread API] as API
 
 Coordinator --> PrivateProducer1 : Manage
 Coordinator --> PrivateProducer2 : Manage
-Coordinator --> PrivateConsumer1 : Manage
 Coordinator --> Queue : Manage
     
 PrivateProducer1 --> Queue : Put Strings
 PrivateProducer2 --> Queue : Put Strings
-FreeProducerN --> Queue : Put Strings
 
-Queue --> PrivateConsumer1 : Get Strings
-Queue --> FreeConsumerM : Get Strings
+Queue --> FreeConsumer1 : Get Strings
+Queue --> FreeConsumer2 : Get Strings
+Queue --> FreeConsumerN : Get Strings
 
-PrivateConsumer1 --> API : Validate String
-FreeConsumerM --> API : Validate String
+FreeConsumer1 --> API : Validate String
+FreeConsumer2 --> API : Validate String
+FreeConsumerN --> API : Validate String
 
 API --> Coordinator : Return Status Code
 
