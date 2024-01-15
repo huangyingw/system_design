@@ -1,0 +1,44 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+
+skinparam rectangle {
+    BackgroundColor PaleGreen
+    BorderColor DarkSlateGray
+}
+
+class "物联网设备\nIoT Device" as IoTDevice {
+    +产生日志
+}
+
+class "日志收集器\nLog Collector" as LogCollector {
+    +收集日志
+}
+
+class "消息队列\nMessage Queue" as MessageQueue {
+    +缓存日志数据
+}
+
+class "日志处理服务\nLog Processing Service" as LogProcessing {
+    +处理和分析日志
+}
+
+class "数据库\nDatabase" as Database {
+    +存储日志数据
+}
+
+class "报警服务\nAlert Service" as AlertService {
+    +生成报警
+}
+
+class "用户界面\nUser Interface" as UserInterface {
+    +显示日志和报警信息
+}
+
+IoTDevice -right-> LogCollector : 传输日志
+LogCollector -down-> MessageQueue : 推送日志
+MessageQueue -down-> LogProcessing : 转移日志
+LogProcessing -down-> Database : 存储日志
+LogProcessing -down-> AlertService : 触发报警
+Database -right-> UserInterface : 获取日志
+AlertService -up-> UserInterface : 发送报警信息
+@enduml
