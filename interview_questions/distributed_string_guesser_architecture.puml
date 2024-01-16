@@ -19,10 +19,13 @@ package "Free Compute Resources Nodes" {
     
 [RESTful Thread API] as API
 
-Coordinator --> Autoscaler : Monitor Queue & Adjust Resources
+Autoscaler --> PubSub : Monitor Queue Length
+Autoscaler --> DistProducer1 : Scale In/Out
+Autoscaler --> DistProducer2 : Scale In/Out
+Autoscaler --> DynamicConsumer3 : Scale In/Out
+
 Coordinator --> DistProducer1 : Assign Range & Manage
 Coordinator --> DistProducer2 : Assign Range & Manage
-Autoscaler --> DynamicConsumer3 : Scale In/Out
 Coordinator --> PubSub : Manage
     
 DistProducer1 --> PubSub : Publish Strings
