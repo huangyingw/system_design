@@ -43,21 +43,21 @@ Coordinator --> DistProducer1 : Assign Range & Manage
 Coordinator --> DistProducer2 : Assign Range & Manage
 Coordinator --> PubSub : Manage
     
-DistProducer1 --> PubSub : Publish Strings
-DistProducer2 --> PubSub : Publish Strings
+DistProducer1 --> PubSub : Publish Passwords
+DistProducer2 --> PubSub : Publish Passwords
 
-PubSub --> FreeConsumer1 : Subscribe & Get Strings
-PubSub --> FreeConsumer2 : Subscribe & Get Strings
-PubSub --> DynamicConsumer3 : Subscribe & Get Strings
+PubSub --> FreeConsumer1 : Subscribe & Get Passwords
+PubSub --> FreeConsumer2 : Subscribe & Get Passwords
+PubSub --> DynamicConsumer3 : Subscribe & Get Passwords
 
-FreeConsumer1 --> API : Validate String
-FreeConsumer2 --> API : Validate String
-DynamicConsumer3 --> API : Validate String
+FreeConsumer1 --> API : Validate Password
+FreeConsumer2 --> API : Validate Password
+DynamicConsumer3 --> API : Validate Password
 
 API --> FreeConsumer1 : Return Status Code
 API --> FreeConsumer2 : Return Status Code
 API --> DynamicConsumer3 : Return Status Code
 
-Coordinator -up-> [Stop Signal] : If Correct String Found
+Coordinator -up-> [Stop Signal] : If Correct Password Found
 
 @enduml
