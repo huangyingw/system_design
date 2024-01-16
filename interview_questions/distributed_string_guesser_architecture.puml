@@ -4,6 +4,15 @@ skinparam backgroundColor #D3D3D3
 package "Private Cloud Compute Nodes" {
     [Central Coordination Node] as Coordinator
     frame "Apache Spark Cluster" {
+        note right of "Apache Spark Cluster"
+          Apache Spark优点:
+          - 高效的大规模数据处理
+          - 优秀的内存计算性能
+          - 易于并行处理
+          - 弹性分布式数据集（RDD）支持容错
+          - 良好的动态负载适应能力
+          - 灵活的集成能力
+        end note
         [Distributed Producer Node 1 (Range A)] as DistProducer1
         [Distributed Producer Node 2 (Range B)] as DistProducer2
         [Kubernetes Autoscaler] as Autoscaler
