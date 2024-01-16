@@ -1,6 +1,12 @@
 @startuml
 skinparam backgroundColor #D3D3D3
 
+' System Description
+' Brute-Force Password Cracker: Aiming to recover a lost password for a colleague's Threads account using brute-force attack.
+' The process could take several months to years, utilizing both paid computing resources (from private cloud providers like AWS, Azure, GCP)
+' and free resources in the form of a temporary public computer network.
+' The integration of these two types of resources (Private Cloud Resources and Free Compute Resources) is not clear.
+
 package "Private Cloud Compute Nodes" {
     [Central Coordination Node] as Coordinator
     frame "Apache Spark Cluster" {
