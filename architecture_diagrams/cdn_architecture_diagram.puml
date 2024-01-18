@@ -1,0 +1,49 @@
+@startuml
+
+!define CLIENT_COLOR #D4E6F1
+!define DNS_COLOR #ABEBC6
+!define CDN_EDGE_COLOR #FAD7A0
+!define ORIGIN_SERVER_COLOR #F5B7B1
+!define CMS_COLOR #D7BDE2
+!define LOAD_BALANCER_COLOR #A9CCE3
+!define DATA_CENTER_COLOR #AED6F1
+
+package "客户端 (Client)" <<Rectangle>> {
+  [客户端] #CLIENT_COLOR
+}
+
+package "DNS 解析器 (DNS Resolver)" <<Rectangle>> {
+  [DNS 解析器] #DNS_COLOR
+}
+
+package "CDN 边缘服务器 (CDN Edge Server)" <<Rectangle>> {
+  [CDN 边缘服务器] #CDN_EDGE_COLOR
+}
+
+package "原始服务器 (Origin Server)" <<Rectangle>> {
+  [原始服务器] #ORIGIN_SERVER_COLOR
+}
+
+package "内容管理系统 (Content Management System)" <<Rectangle>> {
+  [内容管理系统] #CMS_COLOR
+}
+
+package "负载均衡器 (Load Balancer)" <<Rectangle>> {
+  [负载均衡器] #LOAD_BALANCER_COLOR
+}
+
+package "数据中心 (Data Center)" <<Rectangle>> {
+  [数据中心] #DATA_CENTER_COLOR
+}
+
+[客户端] --> [DNS 解析器] : 请求解析域名
+[DNS 解析器] --> [CDN 边缘服务器] : 解析的IP
+[客户端] --> [CDN 边缘服务器] : 请求内容
+[CDN 边缘服务器] --> [原始服务器] : 请求原始内容
+[原始服务器] --> [CDN 边缘服务器] : 返回原始内容
+[原始服务器] --> [内容管理系统] : 更新内容
+[内容管理系统] --> [原始服务器] : 管理内容
+[原始服务器] --> [负载均衡器] : 发送请求
+[负载均衡器] --> [数据中心] : 分配请求
+
+@enduml
