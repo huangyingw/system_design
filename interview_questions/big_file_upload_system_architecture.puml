@@ -3,25 +3,25 @@ skinparam backgroundColor #D3D3D3
 
 !define RECTANGLE class
 
-RECTANGLE 客户端
-RECTANGLE 文件切块器
-RECTANGLE 负载均衡器
-RECTANGLE 上传服务
-RECTANGLE HDFS存储服务
-RECTANGLE 数据库
-RECTANGLE 断点续传管理
-RECTANGLE 安全服务
-RECTANGLE 数据校验服务
+RECTANGLE Client
+RECTANGLE FileChunker
+RECTANGLE LoadBalancer
+RECTANGLE UploadService
+RECTANGLE HDFSStorageService
+RECTANGLE Database
+RECTANGLE ResumableUploadManager
+RECTANGLE SecurityService
+RECTANGLE DataValidationService
 
-客户端 -down-> 文件切块器 : 切割大文件
-文件切块器 -down-> 负载均衡器 : 上传文件片
-负载均衡器 -down-> 上传服务 : 路由文件片
-上传服务 -down-> HDFS存储服务 : 存储文件片
-上传服务 -right-> 数据库 : 更新元数据
-HDFS存储服务 -left-> 数据库 : 更新存储状态
-客户端 -right-> 断点续传管理 : 管理文件片
-断点续传管理 -down-> 上传服务 : 管理上传状态
-上传服务 -down-> 安全服务 : 安全校验
-上传服务 -down-> 数据校验服务 : 校验文件完整性
+Client -down-> FileChunker : Split large file
+FileChunker -down-> LoadBalancer : Upload file chunks
+LoadBalancer -down-> UploadService : Route file chunks
+UploadService -down-> HDFSStorageService : Store file chunks
+HDFSStorageService -right-> Database : Log chunk location & status
+Database -up-> UploadService : Map chunks to original file
+Client -right-> ResumableUploadManager : Manage file chunks
+ResumableUploadManager -down-> UploadService : Manage upload status
+UploadService -down-> SecurityService : Security checks
+UploadService -down-> DataValidationService : Validate file integrity
 
 @enduml
