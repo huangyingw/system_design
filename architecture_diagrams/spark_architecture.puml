@@ -1,46 +1,56 @@
 @startuml
 skinparam backgroundColor #D3D3D3
 
-package "Apache Spark Application" {
+package "Spark on Kubernetes Application" {
     [Driver Program\n(Scala, Java, Python, R)] as Driver
         [SparkContext\n(Scala, Java, Python, R)] as SC
         [DAG Scheduler\n(Scala)] as DAG
         [Task Scheduler\n(Scala)] as TS
-    [Cluster Manager\n(Java, Scala)] as Manager
-    database "Data Storage System\n(Java)" as Storage {
-        [HDFS\n(Java)]
-        [Elasticsearch]
-        [Other Sources] as Others
+
+    package "Kubernetes Cluster" {
+        [Kubernetes Master\n(Java, Scala)] as K8sMaster
+        [Kubernetes API] as K8sAPI
     }
 
-    package "Worker Node 1" {
+    package "Kubernetes Worker Node 1" {
+        [Pod 1\n(Kubernetes)] as Pod1
         [Executor 1\n(Scala, Java, Python, R)] as E1
         [Cache 1] as C1
         [Task 1.1\n(Scala, Java, Python, R)] as T11
         [Task 1.2\n(Scala, Java, Python, R)] as T12
     }
-    package "Worker Node 2" {
+
+    package "Kubernetes Worker Node 2" {
+        [Pod 2\n(Kubernetes)] as Pod2
         [Executor 2\n(Scala, Java, Python, R)] as E2
         [Cache 2] as C2
         [Task 2.1\n(Scala, Java, Python, R)] as T21
         [Task 2.2\n(Scala, Java, Python, R)] as T22
+    }
+
+    database "Data Storage System\n(Java)" as Storage {
+        [HDFS\n(Java)]
+        [Elasticsearch]
+        [Other Sources] as Others
     }
 }
 
 Driver --> SC : Use
 SC --> DAG : Convert to DAG
 SC --> TS : Submit Tasks
-SC --> Manager : Resource Request
+SC --> K8sAPI : Deploy Driver/Executors
 DAG --> TS : Execution Planning
-TS --> Manager : Task Allocation
-Manager --> E1 : Allocate Executor
-Manager --> E2 : Allocate Executor
+TS --> K8sAPI : Request Executors
+K8sMaster --> Pod1 : Schedule Pod
+K8sMaster --> Pod2 : Schedule Pod
+Pod1 --> E1 : Run Executor
+E1 --> C1 : Data Caching
 E1 --> T11 : Execute Task
 E1 --> T12 : Execute Task
+Pod2 --> E2 : Run Executor
+E2 --> C2 : Data Caching
 E2 --> T21 : Execute Task
 E2 --> T22 : Execute Task
-E1 --> C1 : Data Caching
-E2 --> C2 : Data Caching
 E1 --> Storage : Read/Write Data
 E2 --> Storage : Read/Write Data
 
@@ -72,12 +82,18 @@ note right of Storage
   Provides Long-term Data Storage and Fault Tolerance
 end note
 
-note right of Manager
-  Fault Tolerance and Recovery Mechanism
-  Detect Node Failures
-  Reallocate Tasks
-  Lost Partitions Recomputed
-  Based on Original Data and RDD
+note right of K8sMaster
+  Kubernetes Master:
+  - Manages the Kubernetes Cluster
+  - Schedules and Orchestrates Pods
+  - Provides Cluster Management Capabilities
+end note
+
+note right of E1
+  Executors run in Kubernetes Pods
+  Each Pod represents a Spark Executor
+  Pods are managed by Kubernetes
+  Executors perform Tasks and may have local Cache
 end note
 
 @enduml
