@@ -14,7 +14,7 @@ class "Log Collector" as LogCollector {
     +Collect Logs
 }
 
-class "Message Queue" as MessageQueue {
+class "Kafka Queue" as Kafka {
     +Queue Logs
 }
 
@@ -38,14 +38,28 @@ class "Alert Service" as AlertService {
     +Generate and Manage Alerts
 }
 
+class "Stream Processing\n(Flink/Spark)" as StreamProcessing {
+    +Real-time Log Analysis
+}
+
+class "Statistics Database" as StatsDB {
+    +Store Analysis Results
+}
+
+class "API Server" as APIServer {
+    +Provide Statistics Data
+}
+
 IoTDevice -right-> LogCollector : Send Logs
-LogCollector -down-> MessageQueue : Push Logs
-MessageQueue -down-> LogProcessing : Transfer Logs
+LogCollector -down-> Kafka : Push Logs
+Kafka -down-> LogProcessing : Transfer Logs
+Kafka -right-> StreamProcessing : Stream Logs
 LogProcessing -down-> MasterDB : Store Logs
 MasterDB -left-> ReplicaDB : Replicate Data
 ReplicaDB -up-> QueryService : Retrieve Logs for Queries
 ReplicaDB -right-> AlertService : Analyze for Alerts
-QueryService -up-> AlertService : Query for Specific Data
+StreamProcessing -down-> StatsDB : Store Statistics
+StatsDB -right-> APIServer : Fetch Statistics
 
 note right of MasterDB
   Composite Sharding Strategy:
