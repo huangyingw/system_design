@@ -18,39 +18,10 @@ package "CDN 系统架构" {
     GeoDB -left-> LB : "Step 3: 定位到最近的分发服务器"
     LB -down-> DS : "Step 4: 负载均衡"
     DS -left-> CacheLogic : "Step 5: 检查缓存"
-    CacheLogic -up..> Origin : "Step 6: 请求源站（如果未缓存）"
-    Origin -right..> DS : "Step 7: 提供内容（如果未缓存）"
+    CacheLogic -up-> Origin : "Step 6: 请求源站（如果未缓存）"
+    Origin -right-> DS : "Step 7: 提供内容（如果未缓存）"
     DS -up-> User : "Step 8: 响应用户请求"
     CMS -left-> Origin : "更新和管理内容"
 }
-
-' 用户请求处理流程
-note right of User
-  用户请求\nStep 1: 用户发起DNS请求以解析服务地址
-end note
-
-note right of DNSServer
-  DNS解析\nStep 2: DNS服务器解析请求，确定用户地理位置
-end note
-
-note left of LB
-  选择服务器\nStep 3: 根据用户位置选择最佳分发服务器
-end note
-
-note right of DS
-  分发处理\nStep 4: 分发服务器处理请求，先检查缓存
-end note
-
-note left of CacheLogic
-  缓存检查\nStep 5: 检查本地缓存，如果未缓存则请求源站
-end note
-
-note left of Origin
-  源站响应\nStep 6 & 7: 如果请求的内容未缓存，源站提供内容给分发服务器
-end note
-
-note left of CMS
-  内容管理\n管理源站的内容更新和维护
-end note
 
 @enduml
