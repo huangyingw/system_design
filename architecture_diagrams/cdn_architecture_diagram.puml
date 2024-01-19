@@ -1,26 +1,32 @@
 @startuml
 skinparam backgroundColor #D3D3D3
-!define RECTANGLE class
-!define DATABASE class
-
-RECTANGLE "用户\nUser" as User
+skinparam rectangle {
+  BackgroundColor White
+  BorderColor Black
+  Shadowing false
+}
 
 package "CDN 系统架构" {
     RECTANGLE "源站\nOrigin Server" as Origin
-    DATABASE "分发服务器（含缓存）\nDistribution Servers (with Cache)" as DS
+    DATABASE "分发服务器\nDistribution Servers" as DS {
+        DATABASE "缓存\nCache" as Cache
+    }
     RECTANGLE "负载均衡器\nLoad Balancer" as LB
     RECTANGLE "内容管理系统\nContent Management System" as CMS
     RECTANGLE "DNS服务器\nDNS Server" as DNSServer
     RECTANGLE "地理位置数据库\nGeo-Location Database" as GeoDB
 
-    User -right-> DNSServer : "Step 1: DNS请求"
     DNSServer -down-> GeoDB : "Step 2: 地理定位"
     GeoDB -left-> LB : "Step 3: 定位到最近的分发服务器"
     LB -down-> DS : "Step 4: 负载均衡"
-    DS -down-> Origin : "Step 5: 请求源站（如果未缓存）"
-    Origin -right-> DS : "Step 6: 更新缓存并提供内容"
-    DS -up-> User : "Step 7: 响应用户请求"
+    DS -left-> Cache : "Step 5: 检查缓存"
+    Cache -down-> Origin : "Step 6: 请求源站（如果未缓存）"
+    Origin -up-> Cache : "Step 7: 更新缓存并提供内容"
+    Cache -right-> DS : "Step 8: 提供缓存内容"
     CMS -left-> Origin : "更新和管理内容"
 }
 
+RECTANGLE "用户\nUser" as User
+User -right-> DNSServer : "Step 1: DNS请求"
+DS -up-> User : "Step 9: 响应用户请求"
 @enduml
