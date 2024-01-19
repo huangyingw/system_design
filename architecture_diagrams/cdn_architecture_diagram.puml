@@ -12,18 +12,16 @@ package "CDN 系统架构" {
         DATABASE "缓存\nCache" as Cache
     }
     RECTANGLE "负载均衡器\nLoad Balancer" as LB
-    RECTANGLE "内容管理系统\nContent Management System" as CMS
     RECTANGLE "DNS服务器\nDNS Server" as DNSServer
     RECTANGLE "地理位置数据库\nGeo-Location Database" as GeoDB
 
     DNSServer -down-> GeoDB : "Step 2: 地理定位"
     GeoDB -left-> LB : "Step 3: 定位到最近的分发服务器"
     LB -down-> DS : "Step 4: 负载均衡"
-    DS -left-> Cache : "Step 5: 检查缓存"
+    DS -down-> Cache : "Step 5: 检查缓存"
     Cache -down-> Origin : "Step 6: 请求源站（如果未缓存）"
     Origin -up-> Cache : "Step 7: 更新缓存并提供内容"
-    Cache -right-> DS : "Step 8: 提供缓存内容"
-    CMS -left-> Origin : "更新和管理内容"
+    Cache -up-> DS : "Step 8: 提供缓存内容"
 }
 
 RECTANGLE "用户\nUser" as User
