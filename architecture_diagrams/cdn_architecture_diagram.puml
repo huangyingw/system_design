@@ -3,12 +3,13 @@ skinparam backgroundColor #D3D3D3
 !define RECTANGLE class
 !define DATABASE class
 
+RECTANGLE "用户\nUser" as User
+
 package "CDN 系统架构" {
-    RECTANGLE "用户\nUser" as User
     RECTANGLE "源站\nOrigin Server" as Origin
         DATABASE "分发服务器\nDistribution Servers" as DS
     RECTANGLE "负载均衡器\nLoad Balancer" as LB
-    RECTANGLE "缓存逻辑\nCache Logic" as CacheLogic
+    RECTANGLE "缓存\nCache" as Cache
     RECTANGLE "内容管理系统\nContent Management System" as CMS
     RECTANGLE "DNS服务器\nDNS Server" as DNSServer
     RECTANGLE "地理位置数据库\nGeo-Location Database" as GeoDB
@@ -17,10 +18,11 @@ package "CDN 系统架构" {
     DNSServer -down-> GeoDB : "Step 2: 地理定位"
     GeoDB -left-> LB : "Step 3: 定位到最近的分发服务器"
     LB -down-> DS : "Step 4: 负载均衡"
-    DS -left-> CacheLogic : "Step 5: 检查缓存"
-    CacheLogic -up-> Origin : "Step 6: 请求源站（如果未缓存）"
-    Origin -right-> DS : "Step 7: 提供内容（如果未缓存）"
-    DS -up-> User : "Step 8: 响应用户请求"
+    DS -left-> Cache : "Step 5: 检查缓存"
+    Cache -up-> Origin : "Step 6: 请求源站（如果未缓存）"
+    Origin -right-> Cache : "Step 7: 更新缓存并提供内容"
+    Cache -down-> DS : "Step 8: 提供缓存内容"
+    DS -up-> User : "Step 9: 响应用户请求"
     CMS -left-> Origin : "更新和管理内容"
 }
 
