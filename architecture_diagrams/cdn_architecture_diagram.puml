@@ -1,18 +1,56 @@
 @startuml
 skinparam backgroundColor #D3D3D3
+!define RECTANGLE class
+!define DATABASE class
 
 package "CDN 系统架构" {
+    RECTANGLE "用户\nUser" as User
     RECTANGLE "源站\nOrigin Server" as Origin
-    RECTANGLE "分发服务器\nDistribution Servers" as Distribution
-    RECTANGLE "DNS解析\nDNS Resolution" as DNS
-    RECTANGLE "负载均衡\nLoad Balancing" as LoadBalancing
-    RECTANGLE "网络\nNetwork" as Network
+        DATABASE "分发服务器\nDistribution Servers" as DS
+    RECTANGLE "负载均衡器\nLoad Balancer" as LB
+    RECTANGLE "缓存逻辑\nCache Logic" as CacheLogic
+    RECTANGLE "内容管理系统\nContent Management System" as CMS
+    RECTANGLE "DNS服务器\nDNS Server" as DNSServer
+    RECTANGLE "地理位置数据库\nGeo-Location Database" as GeoDB
 
-    Origin -down-> Network : 连接
-    Network -right-> Distribution : 缓存内容
-    DNS -down-> Network : 解析请求
-    Network -left-> LoadBalancing : 管理请求
-    LoadBalancing -down-> Network : 分配流量
+    User -right-> DNSServer : "Step 1: DNS请求"
+    DNSServer -down-> GeoDB : "Step 2: 地理定位"
+    GeoDB -left-> LB : "Step 3: 定位到最近的分发服务器"
+    LB -down-> DS : "Step 4: 负载均衡"
+    DS -left-> CacheLogic : "Step 5: 检查缓存"
+    CacheLogic -up..> Origin : "Step 6: 请求源站（如果未缓存）"
+    Origin -right..> DS : "Step 7: 提供内容（如果未缓存）"
+    DS -up-> User : "Step 8: 响应用户请求"
+    CMS -left-> Origin : "更新和管理内容"
 }
+
+' 用户请求处理流程
+note right of User
+  用户请求\nStep 1: 用户发起DNS请求以解析服务地址
+end note
+
+note right of DNSServer
+  DNS解析\nStep 2: DNS服务器解析请求，确定用户地理位置
+end note
+
+note left of LB
+  选择服务器\nStep 3: 根据用户位置选择最佳分发服务器
+end note
+
+note right of DS
+  分发处理\nStep 4: 分发服务器处理请求，先检查缓存
+end note
+
+note left of CacheLogic
+  缓存检查\nStep 5: 检查本地缓存，如果未缓存则请求源站
+end note
+
+note left of Origin
+  源站响应\nStep 6 & 7: 如果请求的内容未缓存，源站提供内容给分发服务器
+end note
+
+note left of CMS
+  内容管理\n管理源站的内容更新和维护
+end note
 
 @enduml
