@@ -8,23 +8,40 @@ skinparam rectangle {
 
 package "CDN 系统架构" {
     RECTANGLE "源站\nOrigin Server" as Origin
-    DATABASE "分发服务器\nDistribution Servers" as DS {
-        DATABASE "缓存\nCache" as Cache
+    
+    RECTANGLE "全局负载均衡器\nGlobal Load Balancer" as GLB {
+        RECTANGLE "地理位置数据库\nGeo-Location Database" as GeoDB
     }
-    RECTANGLE "负载均衡器\nLoad Balancer" as LB
-    RECTANGLE "DNS服务器\nDNS Server" as DNSServer
-    RECTANGLE "地理位置数据库\nGeo-Location Database" as GeoDB
+    
+    DATABASE "区域负载均衡器\nRegional Load Balancer" as RLB1
+    DATABASE "区域负载均衡器\nRegional Load Balancer" as RLB2
+    
+    DATABASE "分发服务器群组 1\nDistribution Servers Group 1" as DSG1 {
+        DATABASE "缓存\nCache" as Cache1
+    }
+    
+    DATABASE "分发服务器群组 2\nDistribution Servers Group 2" as DSG2 {
+        DATABASE "缓存\nCache" as Cache2
+    }
 
-    DNSServer -down-> GeoDB : "Step 2: 地理定位"
-    GeoDB -left-> LB : "Step 3: 定位到最近的分发服务器"
-    LB -down-> DS : "Step 4: 负载均衡"
-    DS -down-> Cache : "Step 5: 检查缓存"
-    Cache -down-> Origin : "Step 6: 请求源站（如果未缓存）"
-    Origin -up-> Cache : "Step 7: 更新缓存并提供内容"
-    Cache -up-> DS : "Step 8: 提供缓存内容"
+    RECTANGLE "DNS服务器\nDNS Server" as DNSServer
+
+    DNSServer -down-> GLB : "Step 2: DNS解析"
+    GLB -down-> RLB1 : "Step 3: 路由至区域负载均衡器"
+    GLB -down-> RLB2
+    RLB1 -down-> DSG1 : "Step 4: 区域内负载均衡"
+    RLB2 -down-> DSG2
+    DSG1 -down-> Cache1 : "Step 5: 检查缓存"
+    DSG2 -down-> Cache2
+    Cache1 -down-> Origin : "Step 6: 请求源站（如果未缓存）"
+    Cache2 -down-> Origin
+    Origin -up-> Cache1 : "Step 7: 更新缓存并提供内容"
+    Origin -up-> Cache2
 }
 
 RECTANGLE "用户\nUser" as User
-User -right-> DNSServer : "Step 1: DNS请求"
-DS -up-> User : "Step 9: 响应用户请求"
+User -right-> DNSServer : "Step 1: 用户请求"
+DSG1 -up-> User : "Step 8: 响应用户请求"
+DSG2 -up-> User
+
 @enduml
