@@ -34,6 +34,15 @@ package "Akamai CDN 系统" {
     CacheB ..> CacheA : "缓存键查询\nCache Key Query"
     CacheA ..> EdgeA : "TTL过期处理\nTTL Expiry Handling"
     CacheB ..> EdgeB : "TTL过期处理\nTTL Expiry Handling"
+
+    ' 缓存键细节
+    note right of CacheA
+      缓存键细节:
+      - 主机名
+      - 路径
+      - 查询字符串
+      - 请求头
+    end note
 }
 
 ' 用户请求
