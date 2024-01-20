@@ -6,35 +6,35 @@ skinparam rectangle {
   Shadowing false
 }
 
-package "Akamai CDN 系统" {
-    rectangle "全局负载均衡器\nGlobal Load Balancer" as GLB
-    rectangle "地理位置数据库\nGeo-Location Database" as GeoDB
+package "Akamai CDN System" {
+    rectangle "Global Load Balancer" as GLB
+    rectangle "Geo-Location Database" as GeoDB
 
-    rectangle "边缘服务器 A\nEdge Server A" as EdgeA {
-        database "缓存 A\nCache A" as CacheA
+    rectangle "Edge Server A" as EdgeA {
+        database "Cache A" as CacheA
     }
-    rectangle "边缘服务器 B\nEdge Server B" as EdgeB {
-        database "缓存 B\nCache B" as CacheB
+    rectangle "Edge Server B" as EdgeB {
+        database "Cache B" as CacheB
     }
-    rectangle "源站\nOrigin Server" as Origin
+    rectangle "Origin Server" as Origin
 
-    GLB --> GeoDB : "地理位置查询\nGeolocation Query"
-    GeoDB -down-> EdgeA : "路由请求到A\nRoute Request to A"
-    GeoDB -down-> EdgeB : "路由请求到B\nRoute Request to B"
-    EdgeA --> CacheA : "请求/存储内容\nRequest/Store Content"
-    EdgeB --> CacheB : "请求/存储内容\nRequest/Store Content"
-    CacheA --> Origin : "回源（如果未缓存）\nBack to Origin (if not cached)"
-    CacheB --> Origin : "回源（如果未缓存）\nBack to Origin (if not cached)"
+    GLB --> GeoDB : "Geolocation Query"
+    GeoDB -down-> EdgeA : "Route Request to A"
+    GeoDB -down-> EdgeB : "Route Request to B"
+    EdgeA --> CacheA : "Request/Store Content"
+    EdgeB --> CacheB : "Request/Store Content"
+    CacheA --> Origin : "Back to Origin (if not cached)"
+    CacheB --> Origin : "Back to Origin (if not cached)"
 
-    CacheA ..> CacheB : "缓存键查询\nCache Key Query"
-    CacheB ..> CacheA : "缓存键查询\nCache Key Query"
-    CacheA ..> EdgeA : "TTL过期处理\nTTL Expiry Handling"
-    CacheB ..> EdgeB : "TTL过期处理\nTTL Expiry Handling"
+    CacheA ..> CacheB : "Cache Key Query"
+    CacheB ..> CacheA : "Cache Key Query"
+    CacheA ..> EdgeA : "TTL Expiry Handling"
+    CacheB ..> EdgeB : "TTL Expiry Handling"
 
-    rectangle "预缓存策略\nPre-Caching Strategy" as PreCache
-    rectangle "缓存同步\nCache Synchronization" as Sync
-    rectangle "智能路由\nIntelligent Routing" as Routing
-    rectangle "局部性原则\nLocality Principle" as Locality
+    rectangle "Pre-Caching Strategy" as PreCache
+    rectangle "Cache Synchronization" as Sync
+    rectangle "Intelligent Routing" as Routing
+    rectangle "Locality Principle" as Locality
 
     PreCache -down-> CacheA
     PreCache -down-> CacheB
@@ -44,16 +44,16 @@ package "Akamai CDN 系统" {
     Locality -down-> GeoDB
 }
 
-rectangle "用户\nUser" as User
-User -right-> GLB : "请求内容\nRequest Content"
+rectangle "User" as User
+User -right-> GLB : "Request Content"
 
-    ' 缓存键细节
+    ' Cache Key Details
     note right of CacheA
-      缓存键细节:
-      - 主机名
-      - 路径
-      - 查询字符串
-      - 请求头
+      Cache Key Details:
+      - Hostname
+      - Path
+      - Query String
+      - Request Headers
     end note
 
 @enduml
