@@ -6,31 +6,38 @@ skinparam rectangle {
   Shadowing false
 }
 
+' CDN 系统架构
 package "Akamai CDN 系统" {
-    rectangle "全局负载均衡器" as GLB
-    rectangle "地理位置数据库" as GeoDB
+    rectangle "全局负载均衡器\nGlobal Load Balancer" as GLB
+    rectangle "地理位置数据库\nGeo-Location Database" as GeoDB
 
-    rectangle "边缘服务器 A" as EdgeA {
-        database "缓存 A" as CacheA
+    ' 边缘服务器和缓存
+    rectangle "边缘服务器 A\nEdge Server A" as EdgeA {
+        database "缓存 A\nCache A" as CacheA
     }
-    rectangle "边缘服务器 B" as EdgeB {
-        database "缓存 B" as CacheB
+    rectangle "边缘服务器 B\nEdge Server B" as EdgeB {
+        database "缓存 B\nCache B" as CacheB
     }
-    rectangle "源站" as Origin
+    rectangle "源站\nOrigin Server" as Origin
 
-    GLB --> GeoDB : "地理位置查询"
-    GeoDB -down-> EdgeA : "路由请求"
-    GeoDB -down-> EdgeB
-    EdgeA --> CacheA : "请求/存储内容"
-    EdgeB --> CacheB : "请求/存储内容"
-    CacheA --> Origin : "回源（如果未缓存）"
-    CacheB --> Origin : "回源（如果未缓存）"
+    ' 请求和缓存流程
+    GLB --> GeoDB : "地理位置查询\nGeolocation Query"
+    GeoDB -down-> EdgeA : "路由请求到A\nRoute Request to A"
+    GeoDB -down-> EdgeB : "路由请求到B\nRoute Request to B"
+    EdgeA --> CacheA : "请求/存储内容\nRequest/Store Content"
+    EdgeB --> CacheB : "请求/存储内容\nRequest/Store Content"
+    CacheA --> Origin : "回源（如果未缓存）\nBack to Origin (if not cached)"
+    CacheB --> Origin : "回源（如果未缓存）\nBack to Origin (if not cached)"
 
-    CacheA ..> CacheB : "缓存键查询"
-    CacheB ..> CacheA : "缓存键查询"
+    ' 缓存键和TTL处理
+    CacheA ..> CacheB : "缓存键查询\nCache Key Query"
+    CacheB ..> CacheA : "缓存键查询\nCache Key Query"
+    CacheA ..> EdgeA : "TTL过期处理\nTTL Expiry Handling"
+    CacheB ..> EdgeB : "TTL过期处理\nTTL Expiry Handling"
 }
 
-rectangle "用户" as User
-User -right-> GLB : "请求内容"
+' 用户请求
+rectangle "用户\nUser" as User
+User -right-> GLB : "请求内容\nRequest Content"
 
 @enduml
