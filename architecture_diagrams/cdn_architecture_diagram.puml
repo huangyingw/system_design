@@ -24,6 +24,7 @@ package "CDN 系统架构" {
         DATABASE "缓存 2\nCache 2" as Cache2
     }
 
+    RECTANGLE "缓存决策系统\nCache Decision System" as CDS
     RECTANGLE "DNS服务器\nDNS Server" as DNSServer
 
     DNSServer -down-> GLB : "Step 2: DNS解析"
@@ -34,12 +35,14 @@ package "CDN 系统架构" {
     RLB2 -down-> DS2
     DS1 -down-> Cache1 : "Step 6: 检查缓存"
     DS2 -down-> Cache2
+    Cache1 -left-> CDS : "缓存查询"
+    Cache2 -right-> CDS : "缓存查询"
+    CDS -up-> Cache1 : "缓存决策"
+    CDS -up-> Cache2 : "缓存决策"
     Cache1 -down-> Origin : "Step 7: 请求源站（如果未缓存）"
     Cache2 -down-> Origin
     Origin -up-> Cache1 : "Step 8: 更新缓存并提供内容"
     Origin -up-> Cache2
-    Cache1 -[hidden]right-> Cache2
-    Cache2 -[dashed]left-> Cache1 : "缓存对等查询"
 }
 
 RECTANGLE "用户\nUser" as User
