@@ -1,0 +1,36 @@
+@startuml
+skinparam backgroundColor #EEEBDA
+skinparam rectangle {
+  BackgroundColor White
+  BorderColor Black
+  Shadowing false
+}
+
+package "Akamai CDN 系统" {
+    rectangle "全局负载均衡器" as GLB
+    rectangle "地理位置数据库" as GeoDB
+
+    rectangle "边缘服务器 A" as EdgeA {
+        database "缓存 A" as CacheA
+    }
+    rectangle "边缘服务器 B" as EdgeB {
+        database "缓存 B" as CacheB
+    }
+    rectangle "源站" as Origin
+
+    GLB --> GeoDB : "地理位置查询"
+    GeoDB -down-> EdgeA : "路由请求"
+    GeoDB -down-> EdgeB
+    EdgeA --> CacheA : "请求/存储内容"
+    EdgeB --> CacheB : "请求/存储内容"
+    CacheA --> Origin : "回源（如果未缓存）"
+    CacheB --> Origin : "回源（如果未缓存）"
+
+    CacheA ..> CacheB : "缓存键查询"
+    CacheB ..> CacheA : "缓存键查询"
+}
+
+rectangle "用户" as User
+User -right-> GLB : "请求内容"
+
+@enduml

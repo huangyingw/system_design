@@ -1,0 +1,43 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+skinparam rectangle {
+  BackgroundColor White
+  BorderColor Black
+  Shadowing false
+}
+
+package "CDN 系统" {
+    rectangle "全局负载均衡器" as GLB
+    rectangle "地理位置数据库" as GeoDB
+
+    rectangle "CDN节点 A" as CDNA {
+        database "缓存 A" as CacheA
+    }
+    rectangle "CDN节点 B" as CDNB {
+        database "缓存 B" as CacheB
+    }
+    rectangle "源站" as Origin
+
+    rectangle "CDN节点 C" as CDNC {
+        database "缓存 C" as CacheC
+    }
+
+    GLB --> GeoDB : "地理位置查询"
+    GeoDB -down-> CDNA : "路由请求"
+    GeoDB -down-> CDNB
+    GeoDB -down-> CDNC
+    CDNA --> CacheA : "请求/存储内容"
+    CDNB --> CacheB : "请求/存储内容"
+    CDNC --> CacheC : "请求/存储内容"
+    CacheA --> Origin : "回源（如果未缓存）"
+    CacheB --> Origin : "回源（如果未缓存）"
+    CacheC --> Origin : "回源（如果未缓存）"
+    CacheA ..> CacheB : "共享缓存查询"
+    CacheB ..> CacheC : "共享缓存查询"
+    CacheC ..> CacheA : "共享缓存查询"
+}
+
+rectangle "用户" as User
+User -right-> GLB : "请求内容"
+
+@enduml
