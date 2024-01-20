@@ -38,6 +38,8 @@ package "CDN 系统架构" {
     Cache2 -down-> Origin
     Origin -up-> Cache1 : "Step 8: 更新缓存并提供内容"
     Origin -up-> Cache2
+    Cache1 -[hidden]right-> Cache2
+    Cache2 -[dashed]left-> Cache1 : "缓存对等查询"
 }
 
 RECTANGLE "用户\nUser" as User
