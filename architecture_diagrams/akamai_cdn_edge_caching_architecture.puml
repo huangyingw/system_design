@@ -6,6 +6,7 @@ skinparam rectangle {
   Shadowing false
 }
 
+' Akamai CDN System Structure
 package "Akamai CDN System" {
     rectangle "Global Load Balancer" as GLB
     rectangle "Geo-Location Database" as GeoDB
@@ -18,6 +19,7 @@ package "Akamai CDN System" {
     }
     rectangle "Origin Server" as Origin
 
+    ' Connection between components
     GLB --> GeoDB : "Geolocation Query"
     GeoDB -down-> EdgeA : "Route Request to A"
     GeoDB -down-> EdgeB : "Route Request to B"
@@ -26,22 +28,19 @@ package "Akamai CDN System" {
     CacheA --> Origin : "Back to Origin (if not cached)"
     CacheB --> Origin : "Back to Origin (if not cached)"
 
-    CacheA ..> CacheB : "Cache Key Query"
-    CacheB ..> CacheA : "Cache Key Query"
-    CacheA ..> EdgeA : "TTL Expiry Handling"
-    CacheB ..> EdgeB : "TTL Expiry Handling"
+    ' Cache Management and Optimization
+    rectangle "CDN Cache Management and Optimization" as CDNManagement {
+        rectangle "Pre-Caching Strategy" as PreCache
+        rectangle "Cache Synchronization" as Sync
+        rectangle "Intelligent Routing" as Routing
+        rectangle "Locality Principle" as Locality
+    }
 
-    rectangle "Pre-Caching Strategy" as PreCache
-    rectangle "Cache Synchronization" as Sync
-    rectangle "Intelligent Routing" as Routing
-    rectangle "Locality Principle" as Locality
-
-    PreCache -down-> CacheA
-    PreCache -down-> CacheB
-    Sync -down-> CacheA
-    Sync -down-> CacheB
-    Routing -down-> GLB
-    Locality -down-> GeoDB
+    ' Connections to Cache Management
+    CDNManagement -down-> CacheA
+    CDNManagement -down-> CacheB
+    CDNManagement -right-> GLB
+    CDNManagement -right-> GeoDB
 }
 
 rectangle "User" as User
