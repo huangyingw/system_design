@@ -1,0 +1,45 @@
+@startuml
+
+!define KafkaNode(x) class x << (K,orchid) >>
+!define ZookeeperNode(x) class x << (Z,yellow) >>
+!define ProducerNode(x) class x << (P,blue) >>
+!define ConsumerNode(x) class x << (C,red) >>
+
+package "Kafka Cluster" {
+    KafkaNode(Broker1)
+    KafkaNode(Broker2)
+}
+
+ZookeeperNode(Zookeeper)
+ProducerNode(Producer1)
+ProducerNode(Producer2)
+ConsumerNode(Consumer1)
+ConsumerNode(Consumer2)
+
+Topic1 - [Partition1-1, Partition1-2]
+Topic2 - [Partition2-1, Partition2-2]
+
+Producer1 --> Topic1 : Writes to
+Producer2 --> Topic2 : Writes to
+
+Partition1-1 --> Broker1 : Held by
+Partition1-2 --> Broker1 : Held by
+Partition2-1 --> Broker2 : Held by
+Partition2-2 --> Broker2 : Held by
+
+Broker1 --> Zookeeper : Registers with / Monitored by
+Broker2 --> Zookeeper : Registers with / Monitored by
+
+Consumer1 --> Partition1-1 : Reads from
+Consumer1 --> Partition1-2 : Reads from
+Consumer2 --> Partition2-1 : Reads from
+Consumer2 --> Partition2-2 : Reads from
+
+class Topic1 << (T,purple) >>
+class Topic2 << (T,purple) >>
+class Partition1-1 << (PT,green) >>
+class Partition1-2 << (PT,green) >>
+class Partition2-1 << (PT,green) >>
+class Partition2-2 << (PT,green) >>
+
+@enduml
