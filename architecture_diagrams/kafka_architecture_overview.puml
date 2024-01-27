@@ -26,25 +26,25 @@ PartitionNode(Partition1_2)
 PartitionNode(Partition2_1)
 PartitionNode(Partition2_2)
 
-Topic1 -down-> Partition1_1 : contains
-Topic1 -down-> Partition1_2 : contains
-Topic2 -down-> Partition2_1 : contains
-Topic2 -down-> Partition2_2 : contains
+Producer1 -down-> Topic1 : writes to
+Producer2 -down-> Topic2 : writes to
 
-Producer1 -right-> Topic1 : writes to
-Producer2 -right-> Topic2 : writes to
+Topic1 -right-> Partition1_1 : contains
+Topic1 -right-> Partition1_2 : contains
+Topic2 -right-> Partition2_1 : contains
+Topic2 -right-> Partition2_2 : contains
 
-Partition1_1 -right-> Broker1 : held by
-Partition1_2 -right-> Broker1 : held by
-Partition2_1 -right-> Broker2 : held by
-Partition2_2 -right-> Broker2 : held by
+Partition1_1 -down-> Broker1 : held by
+Partition1_2 -down-> Broker1 : held by
+Partition2_1 -down-> Broker2 : held by
+Partition2_2 -down-> Broker2 : held by
 
-Broker1 -up-> Zookeeper : registers with / monitored by
-Broker2 -up-> Zookeeper : registers with / monitored by
+Broker1 -down-> Zookeeper : registers with / monitored by
+Broker2 -down-> Zookeeper : registers with / monitored by
 
-Consumer1 -left-> Partition1_1 : reads from
-Consumer1 -left-> Partition1_2 : reads from
-Consumer2 -left-> Partition2_1 : reads from
-Consumer2 -left-> Partition2_2 : reads from
+Consumer1 -up-> Partition1_1 : reads from
+Consumer1 -up-> Partition1_2 : reads from
+Consumer2 -up-> Partition2_1 : reads from
+Consumer2 -up-> Partition2_2 : reads from
 
 @enduml
