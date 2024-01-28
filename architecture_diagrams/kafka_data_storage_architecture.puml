@@ -2,7 +2,7 @@
 skinparam backgroundColor #D3D3D3
 
 !define KafkaNode(x) class x << (K,orchid) >> 
-!define PartitionNode(x) class x << (PT,green) >> 
+!define PartitionNode(x) class x #green 
 
 package "Kafka Cluster" {
     KafkaNode(Broker1) 
