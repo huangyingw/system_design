@@ -27,10 +27,15 @@ package "Kafka Cluster" {
     Partition2_1 -- Broker2 : held by
     Partition2_2 -- Broker3 : held by
 
-    note right of Partition1_1 : Replica 1
-    note right of Partition1_2 : Replica 2
-    note right of Partition2_1 : Replica 1
-    note right of Partition2_2 : Replica 2
+    note right of Partition1_1 : Leader Replica
+    note right of Partition1_2 : Follower Replica
+    note right of Partition2_1 : Leader Replica
+    note right of Partition2_2 : Follower Replica
+
+    Partition1_1 -[hidden]> Partition1_2 : replicates to
+    Partition1_2 -[hidden]> Partition1_1 : replicates to
+    Partition2_1 -[hidden]> Partition2_2 : replicates to
+    Partition2_2 -[hidden]> Partition2_1 : replicates to
 }
 
 @enduml
