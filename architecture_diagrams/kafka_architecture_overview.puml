@@ -32,6 +32,8 @@ package "Kafka Cluster" {
 
     "Broker1\n(物理)" -- "Zookeeper\n(物理)" : registers with / monitored by
     "Broker2\n(物理)" -- "Zookeeper\n(物理)" : registers with / monitored by
+    "Topic1\n(逻辑)" -- "Zookeeper\n(物理)" : metadata managed by
+    "Topic2\n(逻辑)" -- "Zookeeper\n(物理)" : metadata managed by
 }
 
 ProducerNode("Producer1\n(物理)") 
