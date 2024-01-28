@@ -10,13 +10,7 @@ skinparam backgroundColor #D3D3D3
 package "Kafka Cluster" {
     KafkaNode(Broker1)
     KafkaNode(Broker2)
-}
-
 ZookeeperNode(Zookeeper)
-ProducerNode(Producer1)
-ProducerNode(Producer2)
-ConsumerNode(Consumer1)
-ConsumerNode(Consumer2)
 
 class Topic1 << (T,purple) >>
 class Topic2 << (T,purple) >>
@@ -26,25 +20,31 @@ PartitionNode(Partition1_2)
 PartitionNode(Partition2_1)
 PartitionNode(Partition2_2)
 
-Producer1 -down-> Topic1 : writes to
-Producer2 -down-> Topic2 : writes to
+    Topic1 -- Partition1_1 : contains
+    Topic1 -- Partition1_2 : contains
+    Topic2 -- Partition2_1 : contains
+    Topic2 -- Partition2_2 : contains
 
-Topic1 -right-> Partition1_1 : contains
-Topic1 -right-> Partition1_2 : contains
-Topic2 -right-> Partition2_1 : contains
-Topic2 -right-> Partition2_2 : contains
+    Partition1_1 -- Broker1 : held by
+    Partition1_2 -- Broker1 : held by
+    Partition2_1 -- Broker2 : held by
+    Partition2_2 -- Broker2 : held by
 
-Partition1_1 -down-> Broker1 : held by
-Partition1_2 -down-> Broker1 : held by
-Partition2_1 -down-> Broker2 : held by
-Partition2_2 -down-> Broker2 : held by
+    Broker1 -- Zookeeper : registers with / monitored by
+    Broker2 -- Zookeeper : registers with / monitored by
+}
 
-Broker1 -down-> Zookeeper : registers with / monitored by
-Broker2 -down-> Zookeeper : registers with / monitored by
+ProducerNode(Producer1)
+ProducerNode(Producer2)
+ConsumerNode(Consumer1)
+ConsumerNode(Consumer2)
 
-Consumer1 -up-> Partition1_1 : reads from
-Consumer1 -up-> Partition1_2 : reads from
-Consumer2 -up-> Partition2_1 : reads from
-Consumer2 -up-> Partition2_2 : reads from
+Producer1 -- Topic1 : writes to
+Producer2 -- Topic2 : writes to
+
+Consumer1 -- Partition1_1 : reads from
+Consumer1 -- Partition1_2 : reads from
+Consumer2 -- Partition2_1 : reads from
+Consumer2 -- Partition2_2 : reads from
 
 @enduml
