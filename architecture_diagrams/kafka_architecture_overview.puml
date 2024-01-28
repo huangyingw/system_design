@@ -30,12 +30,12 @@ package "Kafka Cluster" {
     "Partition2_1\n(逻辑)" -- "Broker2\n(物理)" : held by
     "Partition2_2\n(逻辑)" -- "Broker2\n(物理)" : held by
 
-    "Broker1\n(物理)" -- "Zookeeper\n(物理)" : registers with / monitored by
-    "Broker2\n(物理)" -- "Zookeeper\n(物理)" : registers with / monitored by
-    "Topic1\n(逻辑)" -- "Zookeeper\n(物理)" : metadata managed by
-    "Topic2\n(逻辑)" -- "Zookeeper\n(物理)" : metadata managed by
-    "Broker1\n(物理)" -- "Zookeeper\n(物理)" : controller election
-    "Broker2\n(物理)" -- "Zookeeper\n(物理)" : controller election
+    "Broker1\n(物理)" --|> "Zookeeper\n(物理)" : registers with / monitored by
+    "Broker2\n(物理)" --|> "Zookeeper\n(物理)" : registers with / monitored by
+    "Topic1\n(逻辑)" --|> "Zookeeper\n(物理)" : metadata managed by
+    "Topic2\n(逻辑)" --|> "Zookeeper\n(物理)" : metadata managed by
+    "Broker1\n(物理)" --|> "Zookeeper\n(物理)" : controller election
+    "Broker2\n(物理)" --|> "Zookeeper\n(物理)" : controller election
 }
 
 ProducerNode("Producer1\n(物理)") 
@@ -43,16 +43,16 @@ ProducerNode("Producer2\n(物理)")
 ConsumerNode("Consumer1\n(物理)") 
 ConsumerNode("Consumer2\n(物理)") 
 
-"Producer1\n(物理)" -- "Topic1\n(逻辑)" : writes to
-"Producer2\n(物理)" -- "Topic2\n(逻辑)" : writes to
+"Producer1\n(物理)" --> "Topic1\n(逻辑)" : writes to
+"Producer2\n(物理)" --> "Topic2\n(逻辑)" : writes to
 
-"Consumer1\n(物理)" -- "Partition1_1\n(逻辑)" : reads from
-"Consumer1\n(物理)" -- "Partition1_2\n(逻辑)" : reads from
-"Consumer2\n(物理)" -- "Partition2_1\n(逻辑)" : reads from
-"Consumer2\n(物理)" -- "Partition2_2\n(逻辑)" : reads from
+"Consumer1\n(物理)" --> "Partition1_1\n(逻辑)" : reads from
+"Consumer1\n(物理)" --> "Partition1_2\n(逻辑)" : reads from
+"Consumer2\n(物理)" --> "Partition2_1\n(逻辑)" : reads from
+"Consumer2\n(物理)" --> "Partition2_2\n(逻辑)" : reads from
 
 ' 假设使用旧版本的 Kafka，消费者偏移量还存储在 Zookeeper 中
-"Consumer1\n(物理)" -- "Zookeeper\n(物理)" : offsets stored in
-"Consumer2\n(物理)" -- "Zookeeper\n(物理)" : offsets stored in
+"Consumer1\n(物理)" --|> "Zookeeper\n(物理)" : offsets stored in
+"Consumer2\n(物理)" --|> "Zookeeper\n(物理)" : offsets stored in
 
 @enduml
