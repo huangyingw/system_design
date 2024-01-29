@@ -1,6 +1,15 @@
 @startuml
 skinparam backgroundColor #D3D3D3
 
+skinparam class {
+    BackgroundColor LightYellow
+    ArrowColor Brown
+    BorderColor Brown
+}
+
+skinparam packageStyle rectangle
+
+package "Spark System" {
 class SparkContext {
   - initialize cluster
   - distribute data
@@ -27,7 +36,9 @@ class Action {
   - count()
   - take()
 }
+}
 
+package "MapReduce Model" {
 class MapReduceModel {
   + Map()
   + Reduce()
@@ -38,10 +49,16 @@ class MapOperation {
 
 class ReduceOperation {
 }
+}
 
-MapReduceModel "1" -- "1" MapOperation : corresponds to >
-MapReduceModel "1" -- "1" ReduceOperation : corresponds to >
-Transformation "1" ..> MapOperation : includes >
-Action "1" ..> ReduceOperation : includes >
+SparkContext -down-> RDD : creates >
+RDD -down-> Transformation : performs >
+RDD -down-> Action : performs >
+Transformation -[hidden]down-> MapReduceModel 
+Action -[hidden]down-> MapReduceModel 
+MapReduceModel -left-> MapOperation : corresponds to >
+MapReduceModel -right-> ReduceOperation : corresponds to >
+Transformation ..> MapOperation : includes > #DashedBrown
+Action ..> ReduceOperation : includes > #DashedBrown
 
 @enduml
