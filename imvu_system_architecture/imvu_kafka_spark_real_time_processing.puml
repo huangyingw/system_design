@@ -1,24 +1,25 @@
 @startuml
 skinparam backgroundColor #D3D3D3
 
-package "Data Sources" {
-    [Source 1]
-    [Source 2]
-    [Source 3]
+package "IMVU Data Sources" {
+    [User Activity]
+    [Transaction Records]
+    [System Logs]
 }
 
 package "Kafka Cluster" {
-    [Kafka Topic 1]
-    [Kafka Topic 2]
+    [User Events Topic]
+    [Transaction Topic]
+    [Log Topic]
 }
 
 package "Spark Cluster" {
     [Spark Streaming]
 }
 
-package "Storage" {
+package "Data Storage" {
     [Database]
-    [File System]
+    [Data Lake]
 }
 
 package "Monitoring & Logging" {
@@ -26,15 +27,16 @@ package "Monitoring & Logging" {
     [Logging System]
 }
 
-[Source 1] --> [Kafka Topic 1] : Streams data
-[Source 2] --> [Kafka Topic 2] : Streams data
-[Source 3] --> [Kafka Topic 1] : Streams data
+[User Activity] --> [User Events Topic] : Streams data
+[Transaction Records] --> [Transaction Topic] : Streams data
+[System Logs] --> [Log Topic] : Streams data
 
-[Kafka Topic 1] --> [Spark Streaming]
-[Kafka Topic 2] --> [Spark Streaming]
+[User Events Topic] --> [Spark Streaming]
+[Transaction Topic] --> [Spark Streaming]
+[Log Topic] --> [Spark Streaming]
 
 [Spark Streaming] --> [Database] : Stores processed data
-[Spark Streaming] --> [File System] : Stores processed data
+[Spark Streaming] --> [Data Lake] : Stores processed data
 
 [Spark Streaming] ..> [Monitoring System] : Reports status
 [Spark Streaming] ..> [Logging System] : Logs activities
