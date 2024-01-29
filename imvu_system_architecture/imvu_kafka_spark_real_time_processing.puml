@@ -1,4 +1,5 @@
 @startuml
+skinparam backgroundColor #D3D3D3
 
 package "Data Sources" {
     [Source 1]
