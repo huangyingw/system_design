@@ -1,0 +1,41 @@
+@startuml
+
+package "Data Sources" {
+    [Source 1]
+    [Source 2]
+    [Source 3]
+}
+
+package "Kafka Cluster" {
+    [Kafka Topic 1]
+    [Kafka Topic 2]
+}
+
+package "Spark Cluster" {
+    [Spark Streaming]
+}
+
+package "Storage" {
+    [Database]
+    [File System]
+}
+
+package "Monitoring & Logging" {
+    [Monitoring System]
+    [Logging System]
+}
+
+[Source 1] --> [Kafka Topic 1] : Streams data
+[Source 2] --> [Kafka Topic 2] : Streams data
+[Source 3] --> [Kafka Topic 1] : Streams data
+
+[Kafka Topic 1] --> [Spark Streaming]
+[Kafka Topic 2] --> [Spark Streaming]
+
+[Spark Streaming] --> [Database] : Stores processed data
+[Spark Streaming] --> [File System] : Stores processed data
+
+[Spark Streaming] ..> [Monitoring System] : Reports status
+[Spark Streaming] ..> [Logging System] : Logs activities
+
+@enduml
