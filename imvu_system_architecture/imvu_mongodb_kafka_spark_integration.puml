@@ -13,16 +13,18 @@ SERVICE Kafka {
   :Includes topics for raw and processed data;
 }
 
-SERVICE "Spark Streaming" {
-  :Consumes raw data messages from Kafka (Java);
-  :Performs real-time data processing (Spark SQL);
-  :Publishes results back to Kafka (Java);
-}
+package "Spark Processing System" {
+    SERVICE "Spark Streaming" {
+      :Consumes raw data messages from Kafka (Java);
+      :Performs real-time data processing (Spark SQL);
+      :Publishes results back to Kafka (Java);
+    }
 
-SERVICE "Spark Batch Processing" as BatchProcessing {
-  :Periodically processes large batches of data (Java);
-  :Executes complex data transformations and analysis (Spark MLlib);
-  :Publishes results back to Kafka (Java);
+    SERVICE "Spark Batch Processing" as BatchProcessing {
+      :Periodically processes large batches of data (Java);
+      :Executes complex data transformations and analysis (Spark MLlib);
+      :Publishes results back to Kafka (Java);
+    }
 }
 
 SERVICE "MongoDB Kafka Connector" as Connector {
