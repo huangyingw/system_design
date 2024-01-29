@@ -18,8 +18,9 @@ package "Spark Cluster" {
 }
 
 package "Data Storage" {
-    [Database]
-    [Data Lake]
+    [MongoDB]
+    [Amazon S3 Data Lake]
+    [Elasticsearch]
 }
 
 package "Monitoring & Logging" {
@@ -35,8 +36,9 @@ package "Monitoring & Logging" {
 [Transaction Topic] --> [Spark Streaming]
 [Log Topic] --> [Spark Streaming]
 
-[Spark Streaming] --> [Database] : Stores processed data
-[Spark Streaming] --> [Data Lake] : Stores processed data
+[Spark Streaming] --> [MongoDB] : Stores processed data
+[Spark Streaming] --> [Amazon S3 Data Lake] : Stores processed data
+[Spark Streaming] --> [Elasticsearch] : Indexes data for search
 
 [Spark Streaming] ..> [Monitoring System] : Reports status
 [Spark Streaming] ..> [Logging System] : Logs activities
