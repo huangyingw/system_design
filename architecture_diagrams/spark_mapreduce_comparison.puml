@@ -1,0 +1,45 @@
+@startuml
+class SparkContext {
+  - initialize cluster
+  - distribute data
+  - execute tasks
+}
+
+class RDD {
+  - parallelize data
+  - lineage information
+  - transformations
+  - actions
+}
+
+class Transformation {
+  - map()
+  - filter()
+  - flatMap()
+  - groupBy()
+}
+
+class Action {
+  - reduce()
+  - collect()
+  - count()
+  - take()
+}
+
+class MapReduceModel {
+  + Map()
+  + Reduce()
+}
+
+class MapOperation {
+}
+
+class ReduceOperation {
+}
+
+MapReduceModel "1" -- "1" MapOperation : corresponds to >
+MapReduceModel "1" -- "1" ReduceOperation : corresponds to >
+Transformation "1" ..> MapOperation : includes >
+Action "1" ..> ReduceOperation : includes >
+
+@enduml
