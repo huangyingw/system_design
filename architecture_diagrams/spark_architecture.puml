@@ -4,6 +4,7 @@ skinparam backgroundColor #D3D3D3
 package "Spark on Kubernetes Application" {
     [Driver Program\n(Scala, Java, Python, R)] as Driver
         [SparkContext\n(Scala, Java, Python, R)] as SC
+        [RDD Operations\n(Scala, Java, Python, R)] as RDDOps
         [DAG Scheduler\n(Scala)] as DAG
         [Task Scheduler\n(Scala)] as TS
 
@@ -16,16 +17,16 @@ package "Spark on Kubernetes Application" {
         [Pod 1\n(Kubernetes)] as Pod1
         [Executor 1\n(Scala, Java, Python, R)] as E1
         [Cache 1] as C1
-        [Task 1.1\n(Scala, Java, Python, R)] as T11
-        [Task 1.2\n(Scala, Java, Python, R)] as T12
+        [Map Task 1.1\n(Scala, Java, Python, R)] as MT11
+        [Reduce Task 1.2\n(Scala, Java, Python, R)] as RT12
     }
 
     package "Kubernetes Worker Node 2" {
         [Pod 2\n(Kubernetes)] as Pod2
         [Executor 2\n(Scala, Java, Python, R)] as E2
         [Cache 2] as C2
-        [Task 2.1\n(Scala, Java, Python, R)] as T21
-        [Task 2.2\n(Scala, Java, Python, R)] as T22
+        [Map Task 2.1\n(Scala, Java, Python, R)] as MT21
+        [Reduce Task 2.2\n(Scala, Java, Python, R)] as RT22
     }
 
     database "Data Storage System\n(Java)" as Storage {
@@ -36,7 +37,8 @@ package "Spark on Kubernetes Application" {
 }
 
 Driver --> SC : Use
-SC --> DAG : Convert to DAG
+SC --> RDDOps : Data Transformations
+RDDOps --> DAG : Convert to DAG
 SC --> TS : Submit Tasks
 SC --> K8sAPI : Deploy Driver/Executors
 DAG --> TS : Execution Planning
@@ -45,14 +47,23 @@ K8sMaster --> Pod1 : Schedule Pod
 K8sMaster --> Pod2 : Schedule Pod
 Pod1 --> E1 : Run Executor
 E1 --> C1 : Data Caching
-E1 --> T11 : Execute Task
-E1 --> T12 : Execute Task
+E1 --> MT11 : Execute Map Task
+MT11 --> RT12 : Followed by Reduce Task
 Pod2 --> E2 : Run Executor
 E2 --> C2 : Data Caching
-E2 --> T21 : Execute Task
-E2 --> T22 : Execute Task
+E2 --> MT21 : Execute Map Task
+MT21 --> RT22 : Followed by Reduce Task
 E1 --> Storage : Read/Write Data
 E2 --> Storage : Read/Write Data
+
+note right of RDDOps
+  RDD Operations include:
+  - Map
+  - Reduce
+  - Filter
+  - Join
+  - etc.
+end note
 
 note right of DAG
   DAG (Directed Acyclic Graph) represents:
