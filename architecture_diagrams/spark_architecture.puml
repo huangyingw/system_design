@@ -29,6 +29,8 @@ package "Spark on Kubernetes Application" {
         [Reduce Task 2.2\n(Scala, Java, Python, R)] as RT22
     }
 
+    [Final Reduce and Merge\n(Scala, Java, Python, R)] as FinalReduce
+
     database "Data Storage System\n(Java)" as Storage {
         [HDFS\n(Java)]
         [Elasticsearch]
@@ -53,8 +55,9 @@ Pod2 --> E2 : Run Executor
 E2 --> C2 : Data Caching
 E2 --> MT21 : Execute Map Task
 MT21 --> RT22 : Followed by Reduce Task
-E1 --> Storage : Read/Write Data
-E2 --> Storage : Read/Write Data
+RT12 --> FinalReduce : Send Results
+RT22 --> FinalReduce : Send Results
+FinalReduce --> Storage : Final Output
 
 note right of RDDOps
   RDD Operations include:
@@ -105,6 +108,12 @@ note right of E1
   Each Pod represents a Spark Executor
   Pods are managed by Kubernetes
   Executors perform Tasks and may have local Cache
+
+note right of FinalReduce
+  Final Reduce and Merge:
+  - Aggregates results from all Reduce Tasks
+  - Performs final data merging and processing
+  - Outputs the final result to the Data Storage System
 end note
 
 @enduml
