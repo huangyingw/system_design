@@ -5,7 +5,6 @@ skinparam backgroundColor #D3D3D3
 !define ZookeeperNode(x) class x << (Z,yellow) >> 
 !define ProducerNode(x) class x << (P,blue) >> 
 !define ConsumerNode(x) class x << (C,red) >> 
-!define PartitionNode(x) class x << (PT,green) >> 
 
 package "Kafka Cluster" {
     KafkaNode("Broker1\n(物理)") 
@@ -15,10 +14,10 @@ package "Kafka Cluster" {
     class "Topic1\n(逻辑)" << (T,purple) >> 
     class "Topic2\n(逻辑)" << (T,purple) >> 
 
-    PartitionNode("Partition1_1\n(逻辑)") 
-    PartitionNode("Partition1_2\n(逻辑)") 
-    PartitionNode("Partition2_1\n(逻辑)") 
-    PartitionNode("Partition2_2\n(逻辑)") 
+    class "Partition1_1\n(逻辑)"  
+    class "Partition1_2\n(逻辑)"  
+    class "Partition2_1\n(逻辑)"  
+    class "Partition2_2\n(逻辑)"  
 
     "Topic1\n(逻辑)" -- "Partition1_1\n(逻辑)" : contains
     "Topic1\n(逻辑)" -- "Partition1_2\n(逻辑)" : contains
