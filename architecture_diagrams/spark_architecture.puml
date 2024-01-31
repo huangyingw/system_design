@@ -63,6 +63,12 @@ RT12 --> FinalReduce : Send Results
 RT22 --> FinalReduce : Send Results
 FinalReduce --> Storage : Final Output
 
+note right of RT12
+  Reduce Task 1.2:
+  - Performs local reduce operations on Node 1
+  - Part of the distributed reduce phase
+end note
+
 note right of RDDOps
   RDD Operations include:
   - Map
@@ -112,6 +118,7 @@ note right of E1
   Each Pod represents a Spark Executor
   Pods are managed by Kubernetes
   Executors perform Tasks and may have local Cache
+end note
 
 note right of FinalReduce
   Final Reduce and Merge:
