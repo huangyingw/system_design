@@ -70,12 +70,11 @@ note right of RT12
 end note
 
 note right of RDDOps
-  RDD Operations include:
-  - Map
-  - Reduce
-  - Filter
-  - Join
-  - etc.
+  RDD Operations define data processing logic:
+  - Transformations (e.g., map, filter) define how to process data
+  - Actions (e.g., count, collect) trigger computation and output results
+  - Operations are lazily evaluated: executed when action is called
+  - The basis for distributed data processing tasks on Worker Nodes
 end note
 
 note right of DAG
