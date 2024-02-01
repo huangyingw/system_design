@@ -14,10 +14,17 @@ package "Kafka Cluster" {
     class "Topic1\n(逻辑)" << (T,purple) >> 
     class "Topic2\n(逻辑)" << (T,purple) >> 
 
-    class "Partition1_1\n(逻辑)"  
+    package "Partition1_1\n(逻辑)" {
+        class Leader << (L,orchid) >>
+        class Follower1 << (F,blue) >>
+        class Follower2 << (F,blue) >>
+    }
     class "Partition1_2\n(逻辑)"  
     class "Partition2_1\n(逻辑)"  
     class "Partition2_2\n(逻辑)"  
+
+    Leader -down- Follower1 : replicates to
+    Leader -down- Follower2 : replicates to
 
     "Topic1\n(逻辑)" -- "Partition1_1\n(逻辑)" : contains
     "Topic1\n(逻辑)" -- "Partition1_2\n(逻辑)" : contains
