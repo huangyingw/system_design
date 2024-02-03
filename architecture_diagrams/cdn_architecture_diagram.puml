@@ -6,48 +6,48 @@ skinparam rectangle {
   Shadowing false
 }
 
-package "CDN 系统架构" {
-    RECTANGLE "源站\nOrigin Server" as Origin
+package "CDN System Architecture" {
+    RECTANGLE "Origin Server" as Origin
     
-    RECTANGLE "全局负载均衡器\nGlobal Load Balancer" as GLB {
-        RECTANGLE "地理位置数据库\nGeo-Location Database" as GeoDB
+    RECTANGLE "Global Load Balancer" as GLB {
+        RECTANGLE "Geo-Location Database" as GeoDB
     }
     
-    DATABASE "区域负载均衡器 1\nRegional Load Balancer 1" as RLB1
-    DATABASE "区域负载均衡器 2\nRegional Load Balancer 2" as RLB2
+    DATABASE "Regional Load Balancer 1" as RLB1
+    DATABASE "Regional Load Balancer 2" as RLB2
     
-    DATABASE "分发服务器 1\nDistribution Server 1" as DS1 {
-        DATABASE "缓存 1\nCache 1" as Cache1
+    DATABASE "Distribution Server 1" as DS1 {
+        DATABASE "Cache 1" as Cache1
     }
     
-    DATABASE "分发服务器 2\nDistribution Server 2" as DS2 {
-        DATABASE "缓存 2\nCache 2" as Cache2
+    DATABASE "Distribution Server 2" as DS2 {
+        DATABASE "Cache 2" as Cache2
     }
 
-    RECTANGLE "缓存决策系统\nCache Decision System" as CDS
-    RECTANGLE "DNS服务器\nDNS Server" as DNSServer
+    RECTANGLE "Cache Decision System" as CDS
+    RECTANGLE "DNS Server" as DNSServer
 
-    DNSServer -down-> GLB : "Step 2: DNS解析"
-    GLB -down-> GeoDB : "Step 3: 地理位置查询"
-    GeoDB -left-> RLB1 : "Step 4: 路由到区域 1"
-    GeoDB -right-> RLB2 : "Step 4: 路由到区域 2"
-    RLB1 -down-> DS1 : "Step 5: 区域内负载均衡"
+    DNSServer -down-> GLB : "Step 2: DNS Resolution"
+    GLB -down-> GeoDB : "Step 3: Geo-Location Lookup"
+    GeoDB -left-> RLB1 : "Step 4: Route to Region 1"
+    GeoDB -right-> RLB2 : "Step 4: Route to Region 2"
+    RLB1 -down-> DS1 : "Step 5: Load Balance within Region"
     RLB2 -down-> DS2
-    DS1 -down-> Cache1 : "Step 6: 检查缓存"
+    DS1 -down-> Cache1 : "Step 6: Check Cache"
     DS2 -down-> Cache2
-    Cache1 -left-> CDS : "缓存查询"
-    Cache2 -right-> CDS : "缓存查询"
-    CDS -up-> Cache1 : "缓存决策"
-    CDS -up-> Cache2 : "缓存决策"
-    Cache1 -down-> Origin : "Step 7: 请求源站（如果未缓存）"
+    Cache1 -left-> CDS : "Cache Query"
+    Cache2 -right-> CDS : "Cache Query"
+    CDS -up-> Cache1 : "Cache Decision"
+    CDS -up-> Cache2 : "Cache Decision"
+    Cache1 -down-> Origin : "Step 7: Request Origin (if not cached)"
     Cache2 -down-> Origin
-    Origin -up-> Cache1 : "Step 8: 更新缓存并提供内容"
+    Origin -up-> Cache1 : "Step 8: Update Cache and Deliver Content"
     Origin -up-> Cache2
 }
 
-RECTANGLE "用户\nUser" as User
-User -right-> DNSServer : "Step 1: 用户请求"
-DS1 -up-> User : "Step 9: 响应用户请求"
+RECTANGLE "User" as User
+User -right-> DNSServer : "Step 1: User Request"
+DS1 -up-> User : "Step 9: Respond to User Request"
 DS2 -up-> User
 
 @enduml
