@@ -54,9 +54,9 @@ package "Akamai CDN System" {
 rectangle "User" as User
 User -right-> GLB : "Request Content"
 
-    ' Cache Key Details
+    ' Composite Key
     note right of CacheA
-      Cache Key Details:
+      Composite Key:
       - Hostname
       - Path
       - Query String
