@@ -1,0 +1,68 @@
+@startuml
+
+skinparam backgroundColor #D3D3D3
+
+title Twitter System Architecture - Tweet Posting, Commenting, and Timeline Update Process
+
+rectangle Client
+
+rectangle CoreService {
+    rectangle LoadBalancer
+    rectangle WebServer
+    rectangle ApplicationServer
+    rectangle MonitoringService
+    rectangle AutoScalingService
+}
+
+rectangle TweetProcessingService {
+    rectangle TweetService
+    rectangle CommentService
+    rectangle MessageQueue
+    rectangle Worker
+}
+
+rectangle SearchService
+rectangle NotificationService
+rectangle TimelineService
+
+rectangle "DataPersistenceService" as DPS {
+    rectangle "Redis Cluster" as Redis {
+        rectangle TweetCache
+            rectangle TimelineCache
+            rectangle HotTweetsAndTopicsCache
+        rectangle CommentCache
+    }
+    rectangle "Sharded Database" as Database {
+        rectangle TweetData
+        rectangle CommentData
+    }
+}
+
+Client -down-> CoreService : Request to Post Tweet/Comment
+LoadBalancer -down-> WebServer : Forward Request
+WebServer -down-> ApplicationServer : Process Request
+ApplicationServer -> TweetProcessingService: Handle Tweet/Comment
+TweetService -down-> MessageQueue : Publish Tweet Event (Pub)
+CommentService -down-> MessageQueue : Publish Comment Event (Pub)
+MessageQueue -down-> Worker : Subscribe and Receive Tweet/Comment Event (Sub)
+Worker -down-> DPS : Update DPS with Tweet/Comment
+Redis -> Database : Persist Cache Data including Comments
+Worker -down-> SearchService : Index Tweet/Comment
+Worker -down-> NotificationService : Notify Followers about Tweet/Comment
+Worker -down-> TimelineService : Update User Timelines with Tweet/Comment
+TimelineService -down-> DPS : Update Timeline Cache including Comments
+
+Client -down-> CoreService: Request to Read Timeline
+LoadBalancer -down-> WebServer : Forward Request
+WebServer -down-> ApplicationServer : Process Request
+ApplicationServer -> TimelineService : Handle Read Timeline Request
+TimelineService -> DPS: Check Timeline Cache including Comments
+Redis -> TimelineService : Return Cached Timeline including Comments
+TimelineService -> ApplicationServer : Return Timeline Data including Comments
+ApplicationServer -> WebServer : Forward Timeline Data including Comments
+WebServer -up-> Client : Return Timeline Data including Comments
+
+MonitoringService -> AutoScalingService : Monitor Load
+AutoScalingService -> LoadBalancer : Scale Resources
+
+@enduml
