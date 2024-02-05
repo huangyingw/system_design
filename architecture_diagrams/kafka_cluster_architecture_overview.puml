@@ -1,0 +1,47 @@
+@startuml
+skinparam backgroundColor #EEEEE
+
+!define KafkaNode(x) class x << (K,orchid) >>
+!define ZookeeperNode(x) class x << (Z,yellow) >>
+!define Component(x) class x << (C,lightblue) >>
+
+package "Kafka Cluster" {
+    KafkaNode("Broker1\n(物理)")
+    KafkaNode("Broker2\n(物理)")
+    KafkaNode("Broker3\n(物理)") {
+        Component("Controller")
+        Component("Replication Manager")
+        Component("Log Manager")
+        Component("Network Processor")
+        Component("Request Handler")
+    }
+    KafkaNode("Broker4\n(物理)")
+    
+    ZookeeperNode("Zookeeper\n(物理)")
+
+    "Broker1\n(物理)" -- "Controller" : hosts
+    "Broker2\n(物理)" -- "Replication Manager" : uses
+    "Broker3\n(物理)" -- "Log Manager" : uses
+    "Broker4\n(物理)" -- "Network Processor" : uses
+    "Broker1\n(物理)" -- "Request Handler" : uses
+    "Zookeeper\n(物理)" -- "Controller" : communicates
+    "Zookeeper\n(物理)" ..> "Broker1\n(物理)" : manages
+    "Zookeeper\n(物理)" ..> "Broker2\n(物理)" : manages
+    "Zookeeper\n(物理)" ..> "Broker3\n(物理)" : manages
+    "Zookeeper\n(物理)" ..> "Broker4\n(物理)" : manages
+}
+
+note "Kafka Cluster Management and Coordination" as N1
+note "Handles Kafka Cluster Metadata" as N2
+note "Manages Replication and Consistency" as N3
+note "Stores and Manages Log Segments" as N4
+note "Processes Network Requests" as N5
+note "Handles Client Requests" as N6
+
+N1 .. "Controller"
+N2 .. "Zookeeper\n(物理)"
+N3 .. "Replication Manager"
+N4 .. "Log Manager"
+N5 .. "Network Processor"
+N6 .. "Request Handler"
+@enduml
