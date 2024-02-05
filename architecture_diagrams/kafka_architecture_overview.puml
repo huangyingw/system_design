@@ -9,39 +9,35 @@ skinparam backgroundColor #D3D3D3
 package "Kafka Cluster" {
     KafkaNode("Broker1\n(物理)") 
     KafkaNode("Broker2\n(物理)") 
+    KafkaNode("Broker3\n(物理)") 
     ZookeeperNode("Zookeeper\n(物理)") 
 
     class "Topic1\n(逻辑)" << (T,purple) >> 
     class "Topic2\n(逻辑)" << (T,purple) >> 
 
-    package "Partition1_1\n(逻辑)" {
-        class Leader << (L,orchid) >>
-        class Follower1 << (F,blue) >>
-        class Follower2 << (F,blue) >>
-    }
+    class "Partition1_1\n(逻辑)" 
     class "Partition1_2\n(逻辑)"  
     class "Partition2_1\n(逻辑)"  
     class "Partition2_2\n(逻辑)"  
-
-    Leader -down- Follower1 : replicates to
-    Leader -down- Follower2 : replicates to
 
     "Topic1\n(逻辑)" -- "Partition1_1\n(逻辑)" : contains
     "Topic1\n(逻辑)" -- "Partition1_2\n(逻辑)" : contains
     "Topic2\n(逻辑)" -- "Partition2_1\n(逻辑)" : contains
     "Topic2\n(逻辑)" -- "Partition2_2\n(逻辑)" : contains
 
-    "Partition1_1\n(逻辑)" -- "Broker1\n(物理)" : held by
-    "Partition1_2\n(逻辑)" -- "Broker1\n(物理)" : held by
-    "Partition2_1\n(逻辑)" -- "Broker2\n(物理)" : held by
-    "Partition2_2\n(逻辑)" -- "Broker2\n(物理)" : held by
+    "Partition1_1\n(逻辑)" -- "Broker1\n(物理)" : Leader at
+    "Partition1_1\n(逻辑)" -- "Broker2\n(物理)" : Follower at
+    "Partition1_1\n(逻辑)" -- "Broker3\n(物理)" : Follower at
 
-    "Broker1\n(物理)" --|> "Zookeeper\n(物理)" : registers with / monitored by
-    "Broker2\n(物理)" --|> "Zookeeper\n(物理)" : registers with / monitored by
-    "Topic1\n(逻辑)" --|> "Zookeeper\n(物理)" : metadata managed by
-    "Topic2\n(逻辑)" --|> "Zookeeper\n(物理)" : metadata managed by
-    "Broker1\n(物理)" --|> "Zookeeper\n(物理)" : controller election
-    "Broker2\n(物理)" --|> "Zookeeper\n(物理)" : controller election
+    "Partition1_2\n(逻辑)" -- "Broker1\n(物理)" 
+    "Partition2_1\n(逻辑)" -- "Broker2\n(物理)" 
+    "Partition2_2\n(逻辑)" -- "Broker2\n(物理)" 
+
+    "Broker1\n(物理)" --|> "Zookeeper\n(物理)" 
+    "Broker2\n(物理)" --|> "Zookeeper\n(物理)" 
+    "Broker3\n(物理)" --|> "Zookeeper\n(物理)" 
+    "Topic1\n(逻辑)" --|> "Zookeeper\n(物理)" 
+    "Topic2\n(逻辑)" --|> "Zookeeper\n(物理)" 
 }
 
 ProducerNode("Producer1\n(物理)") 
