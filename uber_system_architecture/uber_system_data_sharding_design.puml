@@ -1,0 +1,41 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+!define Rectangle class
+
+package "Uber System" {
+
+    Rectangle "Backend Server\n(APIs & Core Logic)" as Backend
+
+    package "Data Storage Layer" {
+        package "Orders Database Shard" {
+            Rectangle "Orders Shard #1\n(Time/Region Based)" as OrdersShard1
+            Rectangle "Orders Shard #2\n(Time/Region Based)" as OrdersShard2
+            ' 可以根据需要添加更多分片
+        }
+
+        package "User Database Shard" {
+            Rectangle "Users Shard #1\n(Region/User ID Based)" as UsersShard1
+            Rectangle "Users Shard #2\n(Region/User ID Based)" as UsersShard2
+            ' 可以根据需要添加更多分片
+        }
+
+        package "Driver Location Shard" {
+            Rectangle "Location Shard #1\n(City Based)" as LocationShard1
+            Rectangle "Location Shard #2\n(City Based)" as LocationShard2
+            ' 可以根据需要添加更多分片
+        }
+
+        package "Trip Records Shard" {
+            Rectangle "Trip Shard #1\n(Time/Region Based)" as TripShard1
+            Rectangle "Trip Shard #2\n(Time/Region Based)" as TripShard2
+            ' 可以根据需要添加更多分片
+        }
+
+        Rectangle "Redis Service\n(Real-time Data Cache)" as RedisService
+    }
+
+    Backend -down-> "Data Storage Layer" : Queries/Updates data
+
+}
+
+@enduml

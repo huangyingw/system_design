@@ -1,0 +1,49 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+
+' Data Collection & Import Components
+component "Logstash" as Logstash
+component "Fluentd" as Fluentd
+component "Custom API" as CustomAPI
+
+' Data Streaming & Processing Components
+component "Apache Kafka" as Kafka {
+    note right of Kafka : 实时数据流处理\n高吞吐量数据传输\n连接数据源和目标
+}
+component "Apache Spark" as Spark {
+    note right of Spark : 数据处理和分析\n批处理和流处理能力\n大规模数据集处理
+}
+
+' Data Analysis Components
+component "TensorFlow" as TensorFlow {
+    note right of TensorFlow : 深度学习和机器学习库\n图像识别、自然语言处理\n推荐系统、异常检测
+}
+component "Elasticsearch SQL" as ESSQL {
+    note right of ESSQL : 使用SQL查询Elasticsearch\n日志分析、商业智能报告\n安全分析、实时监控
+}
+component "Kibana" as Kibana
+
+' Elasticsearch Database
+database "Elasticsearch" {
+    [Elasticsearch DB]
+}
+
+' Connections for Data Collection & Import
+Logstash --> Kafka : Ingest logs
+Fluentd --> Kafka : Ingest logs
+CustomAPI --> Kafka : Ingest custom data
+
+' Connections for Data Streaming & Processing
+Kafka --> Spark : Stream data
+
+' Connections for Data Processing & Analysis
+Spark --> [Elasticsearch DB] : Process data &\nStore results
+
+' Data Analysis Connections
+[Elasticsearch DB] --> TensorFlow : Source data for analysis
+TensorFlow --> [Elasticsearch DB] : Store analysis results
+[Elasticsearch DB] --> ESSQL : Query execution
+ESSQL --> [Elasticsearch DB] : Store query results
+Kibana -.-> [Elasticsearch DB] : Visualize data
+
+@enduml

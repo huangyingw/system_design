@@ -1,0 +1,52 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+
+' Define database components in a more space-efficient layout
+package "Relational Database" as RDB {
+    [User Basic Information]
+    [Transaction Records]
+    [Virtual Goods Catalog]
+    [Social Relationship Network]
+}
+note right of RDB : Suitable for structured and\ntransactional data\nSupports complex relationship queries
+
+package "NoSQL Database" as NoSQL {
+    [User Behavior Data]
+    [Social Interaction Content]
+    [User Preferences and Settings]
+}
+note left of NoSQL : Flexible data models\nSuitable for personalized services\nand large data sets\nSuitable for User Preferences\nand Settings
+
+package "Elasticsearch" as ES {
+    [User Browsing History]
+    [Search Queries]
+    [Click Data]
+    [Purchase History]
+    [Product Descriptions]
+    [Tags and Keywords]
+    [Ratings and Reviews]
+    [User Activity Logs and System Metrics]
+}
+note right of ES : Fast searching and real-time analysis\nSuitable for logs and large data sets\nIdeal for analyzing user data and behavior\nfor recommendations\nFast searching and real-time analysis\nSuitable for logs and large data sets\nIdeal for analyzing user data, behavior, and system metrics
+
+package "Redis" as Redis {
+    [User Session Data]
+    [Frequently Accessed Data Cache]
+    [Real-time Leaderboards]
+    [Counters and Rate Limiters]
+}
+note left of Redis : Fast access and caching\nSuitable for sessions, leaderboards,\nmessaging, and rate limiting
+
+package "Apache Kafka" as Kafka {
+    [Publish/Subscribe Messaging]
+    [Task Queues]
+}
+note right of Kafka : High-throughput, distributed messaging\nSuitable for large-scale message processing\nand task queues
+
+' Define relationships in a more efficient manner
+RDB -[hidden]-> NoSQL
+NoSQL -[hidden]-> ES
+ES -[hidden]-> Redis
+Redis -[hidden]-> Kafka
+
+@enduml

@@ -1,0 +1,83 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+
+package "Cohesity Platform" {
+    [REST Endpoint]
+}
+
+package "Microsoft Azure" {
+    [Azure Sentinel]
+    [Producer Function App with Timer Trigger]
+    [Consumer Function App]
+    [Service Bus Queue]
+    [Playbooks]
+    [Sentinel API]
+    [Azure Cache for Redis]
+}
+
+package "Third-party Applications" {
+    [ServiceNow]
+}
+
+[REST Endpoint] --> [Producer Function App with Timer Trigger] : Fetch and Transform Data
+[Producer Function App with Timer Trigger] --> [Service Bus Queue] : Queue Alerts
+[Producer Function App with Timer Trigger] --> [Azure Cache for Redis] : Store Query Times
+[Azure Cache for Redis] --> [Producer Function App with Timer Trigger] : Get Start Time for Next Query
+[Service Bus Queue] --> [Consumer Function App] : FIFO, Deduplication, Transactions
+[Consumer Function App] --> [Azure Sentinel] : Create Incidents
+[Azure Sentinel] --> [Playbooks] : Execute on New Incident
+[Playbooks] --> [Sentinel API] : Read Incident Data
+[Playbooks] --> [ServiceNow] : Create Ticket on New Incident
+[Playbooks] -down-> (Email Notifications) : Send Email on New Incident
+
+note right of [REST Endpoint]
+  - Fetch alerts from Cohesity
+end note
+
+note left of [Producer Function App with Timer Trigger]
+  - Data transformation
+  - Triggered by Timer
+  - Use Cached Time for Query
+  - Store data in Service Bus Queue
+end note
+
+note right of [Azure Cache for Redis]
+  - Store Current Query End Time
+  - Retrieve Start Time for Next Query
+end note
+
+note right of [Consumer Function App]
+  - Triggered by new data in Service Bus Queue
+  - Create incidents in Azure Sentinel
+end note
+
+note right of [Playbooks]
+  - Automated execution on new incident
+  - Extract incident data using API
+  - Email notifications
+  - Create ServiceNow ticket
+end note
+
+note left of [Sentinel API]
+  - Retrieve incident metadata
+  - Support data analysis and reporting
+end note
+
+note right of [Azure Sentinel]
+  - Utilized function apps
+  - Increased integration efficiency
+end note
+
+note right of [Service Bus Queue]
+  - FIFO Order Guarantee
+  - Automatic Duplication Detection
+  - Transactional Behavior
+  - Long-Polling Receive Operations
+end note
+
+note right of [ServiceNow]
+  - Integrated with Playbooks
+  - Automated ticket creation
+end note
+
+@enduml

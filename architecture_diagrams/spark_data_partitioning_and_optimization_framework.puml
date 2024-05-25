@@ -1,0 +1,62 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+
+class "Data Partitioning" as Partitioning {
+  + Hash Partitioning
+  + Range Partitioning
+  + Custom Partitioning
+}
+
+class "Partitioning Strategies" as Strategies {
+  + Define number of partitions
+  + Select partitioning method
+  + Consider data skewness
+}
+
+class "Optimization Techniques" as Optimization {
+  + Coalesce for reducing partitions
+  + Repartition for increasing or reshuffling partitions
+  + Persist partitions in memory
+  + Adjust parallelism
+}
+
+class "Data Skewness Handling" as Skewness {
+  + Identify skewed keys
+  + Use salting technique
+  + Split skewed partitions
+}
+
+class "RDD/DataFrame" as Data {
+  + Data is divided into partitions
+}
+
+Partitioning --> Data : Applies to
+Strategies --> Partitioning : Guides
+Optimization --> Strategies : Implements
+Skewness --> Optimization : Part of
+
+note right of Partitioning
+  Partitioning is how Spark splits data
+  into chunks that can be processed in parallel.
+  Different methods are available based on data characteristics.
+end note
+
+note left of Strategies
+  Strategies include how to choose the partitioning method
+  and the number of partitions, considering data characteristics
+  and processing requirements.
+end note
+
+note right of Optimization
+  Optimization techniques involve methods
+  to improve the efficiency of data processing
+  through effective partition management.
+end note
+
+note left of Skewness
+  Handling data skewness involves techniques
+  to evenly distribute data across partitions,
+  especially when certain keys are over-represented.
+end note
+
+@enduml

@@ -1,0 +1,29 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+
+actor User
+participant "Chat Room Service" as ChatRoomService
+participant "Metadata Analysis" as MetadataAnalysis
+participant "Sorting System" as SortingSystem
+database "Cache" as Cache
+participant "Avatar Loading Module" as AvatarLoading
+
+User -> ChatRoomService: Request product IDs
+ChatRoomService -> MetadataAnalysis: Analyze product IDs metadata
+loop Each Product ID
+    MetadataAnalysis -> MetadataAnalysis: Determine overlaps and visibility
+end
+MetadataAnalysis -> SortingSystem: Provide product IDs with visibility and overlap info
+SortingSystem -> SortingSystem: Canonical sort of product IDs
+SortingSystem -> Cache: Check cached avatars for sorted product IDs
+alt Cache hit
+    Cache -> ChatRoomService: Provide cached avatars
+    ChatRoomService -> User: Display cached avatars
+else Cache miss
+    SortingSystem -> AvatarLoading: Request avatar generation for sorted product IDs
+    AvatarLoading -> AvatarLoading: Generate avatars
+    AvatarLoading -> Cache: Update cache with new avatars
+    Cache -> ChatRoomService: Provide newly generated avatars
+    ChatRoomService -> User: Display newly generated avatars
+end
+@enduml

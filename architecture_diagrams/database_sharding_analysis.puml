@@ -1,0 +1,39 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+start
+split
+:分析查询日志;
+split again
+:了解业务需求;
+end split
+if (有性能监控工具吗?) then (是)
+  :使用性能监控工具;
+endif
+split
+:回顾历史优化措施;
+split again
+:应用程序代码审查;
+end split
+split
+:收集用户反馈和数据;
+split again
+:综合分析查询模式;
+end split
+:确定常见查询类型;
+note right
+  例如，SQL查询：
+  SELECT * FROM orders 
+  WHERE customer_id = 12345 
+  AND order_date BETWEEN '2023-01-01' AND '2023-01-31';
+end note
+:基于查询模式选择分片键;
+note right
+  选择 customer_id 和 order_date 作为复合分片键
+end note
+:设计分片架构;
+note right
+  如在NoSQL数据库中设置分片规则，
+  或在RDBMS中配置分片中间件
+end note
+stop
+@enduml

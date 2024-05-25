@@ -1,0 +1,55 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+
+package "IMVU Data Sources" {
+    [User Activity]
+    [Transaction Records]
+    [System Logs]
+}
+
+package "Kafka Cluster" {
+    [User Events Topic]
+    [Transaction Topic]
+    [Log Topic]
+}
+
+package "Spark Cluster" {
+    package "Spark Streaming" {
+        [Data Receiver] as Receiver
+        [Data Transformation] as Transformation
+        [Data Aggregation] as Aggregation
+        [Output Processor] as Output
+
+        Receiver --> Transformation : Streams raw data
+        Transformation --> Aggregation : Transforms data
+        Aggregation --> Output : Aggregates data
+    }
+}
+
+package "Data Storage" {
+    [MongoDB]
+    [Amazon S3 Data Lake]
+    [Elasticsearch]
+}
+
+package "Monitoring & Logging" {
+    [Monitoring System]
+    [Logging System]
+}
+
+[User Activity] --> [User Events Topic] : Streams data
+[Transaction Records] --> [Transaction Topic] : Streams data
+[System Logs] --> [Log Topic] : Streams data
+
+[User Events Topic] --> Receiver
+[Transaction Topic] --> Receiver
+[Log Topic] --> Receiver
+
+Output --> [MongoDB] : Stores processed data
+Output --> [Amazon S3 Data Lake] : Stores processed data
+Output --> [Elasticsearch] : Indexes data for search
+
+[Spark Streaming] ..> [Monitoring System] : Reports status
+[Spark Streaming] ..> [Logging System] : Logs activities
+
+@enduml

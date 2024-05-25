@@ -1,0 +1,97 @@
+@startuml
+skinparam backgroundColor #2C2F33
+skinparam DefaultFontColor #FFFFFF
+skinparam Shadowing false
+skinparam Class {
+    BackgroundColor #7289DA
+    BorderColor #FFFFFF
+    FontColor #FFFFFF
+    ArrowColor #FFFFFF
+    BorderThickness 2
+}
+
+class "User" {
+    + user_id: int (PK)
+    ---
+    username: varchar
+    phone_number: varchar
+    email: varchar
+    password_hash: varchar
+    last_login: datetime
+    registration_date: datetime
+    status_timestamp: datetime
+}
+
+class "PrivateChat" {
+    + chat_id: int (PK)
+    ---
+    sender_id: int (FK)
+    recipient_id: int (FK)
+}
+
+class "GroupChat" {
+    + chat_id: int (PK)
+    ---
+    chat_name: varchar
+    chat_type: enum ('group', 'channel')
+    creation_date: datetime
+}
+
+class "MongoDB_Message_NoSQL" {
+    + message_id: ObjectID (PK)
+    ---
+    chat_id: int (FK) <<sharding key>>
+    sender_user_id: int (FK)
+    content: text
+    timestamp: datetime
+    type: enum('text', 'photo', 'video', 'document')
+}
+
+class "GroupMembers" {
+    + group_id: int (FK)
+    + user_id: int (FK)
+    ---
+    join_date: datetime
+    role: enum ('member', 'admin', 'owner')
+}
+
+class "UserProfile" {
+    + user_id: int (FK)
+    ---
+    avatar: image
+    about: text
+}
+
+class "Stickers" {
+    + sticker_id: int (PK)
+    ---
+    user_id: int (FK)
+    image: image
+    added_date: datetime
+}
+
+class "RedisCache" {
+    + User Status and Last Seen
+    + Unread Messages Count
+}
+
+class "Contacts" {
+    + user_id: int (FK)
+    + contact_id: int (FK)
+    ---
+}
+
+User "1" -- "1" PrivateChat : Initiates
+User "1" -- "1" PrivateChat : Receives
+User "1" -- "n" GroupChat : Participates
+User "1" -- "n" MongoDB_Message_NoSQL : Sends
+PrivateChat "1" -- "n" MongoDB_Message_NoSQL : Contains
+GroupChat "1" -- "n" MongoDB_Message_NoSQL : Contains
+GroupChat "1" -- "n" GroupMembers : Has
+User "1" -- "1" UserProfile : Has
+User "n" -- "n" GroupMembers : Joins
+User "1" -- "n" Stickers : Owns
+User --> RedisCache : Uses for\nfrequent updates
+User "n" -- "n" Contacts
+
+@enduml

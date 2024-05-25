@@ -1,0 +1,53 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+skinparam rectangle {
+  BackgroundColor White
+  BorderColor Black
+  Shadowing false
+}
+
+package "CDN System Architecture" {
+    RECTANGLE "Origin Server" as Origin
+    
+    RECTANGLE "Global Load Balancer" as GLB {
+        RECTANGLE "Geo-Location Database" as GeoDB
+    }
+    
+    DATABASE "Regional Load Balancer 1" as RLB1
+    DATABASE "Regional Load Balancer 2" as RLB2
+    
+    DATABASE "Distribution Server 1" as DS1 {
+        DATABASE "Cache 1" as Cache1
+    }
+    
+    DATABASE "Distribution Server 2" as DS2 {
+        DATABASE "Cache 2" as Cache2
+    }
+
+    RECTANGLE "Cache Decision System" as CDS
+    RECTANGLE "DNS Server" as DNSServer
+
+    DNSServer -down-> GLB : "Step 2: DNS Resolution"
+    GLB -down-> GeoDB : "Step 3: Geo-Location Lookup"
+    GeoDB -left-> RLB1 : "Step 4: Route to Region 1"
+    GeoDB -right-> RLB2 : "Step 4: Route to Region 2"
+    RLB1 -down-> DS1 : "Step 5: Load Balance within Region"
+    RLB2 -down-> DS2
+    DS1 -down-> Cache1 : "Step 6: Check Cache"
+    DS2 -down-> Cache2
+    Cache1 -left-> CDS : "Cache Query"
+    Cache2 -right-> CDS : "Cache Query"
+    CDS -up-> Cache1 : "Cache Decision"
+    CDS -up-> Cache2 : "Cache Decision"
+    Cache1 -down-> Origin : "Step 7: Request Origin (if not cached)"
+    Cache2 -down-> Origin
+    Origin -up-> Cache1 : "Step 8: Update Cache and Deliver Content"
+    Origin -up-> Cache2
+}
+
+RECTANGLE "User" as User
+User -right-> DNSServer : "Step 1: User Request"
+DS1 -up-> User : "Step 9: Respond to User Request"
+DS2 -up-> User
+
+@enduml

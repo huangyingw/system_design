@@ -1,0 +1,43 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+
+!define RECTANGLE class
+!define DATABASE class
+
+RECTANGLE Clients
+RECTANGLE "Server Cluster"
+RECTANGLE "Distributed\nRate Limiter"
+RECTANGLE "Enhanced Rules\nEngine"
+DATABASE "Distributed\nData Store"
+RECTANGLE "Request\nProcessor"
+RECTANGLE "Reject\nResponse" as Reject
+RECTANGLE "Allow\nResponse" as Allow
+
+Clients -right-> "Server Cluster" : API Requests
+"Server Cluster" -down-> "Distributed\nRate Limiter" : Check Rate
+"Distributed\nRate Limiter" -down-> "Enhanced Rules\nEngine" : Fetch Rules
+"Enhanced Rules\nEngine" -down-> "Distributed\nData Store" : Update Rules
+"Distributed\nRate Limiter" -right-> "Request\nProcessor" : Send Request
+"Request\nProcessor" -up-> Allow : Allow Request
+"Request\nProcessor" -down-> Reject : Reject Request
+
+note right of "Distributed\nRate Limiter"
+  If request matches limit criteria:
+  - Reject additional requests
+  - Until next allowable time window
+end note
+
+note right of "Enhanced Rules\nEngine"
+  - Basic Rate Rules
+  - User-Level Rules
+  - Behavior-Triggered Rules
+end note
+
+note right of "Distributed\nData Store"
+  Stores:
+  - Rate limiting rules
+  - User behavior data
+  - Request logs
+end note
+
+@enduml

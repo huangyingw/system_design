@@ -1,0 +1,47 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+
+' Application Layer
+package "Application Layer" {
+    [Application Service]
+    note right of [Application Service] : Chooses database\nbased on operation type
+}
+
+' Database Layer
+package "Database Layer" {
+    frame "Master Database" {
+        [Write Operations]
+        note right of [Write Operations] : Handles all write requests\nand synchronizes data to slave databases
+    }
+    frame "Slave Database 1" {
+        [Read Operations 1]
+        note right of [Read Operations 1] : Handles read requests
+    }
+    frame "Slave Database 2" {
+        [Read Operations 2]
+        note right of [Read Operations 2] : Handles read requests
+    }
+    [Load Balancer]
+    note right of [Load Balancer] : Distributes read requests\namong slave databases
+}
+
+' Data Synchronization and High Availability
+package "Data Sync & High Availability" {
+    [Data Replication]
+    note right of [Data Replication] : Sync data from master to slave\nMaintains data consistency
+    [Failover Mechanism]
+    note right of [Failover Mechanism] : Promotes a slave to master\nin case of master database failure
+}
+
+' Connections
+[Application Service] -down-> [Write Operations] : Write Requests
+[Application Service] -down-> [Load Balancer] : Read Requests
+[Load Balancer] -down-> [Read Operations 1]
+[Load Balancer] -down-> [Read Operations 2]
+[Write Operations] -right-> [Data Replication] : Data Sync
+[Data Replication] -down-> [Read Operations 1] : Sync
+[Data Replication] -down-> [Read Operations 2] : Sync
+[Failover Mechanism] -down-> [Read Operations 1] : Switch
+[Failover Mechanism] -down-> [Read Operations 2] : Switch
+
+@enduml

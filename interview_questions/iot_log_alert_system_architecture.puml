@@ -1,0 +1,69 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+
+skinparam rectangle {
+    BackgroundColor PaleGreen
+    BorderColor DarkSlateGray
+}
+
+class "IoT Device" as IoTDevice {
+    +Generate Logs
+}
+
+class "Log Collector" as LogCollector {
+    +Collect Logs
+}
+
+class "Kafka Queue" as Kafka {
+    +Queue Logs
+}
+
+class "Log Processing Service" as LogProcessing {
+    +Initial Log Processing
+}
+
+class "Master Database" as MasterDB {
+    +Store Processed Logs
+}
+
+class "Replica Database" as ReplicaDB {
+    +Handle Read Queries
+}
+
+class "Query Service" as QueryService {
+    +Handle Log Queries
+}
+
+class "Alert Service" as AlertService {
+    +Generate and Manage Alerts
+}
+
+class "Stream Processing\n(Flink/Spark)" as StreamProcessing {
+    +Real-time Log Analysis
+}
+
+class "Statistics Database" as StatsDB {
+    +Store Analysis Results
+}
+
+class "API Server" as APIServer {
+    +Provide Statistics Data
+}
+
+IoTDevice -right-> LogCollector : Send Logs
+LogCollector -down-> Kafka : Push Logs
+Kafka -down-> LogProcessing : Transfer Logs
+Kafka -right-> StreamProcessing : Stream Logs
+LogProcessing -down-> MasterDB : Store Logs
+MasterDB -left-> ReplicaDB : Replicate Data
+ReplicaDB -up-> QueryService : Retrieve Logs for Queries
+ReplicaDB -right-> AlertService : Analyze for Alerts
+StreamProcessing -down-> StatsDB : Store Statistics
+StatsDB -right-> APIServer : Fetch Statistics
+
+note right of MasterDB
+  Composite Sharding Strategy:
+  - By Device
+  - By Time
+end note
+@enduml

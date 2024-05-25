@@ -1,0 +1,122 @@
+@startuml
+
+skinparam backgroundColor #D3D3D3
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #222
+  ArrowColor #222
+}
+
+entity "User" as user {
+  +user_id : integer {PK}
+  username : varchar(15)
+  name : varchar(50)
+  email : varchar(255)
+  password : varchar(255)
+  bio : varchar(160)
+  location : varchar(30)
+  website : varchar(100)
+  join_date : datetime
+}
+
+entity "UserStatus" as userstatus {
+  +user_id : integer {PK, FK}
+  last_login : datetime
+  is_online : boolean
+  --
+  Storage: Redis
+}
+
+entity "Tweet" as tweet {
+  +tweet_id : integer {PK}
+  user_id : integer {FK}
+  text : varchar(280)
+  created_at : datetime
+  updated_at : datetime
+  retweet_count : integer
+  like_count : integer
+  --
+  NoSQL: Yes
+  Shard Key: tweet_id
+}
+
+entity "Followers" as followers {
+  +follow_id : integer {PK}
+  follower_id : integer {FK}
+  followed_id : integer {FK}
+  follow_date : datetime
+  --
+  NoSQL: Yes
+  Shard Key: followed_id
+}
+
+entity "Likes" as likes {
+  +like_id : integer {PK}
+  user_id : integer {FK}
+  tweet_id : integer {FK}
+  like_date : datetime
+  --
+  NoSQL: Yes
+  Shard Key: tweet_id
+}
+
+entity "Retweets" as retweets {
+  +retweet_id : integer {PK}
+  user_id : integer {FK}
+  tweet_id : integer {FK}
+  retweet_date : datetime
+  --
+  NoSQL: Yes
+  Shard Key: tweet_id
+}
+
+entity "Comments" as comments {
+  +comment_id : integer {PK}
+  user_id : integer {FK}
+  tweet_id : integer {FK}
+  text : varchar(280)
+  created_at : datetime
+  updated_at : datetime
+  --
+  NoSQL: Yes
+  Shard Key: tweet_id
+}
+
+entity "Hashtags" as hashtags {
+  +hashtag_id : integer {PK}
+  hashtag_text : varchar(140)
+}
+
+entity "Tweet_Hashtags" as tweet_hashtags {
+  tweet_id : integer {FK, PK}
+  hashtag_id : integer {FK, PK}
+  --
+  NoSQL: Yes
+  Shard Key: (tweet_id, hashtag_id)
+}
+
+entity "Timeline" as timeline {
+  +timeline_id : integer {PK}
+  user_id : integer {FK}
+  tweet_id : integer {FK}
+  timestamp : datetime
+  --
+  NoSQL: Yes
+  Shard Key: user_id
+}
+
+user --|> userstatus : "1..1 has"
+user --|> tweet : "1..* posts *"
+user --|> followers : "1 has Followers *"
+user --|> likes : "1..* likes *"
+user --|> retweets : "1..* retweets *"
+user --|> comments : "1..* comments *"
+user --|> timeline : "1 has Timeline *"
+tweet --|> likes : "1..* has Likes *"
+tweet --|> retweets : "1..* has Retweets *"
+tweet --|> comments : "1..* has Comments *"
+tweet --|> tweet_hashtags : "1..* has Hashtags *"
+tweet --|> timeline : "* appears in *..* Timelines"
+hashtags --|> tweet_hashtags : "* appears in *..* Tweets"
+
+@enduml

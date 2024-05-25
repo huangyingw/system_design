@@ -1,0 +1,22 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+
+actor 管理员
+actor 用户
+participant "PersistentVolume\n(PV)" as PV
+participant "PersistentVolumeClaim\n(PVC)" as PVC
+participant "Pod"
+
+管理员 -> PV : 创建PV
+用户 -> PVC : 创建PVC
+PVC -> PV : 匹配到PV
+
+用户 -> Pod : 创建并配置Pod
+Pod -> PVC : 请求挂载PVC
+
+alt Pod崩溃
+    用户 -> Pod : Pod重启
+    Pod -> PVC : 重新挂载PVC
+end
+
+@enduml

@@ -1,0 +1,62 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+
+!define DATABASE_COLOR #FAD7A0
+!define OPTIMIZATION_COLOR #ABEBC6
+
+skinparam class {
+    BackgroundColor White
+    ArrowColor Black
+    BorderColor Black
+}
+
+class "数据库优化" as Optimization {
+    +索引优化
+    +查询优化
+    +表结构调整
+    +数据分区
+    +缓存策略
+}
+
+class "索引优化" as IndexOptimization {
+    +添加缺失索引
+    +删除冗余索引
+    +使用复合索引
+}
+
+class "查询优化" as QueryOptimization {
+    +避免全表扫描
+    +优化子查询
+    +使用JOIN代替子查询
+}
+
+class "表结构调整" as TableOptimization {
+    +规范化数据
+    +反规范化
+    +数据类型优化
+}
+
+class "数据分区" as Partitioning {
+    +按时间分区
+    +按键值分区
+}
+
+class "缓存策略" as Caching {
+    +查询缓存
+    +对象缓存
+    +页面缓存
+}
+
+Optimization -down-> IndexOptimization : 包含
+Optimization -down-> QueryOptimization : 包含
+Optimization -down-> TableOptimization : 包含
+Optimization -down-> Partitioning : 包含
+Optimization -down-> Caching : 包含
+
+IndexOptimization -[DATABASE_COLOR]-> Optimization
+QueryOptimization -[DATABASE_COLOR]-> Optimization
+TableOptimization -[DATABASE_COLOR]-> Optimization
+Partitioning -[DATABASE_COLOR]-> Optimization
+Caching -[DATABASE_COLOR]-> Optimization
+
+@enduml

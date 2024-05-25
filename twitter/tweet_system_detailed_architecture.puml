@@ -1,0 +1,64 @@
+@startuml
+
+skinparam backgroundColor #D3D3D3
+
+title Enhanced Twitter System Architecture with Scalability and Performance Strategies
+
+rectangle Client
+
+rectangle "Core Services" as Core {
+    rectangle "Load Balancer & Web Server" as LBWS
+    rectangle "Application & Monitoring Services" as AMS {
+        rectangle "Service Circuit Breaker"
+        rectangle "Service Auto-Scaling"
+    }
+}
+
+rectangle "Tweet Processing Service" as TPS {
+    rectangle "Tweet & Comment Handlers" as TCH
+    rectangle "Async Processing Queue (Kafka/RabbitMQ)" as APQ
+    rectangle "Workers for Processing" as Workers
+}
+
+rectangle "Supporting Services" as SS {
+    rectangle "Search & Notification Services" as SNS
+    rectangle "Timeline Update Service" as TUS
+}
+
+rectangle "Data Persistence Layer" as DPS {
+    rectangle "Caching (Redis Cluster)" as Cache {
+        rectangle "Tweet & Timeline Caches"
+        rectangle "Edge Caching (CDN)"
+    }
+    rectangle "Databases (Sharded & Read-Replica)" as DB {
+        rectangle "Tweet & Comment Data"
+        rectangle "Data Partitioning & Sharding"
+    }
+}
+
+rectangle "Data Consistency & Distributed Transactions" as DCDT {
+    rectangle "Eventual Consistency Model"
+    rectangle "Distributed Transaction Management"
+}
+
+Client -down-> Core : Sends Request
+LBWS -down-> AMS : Routes Request
+AMS -down-> TPS : Handles Tweet/Comment
+TCH -down-> APQ : Queues Tasks
+APQ -down-> Workers : Processes Tasks
+Workers -down-> DPS : Updates Data
+Cache -> DB : Persists Cached Data
+Workers -down-> SS : Updates Search/Notifies
+TUS -down-> DPS : Updates Timelines
+Client -down-> Core : Requests Timeline
+AMS -down-> TUS : Fetches Timeline Data
+TUS -down-> DPS : Checks Cache
+Cache -> TUS : Returns Cached Data
+TUS -> AMS : Returns Timeline Data
+AMS -> LBWS : Sends Back Data
+LBWS -> Client : Returns Data/Updates Timeline
+
+AMS -right-> DCDT : Ensures Data Consistency
+DB -down-> DCDT : Manages Distributed Transactions
+
+@enduml

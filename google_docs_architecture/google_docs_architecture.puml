@@ -1,0 +1,21 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+
+package "Google Docs System" {
+    component [Frontend UI] as UI
+    component [Backend Services] as Backend
+    component [Storage System] as Storage
+    component [Collaboration Synchronization] as Sync
+    component [Security and Permissions] as Security
+    component [Message Queue] as MQ
+
+    UI --> Backend : sends user requests
+    Backend --> Security : access validation
+    Security --> Backend : validation results
+    Backend --> MQ : enqueue tasks/data
+    MQ --> Storage : store processed data
+    Backend --> Sync : manage real-time updates
+    Sync --> UI : update user views
+}
+
+@enduml

@@ -1,0 +1,35 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+!define RECTANGLE class
+
+RECTANGLE Client
+RECTANGLE LoadBalancer
+RECTANGLE "API Server\n(API_Server)" as API_Server
+RECTANGLE "Cache\n(Cache_Read_Write)" as Cache_Read_Write
+RECTANGLE "MongoDB Shard 1 Master\n(Write)" as MongoDB_Shard_1_Master
+RECTANGLE "MongoDB Shard 1 Slave\n(Read)" as MongoDB_Shard_1_Slave
+RECTANGLE "MongoDB Shard 2 Master\n(Write)" as MongoDB_Shard_2_Master
+RECTANGLE "MongoDB Shard 2 Slave\n(Read)" as MongoDB_Shard_2_Slave
+RECTANGLE "MongoDB Config Server\n(Configuration)" as MongoDB_Config
+RECTANGLE "MongoDB Router\n(MongoS)" as MongoDB_Router
+RECTANGLE BackgroundWorker
+
+Client -down-> LoadBalancer : 请求生成/解析短URL
+LoadBalancer -down-> API_Server : 分发请求
+API_Server -right-> Cache_Read_Write : 查询缓存
+Cache_Read_Write -right-> MongoDB_Router : 缓存未命中时查询数据库
+MongoDB_Router -down-> MongoDB_Shard_1_Master : 路由写操作到分片 1 主节点
+MongoDB_Router -down-> MongoDB_Shard_1_Slave : 路由读操作到分片 1 从节点
+MongoDB_Router -down-> MongoDB_Shard_2_Master : 路由写操作到分片 2 主节点
+MongoDB_Router -down-> MongoDB_Shard_2_Slave : 路由读操作到分片 2 从节点
+MongoDB_Shard_1_Master -up-> MongoDB_Router : 返回写入确认
+MongoDB_Shard_1_Slave -up-> MongoDB_Router : 返回查询结果
+MongoDB_Shard_2_Master -up-> MongoDB_Router : 返回写入确认
+MongoDB_Shard_2_Slave -up-> MongoDB_Router : 返回查询结果
+MongoDB_Router -up-> Cache_Read_Write : 返回数据库查询结果
+Cache_Read_Write -up-> API_Server : 返回短URL/原始URL
+API_Server -up-> Client : 返回原始URL/短URL
+MongoDB_Config -left-> MongoDB_Router : 提供配置信息
+MongoDB_Router -down-> BackgroundWorker : 异步任务处理
+
+@enduml

@@ -1,0 +1,104 @@
+@startuml
+title System Architecture with Message Notifications
+
+' 设置浅灰色背景
+skinparam backgroundColor #D3D3D3
+
+' 关闭阴影
+skinparam Shadowing false
+
+' 设置矩形样式
+skinparam rectangle {
+  BackgroundColor #4F6377
+  BorderColor #AAB3C2
+  FontColor #F1F1F1
+  BorderThickness 2
+}
+
+' 设置软件包样式
+skinparam package {
+  BackgroundColor #677B94
+  BorderColor #AAB3C2
+  FontColor #F1F1F1
+  RoundCorner 25
+}
+
+' 设置云样式
+skinparam cloud {
+  BackgroundColor #5D8299
+  BorderColor #AAB3C2
+  FontColor #F1F1F1
+  RoundCorner 30
+}
+
+' 设置数据库样式
+skinparam database {
+  BackgroundColor #708AA6
+  BorderColor #AAB3C2
+  FontColor #FFCC00 // 明亮的字体颜色
+  RoundCorner 20
+}
+
+' 定义元素
+package "Client Side" {
+  [Telegram User's Client] -down-> [Other Telegram Users]
+}
+
+rectangle "Telegram Service" {
+  [Load Balancer] 
+  [Service Instance]
+}
+
+database "Centralized Database System" {
+  [Database Master]
+  [Database Read Replica] 
+  [Cache Level 1] 
+  [Cache Level 2] 
+  [Database Slave]
+}
+
+rectangle "Message System" {
+  [Kafka (Message Queue)]
+  [Kafka (Pub/Sub Model)]
+  [Worker]
+}
+
+rectangle "Notification Service" {
+  [Notification Handling]
+  [Message Notification Center]
+  [Message Notification Service]
+}
+
+rectangle "Authorization Service" {
+  [Authorization & Permissions]
+}
+
+cloud "Monitoring & Logging" {
+  [Monitoring]
+  [Logging]
+}
+
+' 定义连接
+[Telegram User's Client] --> [Telegram Service] : Send Message
+[Load Balancer] --> [Service Instance]
+[Service Instance] --> [Authorization Service] : Check Permission
+[Authorization Service] -down-> [Message System] : Authorized Message
+[Cache Level 1] --> [Database Master] : Fallback if Miss
+[Database Master] --> [Cache Level 2] : Update Cache
+[Cache Level 2] --> [Database Slave] : Fallback if Miss
+[Database Read Replica] --> [Database Slave] : Read Operations
+[Database Master] --> [Message System] : After user updates
+[Kafka (Message Queue)] --> [Worker] : Process Message
+[Worker] --> [Kafka (Pub/Sub Model)] : Publish Processed Message with Priority
+[Notification Service] --> [Other Telegram Users] : Receive Message
+[Service Instance] --> [Monitoring & Logging]
+
+' 消息系统与数据库系统的交互
+[Worker] --> [Centralized Database System] : Data Processing and Logging
+[Kafka (Pub/Sub Model)] --> [Notification Service] : Publish Notification Events
+[Notification Service] --> [Centralized Database System] : Retrieve User Settings / Log Notifications
+[Message Notification Center] --> [Notification Handling] : Dispatch Notifications
+[Notification Handling] --> [Message Notification Service] : Process and Send Notifications
+[Notification Handling] --> [Centralized Database System] : Retrieve User Settings / Update Notification Status
+
+@enduml

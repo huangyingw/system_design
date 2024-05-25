@@ -1,0 +1,39 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+!define RECTANGLE class
+
+RECTANGLE Frontend
+RECTANGLE ReverseProxy
+RECTANGLE Controller
+RECTANGLE SecurityLayer
+RECTANGLE BusinessLogicLayer
+RECTANGLE CacheLayer <<High-Performance Cache>>
+RECTANGLE MessageQueue <<Asynchronous & Scalable>>
+RECTANGLE DataAccessLayer <<Efficient Data Handling>>
+RECTANGLE DatabaseSharding <<Horizontal Scaling>>
+RECTANGLE RateLimiting <<Traffic Control>>
+RECTANGLE TCCTransactionManagement <<Distributed Transaction Control>>
+RECTANGLE LoadBalancer <<Dynamic Load Distribution>>
+RECTANGLE CacheWarmup <<Pre-load Hot Data>>
+RECTANGLE AsyncProcessor <<High-Speed Order Processing>>
+RECTANGLE DatabaseOptimization <<Indexing & Query Optimization>>
+RECTANGLE MonitoringSystem <<Performance Monitoring>>
+
+Frontend -right-> ReverseProxy : Sends request
+ReverseProxy -right-> Controller : Load balancing
+Controller -down-> SecurityLayer : Security check
+SecurityLayer -down-> BusinessLogicLayer : Verification passed
+BusinessLogicLayer -left-> CacheLayer : Query/Update cache
+CacheLayer -left-> CacheWarmup : Initialize hot data
+BusinessLogicLayer -right-> DataAccessLayer : Database operations
+DataAccessLayer -right-> TCCTransactionManagement : Manages distributed transactions
+BusinessLogicLayer -up-> MessageQueue : Sends order message
+MessageQueue -down-> AsyncProcessor : Asynchronous processing
+AsyncProcessor -down-> DataAccessLayer : Processes orders
+DataAccessLayer -down-> DatabaseSharding : Accesses database
+DatabaseSharding -right-> DatabaseOptimization : Index optimization
+Controller -down-> RateLimiting : Limits request frequency
+ReverseProxy -down-> LoadBalancer : Dynamic adjustment
+BusinessLogicLayer -right-> MonitoringSystem : Monitors operations
+
+@enduml

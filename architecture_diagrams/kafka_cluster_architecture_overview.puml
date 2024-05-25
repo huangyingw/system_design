@@ -1,0 +1,45 @@
+@startuml
+skinparam backgroundColor #EEEEE
+skinparam packageStyle rectangle
+skinparam node {
+    BackgroundColor lightblue
+    BorderColor Black
+    FontName Courier
+}
+
+' Define Brokers and Zookeeper
+node "Broker1\n(物理)" as Broker1 << (K,orchid) >>
+node "Broker2\n(物理)" as Broker2 << (K,orchid) >>
+node "Broker3\n(物理)" as Broker3 << (K,orchid) >>
+node "Broker4\n(物理)" as Broker4 << (K,orchid) >>
+node "Zookeeper\n(物理)" as Zookeeper << (Z,yellow) >>
+
+' Define internal components
+node "Controller\n(Broker3)" as Controller << (C,lightblue) >>
+node "Replication Manager\n(Broker3)" as ReplicationManager << (C,lightblue) >>
+node "Log Manager\n(Broker3)" as LogManager << (C,lightblue) >>
+node "Network Processor\n(Broker4)" as NetworkProcessor << (C,lightblue) >>
+node "Request Handler\n(Broker1)" as RequestHandler << (C,lightblue) >>
+
+' Connections
+Controller --> Zookeeper : "manages & coordinates"
+Broker3 --> Controller : "hosts"
+Broker3 --> ReplicationManager : "hosts"
+Broker3 --> LogManager : "hosts"
+Broker4 --> NetworkProcessor : "hosts"
+Broker1 --> RequestHandler : "hosts"
+
+Zookeeper -[dotted]-> Broker1 : "coordinates"
+Zookeeper -[dotted]-> Broker2 : "coordinates"
+Zookeeper -[dotted]-> Broker3 : "coordinates"
+Zookeeper -[dotted]-> Broker4 : "coordinates"
+
+' Annotations for clarity
+note right of Zookeeper : "Zookeeper\nCluster Management & Coordination"
+note right of Controller : "Controller\nCluster Leadership & Coordination"
+note right of ReplicationManager : "Replication Manager\nManages Replication"
+note right of LogManager : "Log Manager\nManages Logs"
+note right of NetworkProcessor : "Network Processor\nHandles Network Requests"
+note right of RequestHandler : "Request Handler\nProcesses Client Requests"
+
+@enduml

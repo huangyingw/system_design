@@ -1,0 +1,34 @@
+@startuml
+skinparam backgroundColor #D3D3D3
+
+skinparam rectangle {
+    BackgroundColor<<数据库>> Wheat
+    BackgroundColor<<Elasticsearch>> LightGreen
+}
+
+package "数据存储方案选择" {
+    rectangle 数据库 <<数据库>> as DB {
+        note right of DB
+            结构化数据
+            事务支持
+            ACID属性
+            复杂查询能力
+            数据完整性和安全性
+        end note
+    }
+
+    rectangle Elasticsearch <<Elasticsearch>> as ES {
+        note right of ES
+            非结构化/半结构化数据
+            全文搜索和分析
+            扩展性和高可用性
+            实时处理
+            灵活性
+        end note
+    }
+}
+
+[应用场景] ..> DB : 需要\n- 结构化数据处理\n- 复杂事务\n- 数据完整性\n- 复杂查询
+[应用场景] ..> ES : 需要\n- 全文搜索\n- 实时分析\n- 大规模数据集\n- 灵活的数据模型
+
+@enduml
