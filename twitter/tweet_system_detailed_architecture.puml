@@ -7,21 +7,35 @@ title Enhanced Twitter System Architecture with Scalability and Performance Stra
 rectangle Client
 
 rectangle "Core Services" as Core {
-    rectangle "Load Balancer & Web Server" as LBWS
+    rectangle "Load Balancer & Web Server" as LBWS {
+        rectangle "Load Balancer"
+        rectangle "Web Server"
+    }
     rectangle "Application & Monitoring Services" as AMS {
+        rectangle "Application Server"
         rectangle "Service Circuit Breaker"
         rectangle "Service Auto-Scaling"
     }
 }
 
 rectangle "Tweet Processing Service" as TPS {
-    rectangle "Tweet & Comment Handlers" as TCH
+    rectangle "Tweet & Comment Handlers" as TCH {
+        rectangle "Text Processing"
+        rectangle "Sensitive Word Filtering"
+    }
     rectangle "Async Processing Queue (Kafka/RabbitMQ)" as APQ
-    rectangle "Workers for Processing" as Workers
+    rectangle "Workers for Processing" as Workers {
+        rectangle "Task Processing"
+        rectangle "Database Update"
+        rectangle "Cache Update"
+    }
 }
 
 rectangle "Supporting Services" as SS {
-    rectangle "Search & Notification Services" as SNS
+    rectangle "Search & Notification Services" as SNS {
+        rectangle "Search Service"
+        rectangle "Notification Service"
+    }
     rectangle "Timeline Update Service" as TUS
 }
 
