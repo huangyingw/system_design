@@ -1,6 +1,6 @@
 @startuml
 
-skinparam backgroundColor #EEEBDC
+skinparam backgroundColor #D3D3D3
 skinparam class {
   BackgroundColor #FFFFFF
   BorderColor #222
