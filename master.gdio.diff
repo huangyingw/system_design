@@ -1,0 +1,2488 @@
+diff --git a/.gitconfig b/.gitconfig
+new file mode 100644
+--- /dev/null
++++ ./.gitconfig
+@@ -0,0 +1,13 @@
++[deploy]
++    host = localhost
++    path = ~/Dropbox/myproject/git/system_design
++[remote "origin"]
++    url = git@github.com:huangyingw/system_design.git
++    fetch = +refs/heads/*:refs/remotes/origin/*
++[push]
++    remote = origin
++[gsync]
++    remote = origin
++    target = 7d45fb18c64ecdf68d2983b4cb4551cf25f11232
++[gdio]
++    ignore = ./bashrc/cscope_old.sh
+diff --git a/architecture_diagrams/akamai_cdn_edge_caching_architecture.puml b/architecture_diagrams/akamai_cdn_edge_caching_architecture.puml
+new file mode 100644
+--- /dev/null
++++ ./architecture_diagrams/akamai_cdn_edge_caching_architecture.puml
+@@ -0,0 +1,66 @@
++@startuml
++skinparam backgroundColor #EEEBDA
++skinparam rectangle {
++  BackgroundColor White
++  BorderColor Black
++  Shadowing false
++}
++
++' Akamai CDN System Structure
++package "Akamai CDN System" {
++    rectangle "Global Load Balancer" as GLB
++    rectangle "Geo-Location Database" as GeoDB
++
++    rectangle "Edge Server A" as EdgeA {
++        database "Cache A" as CacheA
++    }
++    rectangle "Edge Server B" as EdgeB {
++        database "Cache B" as CacheB
++    }
++    rectangle "Origin Server" as Origin
++
++    ' Connection between components
++    GLB --> GeoDB : "Geolocation Query"
++    GeoDB -down-> EdgeA : "Route Request to A"
++    GeoDB -down-> EdgeB : "Route Request to B"
++    EdgeA --> CacheA : "Request/Store Content"
++    EdgeB --> CacheB : "Request/Store Content"
++    CacheA --> Origin : "Back to Origin (if not cached)"
++    CacheB --> Origin : "Back to Origin (if not cached)"
++
++    CacheA ..> CacheB : "Cache Key Query"
++    CacheB ..> CacheA : "Cache Key Query"
++    CacheA ..> EdgeA : "TTL Expiry Handling"
++    CacheB ..> EdgeB : "TTL Expiry Handling"
++
++    ' Cache Management and Optimization
++    rectangle "CDN Cache Management and Optimization" as CDNManagement {
++        rectangle "Pre-Caching Strategy" as PreCache
++        rectangle "Cache Synchronization" as Sync
++        rectangle "Intelligent Routing" as Routing
++        rectangle "Locality Principle" as Locality
++    }
++
++    ' Interaction with other system components
++    PreCache -down-> [Hidden]
++    Sync -down-> [Hidden]
++    Routing -down-> GLB
++    Locality -down-> GeoDB
++
++    [Hidden] -down-> CacheA : "Pre-Caching\nSync Data"
++    [Hidden] -down-> CacheB : "Pre-Caching\nSync Data"
++}
++
++rectangle "User" as User
++User -right-> GLB : "Request Content"
++
++    ' Composite Key
++    note right of CacheA
++      Composite Key:
++      - Hostname
++      - Path
++      - Query String
++      - Request Headers
++    end note
++
++@enduml
+diff --git a/architecture_diagrams/cache_consistency_strategies.puml b/architecture_diagrams/cache_consistency_strategies.puml
+new file mode 100644
+--- /dev/null
++++ ./architecture_diagrams/cache_consistency_strategies.puml
+@@ -0,0 +1,66 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++skinparam class {
++    BackgroundColor White
++    ArrowColor Black
++    BorderColor Black
++}
++
++' 定义策略类
++class InvalidateCacheStrategy {
++}
++class UpdateCacheOnWriteStrategy {
++}
++class TimestampOrVersioningStrategy {
++}
++class AsynchronousUpdateStrategy {
++}
++class ConsistentHashingStrategy {
++}
++class DistributedCacheStrategy {
++}
++class TransactionalCacheStrategy {
++}
++
++' 垂直布局
++InvalidateCacheStrategy -[hidden]- UpdateCacheOnWriteStrategy
++UpdateCacheOnWriteStrategy -[hidden]- TimestampOrVersioningStrategy
++TimestampOrVersioningStrategy -[hidden]- AsynchronousUpdateStrategy
++AsynchronousUpdateStrategy -[hidden]- ConsistentHashingStrategy
++ConsistentHashingStrategy -[hidden]- DistributedCacheStrategy
++DistributedCacheStrategy -[hidden]- TransactionalCacheStrategy
++
++' 添加注释描述
++note right of InvalidateCacheStrategy
++  Invalidate on data change.
++  High consistency, potential performance hit.
++end note
++
++note right of UpdateCacheOnWriteStrategy
++  Update cache on data write.
++  Balance of consistency and performance.
++end note
++
++note right of TimestampOrVersioningStrategy
++  Use timestamps or versions.
++  For conditional updates.
++end note
++
++note right of AsynchronousUpdateStrategy
++  Update cache asynchronously.
++  Lower consistency, higher performance.
++end note
++
++note right of ConsistentHashingStrategy
++  Minimize cache invalidation for distributed caches.
++end note
++
++note right of DistributedCacheStrategy
++  Spread data across clusters for scalability and fault tolerance.
++end note
++
++note right of TransactionalCacheStrategy
++  Ensure atomicity in cache and database operations for transactional integrity.
++end note
++
++@enduml
+diff --git a/architecture_diagrams/cap_theory_diagram.puml b/architecture_diagrams/cap_theory_diagram.puml
+new file mode 100644
+--- /dev/null
++++ ./architecture_diagrams/cap_theory_diagram.puml
+@@ -0,0 +1,25 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++' 定义 CAP 理论的三个组成部分
++class Consistency {
++  +一致性
++}
++
++class Availability {
++  +可用性
++}
++
++class PartitionTolerance {
++  +分区容忍性
++}
++
++' 创建关联性说明
++note right of Consistency : 系统在\n所有节点间\n保持数据一致
++note left of Availability : 系统响应\n用户请求的能力
++note right of PartitionTolerance : 系统在\n网络分区时\n的运行能力
++
++' 描述它们之间的关系
++Consistency -- Availability : 不能同时满足
++Consistency -- PartitionTolerance : 不能同时满足
++Availability -- PartitionTolerance : 不能同时满足
++@enduml
+diff --git a/architecture_diagrams/cdn_architecture_diagram.puml b/architecture_diagrams/cdn_architecture_diagram.puml
+new file mode 100644
+--- /dev/null
++++ ./architecture_diagrams/cdn_architecture_diagram.puml
+@@ -0,0 +1,53 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++skinparam rectangle {
++  BackgroundColor White
++  BorderColor Black
++  Shadowing false
++}
++
++package "CDN System Architecture" {
++    RECTANGLE "Origin Server" as Origin
++    
++    RECTANGLE "Global Load Balancer" as GLB {
++        RECTANGLE "Geo-Location Database" as GeoDB
++    }
++    
++    DATABASE "Regional Load Balancer 1" as RLB1
++    DATABASE "Regional Load Balancer 2" as RLB2
++    
++    DATABASE "Distribution Server 1" as DS1 {
++        DATABASE "Cache 1" as Cache1
++    }
++    
++    DATABASE "Distribution Server 2" as DS2 {
++        DATABASE "Cache 2" as Cache2
++    }
++
++    RECTANGLE "Cache Decision System" as CDS
++    RECTANGLE "DNS Server" as DNSServer
++
++    DNSServer -down-> GLB : "Step 2: DNS Resolution"
++    GLB -down-> GeoDB : "Step 3: Geo-Location Lookup"
++    GeoDB -left-> RLB1 : "Step 4: Route to Region 1"
++    GeoDB -right-> RLB2 : "Step 4: Route to Region 2"
++    RLB1 -down-> DS1 : "Step 5: Load Balance within Region"
++    RLB2 -down-> DS2
++    DS1 -down-> Cache1 : "Step 6: Check Cache"
++    DS2 -down-> Cache2
++    Cache1 -left-> CDS : "Cache Query"
++    Cache2 -right-> CDS : "Cache Query"
++    CDS -up-> Cache1 : "Cache Decision"
++    CDS -up-> Cache2 : "Cache Decision"
++    Cache1 -down-> Origin : "Step 7: Request Origin (if not cached)"
++    Cache2 -down-> Origin
++    Origin -up-> Cache1 : "Step 8: Update Cache and Deliver Content"
++    Origin -up-> Cache2
++}
++
++RECTANGLE "User" as User
++User -right-> DNSServer : "Step 1: User Request"
++DS1 -up-> User : "Step 9: Respond to User Request"
++DS2 -up-> User
++
++@enduml
+diff --git a/architecture_diagrams/data_storage_options.puml b/architecture_diagrams/data_storage_options.puml
+new file mode 100644
+--- /dev/null
++++ ./architecture_diagrams/data_storage_options.puml
+@@ -0,0 +1,34 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++
++skinparam rectangle {
++    BackgroundColor<<数据库>> Wheat
++    BackgroundColor<<Elasticsearch>> LightGreen
++}
++
++package "数据存储方案选择" {
++    rectangle 数据库 <<数据库>> as DB {
++        note right of DB
++            结构化数据
++            事务支持
++            ACID属性
++            复杂查询能力
++            数据完整性和安全性
++        end note
++    }
++
++    rectangle Elasticsearch <<Elasticsearch>> as ES {
++        note right of ES
++            非结构化/半结构化数据
++            全文搜索和分析
++            扩展性和高可用性
++            实时处理
++            灵活性
++        end note
++    }
++}
++
++[应用场景] ..> DB : 需要\n- 结构化数据处理\n- 复杂事务\n- 数据完整性\n- 复杂查询
++[应用场景] ..> ES : 需要\n- 全文搜索\n- 实时分析\n- 大规模数据集\n- 灵活的数据模型
++
++@enduml
+diff --git a/architecture_diagrams/database_performance_optimization.puml b/architecture_diagrams/database_performance_optimization.puml
+new file mode 100644
+--- /dev/null
++++ ./architecture_diagrams/database_performance_optimization.puml
+@@ -0,0 +1,62 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++
++!define DATABASE_COLOR #FAD7A0
++!define OPTIMIZATION_COLOR #ABEBC6
++
++skinparam class {
++    BackgroundColor White
++    ArrowColor Black
++    BorderColor Black
++}
++
++class "数据库优化" as Optimization {
++    +索引优化
++    +查询优化
++    +表结构调整
++    +数据分区
++    +缓存策略
++}
++
++class "索引优化" as IndexOptimization {
++    +添加缺失索引
++    +删除冗余索引
++    +使用复合索引
++}
++
++class "查询优化" as QueryOptimization {
++    +避免全表扫描
++    +优化子查询
++    +使用JOIN代替子查询
++}
++
++class "表结构调整" as TableOptimization {
++    +规范化数据
++    +反规范化
++    +数据类型优化
++}
++
++class "数据分区" as Partitioning {
++    +按时间分区
++    +按键值分区
++}
++
++class "缓存策略" as Caching {
++    +查询缓存
++    +对象缓存
++    +页面缓存
++}
++
++Optimization -down-> IndexOptimization : 包含
++Optimization -down-> QueryOptimization : 包含
++Optimization -down-> TableOptimization : 包含
++Optimization -down-> Partitioning : 包含
++Optimization -down-> Caching : 包含
++
++IndexOptimization -[DATABASE_COLOR]-> Optimization
++QueryOptimization -[DATABASE_COLOR]-> Optimization
++TableOptimization -[DATABASE_COLOR]-> Optimization
++Partitioning -[DATABASE_COLOR]-> Optimization
++Caching -[DATABASE_COLOR]-> Optimization
++
++@enduml
+diff --git a/architecture_diagrams/database_sharding_analysis.puml b/architecture_diagrams/database_sharding_analysis.puml
+new file mode 100644
+--- /dev/null
++++ ./architecture_diagrams/database_sharding_analysis.puml
+@@ -0,0 +1,39 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++start
++split
++:分析查询日志;
++split again
++:了解业务需求;
++end split
++if (有性能监控工具吗?) then (是)
++  :使用性能监控工具;
++endif
++split
++:回顾历史优化措施;
++split again
++:应用程序代码审查;
++end split
++split
++:收集用户反馈和数据;
++split again
++:综合分析查询模式;
++end split
++:确定常见查询类型;
++note right
++  例如，SQL查询：
++  SELECT * FROM orders 
++  WHERE customer_id = 12345 
++  AND order_date BETWEEN '2023-01-01' AND '2023-01-31';
++end note
++:基于查询模式选择分片键;
++note right
++  选择 customer_id 和 order_date 作为复合分片键
++end note
++:设计分片架构;
++note right
++  如在NoSQL数据库中设置分片规则，
++  或在RDBMS中配置分片中间件
++end note
++stop
++@enduml
+diff --git a/architecture_diagrams/db_read_write_splitting_architecture.puml b/architecture_diagrams/db_read_write_splitting_architecture.puml
+new file mode 100644
+--- /dev/null
++++ ./architecture_diagrams/db_read_write_splitting_architecture.puml
+@@ -0,0 +1,47 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++
++' Application Layer
++package "Application Layer" {
++    [Application Service]
++    note right of [Application Service] : Chooses database\nbased on operation type
++}
++
++' Database Layer
++package "Database Layer" {
++    frame "Master Database" {
++        [Write Operations]
++        note right of [Write Operations] : Handles all write requests\nand synchronizes data to slave databases
++    }
++    frame "Slave Database 1" {
++        [Read Operations 1]
++        note right of [Read Operations 1] : Handles read requests
++    }
++    frame "Slave Database 2" {
++        [Read Operations 2]
++        note right of [Read Operations 2] : Handles read requests
++    }
++    [Load Balancer]
++    note right of [Load Balancer] : Distributes read requests\namong slave databases
++}
++
++' Data Synchronization and High Availability
++package "Data Sync & High Availability" {
++    [Data Replication]
++    note right of [Data Replication] : Sync data from master to slave\nMaintains data consistency
++    [Failover Mechanism]
++    note right of [Failover Mechanism] : Promotes a slave to master\nin case of master database failure
++}
++
++' Connections
++[Application Service] -down-> [Write Operations] : Write Requests
++[Application Service] -down-> [Load Balancer] : Read Requests
++[Load Balancer] -down-> [Read Operations 1]
++[Load Balancer] -down-> [Read Operations 2]
++[Write Operations] -right-> [Data Replication] : Data Sync
++[Data Replication] -down-> [Read Operations 1] : Sync
++[Data Replication] -down-> [Read Operations 2] : Sync
++[Failover Mechanism] -down-> [Read Operations 1] : Switch
++[Failover Mechanism] -down-> [Read Operations 2] : Switch
++
++@enduml
+diff --git a/architecture_diagrams/distributed_file_system_architecture.puml b/architecture_diagrams/distributed_file_system_architecture.puml
+new file mode 100644
+--- /dev/null
++++ ./architecture_diagrams/distributed_file_system_architecture.puml
+@@ -0,0 +1,36 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++package "分布式文件系统" {
++    node "客户端A" as ClientA
++    node "客户端B" as ClientB
++    node "名称节点" as NameNode {
++        [元数据存储] as MetadataStorage
++    }
++    node "数据节点1" as DataNode1 {
++        [数据存储] as DataStorage1
++    }
++    node "数据节点2" as DataNode2 {
++        [数据存储] as DataStorage2
++    }
++    node "管理节点" as AdminNode
++    node "负载均衡器" as LoadBalancer
++    node "备份节点" as BackupNode
++
++    ClientA -down-> LoadBalancer : 连接请求
++    ClientB -down-> LoadBalancer : 连接请求
++    LoadBalancer -right-> NameNode : 路由请求
++
++    NameNode -down-> DataNode1 : 指派任务
++    NameNode -down-> DataNode2 : 指派任务
++
++    ClientA -right-> DataNode1 : 读/写数据
++    ClientB -left-> DataNode2 : 读/写数据
++
++    DataNode1 -down-> BackupNode : 数据备份
++    DataNode2 -down-> BackupNode : 数据备份
++
++    AdminNode -left-> NameNode : 管理与监控
++    AdminNode -up-> DataNode1 : 管理与监控
++    AdminNode -up-> DataNode2 : 管理与监控
++}
++@enduml
+diff --git a/architecture_diagrams/ecommerce_db_design_with_sharding_and_replication.puml b/architecture_diagrams/ecommerce_db_design_with_sharding_and_replication.puml
+new file mode 100644
+--- /dev/null
++++ ./architecture_diagrams/ecommerce_db_design_with_sharding_and_replication.puml
+@@ -0,0 +1,78 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++!define MONGOS(x) class x << (M,#FFAAFF) >>
++!define CONFIG(x) class x << (C,#FFFFAA) >>
++!define SHARD(x) class x << (S,#AAAAFF) >>
++!define REPLICA(x) class x << (R,#AAFFAA) >>
++!define COLLECTION(x) class x << (D,#FFAAAA) >>
++
++'MongoDB Architecture Components
++MONGOS(MongosRouter)
++CONFIG(ConfigServer1)
++CONFIG(ConfigServer2)
++CONFIG(ConfigServer3)
++SHARD(Shard1)
++SHARD(Shard2)
++REPLICA(Shard1_Primary)
++REPLICA(Shard1_Secondary1)
++REPLICA(Shard1_Secondary2)
++REPLICA(Shard2_Primary)
++REPLICA(Shard2_Secondary1)
++REPLICA(Shard2_Secondary2)
++
++'MongoDB Collections
++COLLECTION(User) {
++  +_id : ObjectId {PK}
++  +username : String {Index, Shard Key}
++  +email : String {Index}
++  +password : String
++}
++
++COLLECTION(Product) {
++  +_id : ObjectId {PK, Shard Key}
++  +name : String {Index}
++  +description : String
++  +price : Decimal
++}
++
++COLLECTION(Order) {
++  +_id : ObjectId {PK}
++  +user_id : ObjectId {Index, Compound Shard Key}
++  +product_id : ObjectId {Index}
++  +order_date : DateTime {Index, Compound Shard Key}
++  +quantity : Int
++}
++
++'Collections in Shards
++Shard1_Primary -down-> User : stores >
++Shard1_Primary -down-> Order : stores >
++Shard2_Primary -down-> Product : stores >
++
++'Replica Set Relationships
++Shard1 -down-> Shard1_Primary : contains >
++Shard1 -down-> Shard1_Secondary1 : contains >
++Shard1 -down-> Shard1_Secondary2 : contains >
++Shard2 -down-> Shard2_Primary : contains >
++Shard2 -down-> Shard2_Secondary1 : contains >
++Shard2 -down-> Shard2_Secondary2 : contains >
++
++Shard1_Primary -right-> Shard1_Secondary1 : replicates >
++Shard1_Primary -right-> Shard1_Secondary2 : replicates >
++Shard2_Primary -right-> Shard2_Secondary1 : replicates >
++Shard2_Primary -right-> Shard2_Secondary2 : replicates >
++
++'MongoDB Relationships
++MongosRouter -down-> ConfigServer1 : reads config >
++MongosRouter -down-> ConfigServer2 : reads config >
++MongosRouter -down-> ConfigServer3 : reads config >
++MongosRouter -down-> Shard1 : routes requests >
++MongosRouter -down-> Shard2 : routes requests >
++
++ConfigServer1 -down-> Shard1 : stores metadata >
++ConfigServer2 -down-> Shard1 : stores metadata >
++ConfigServer3 -down-> Shard1 : stores metadata >
++ConfigServer1 -down-> Shard2 : stores metadata >
++ConfigServer2 -down-> Shard2 : stores metadata >
++ConfigServer3 -down-> Shard2 : stores metadata >
++
++@enduml
+diff --git a/architecture_diagrams/hdfs_architecture_diagram.puml b/architecture_diagrams/hdfs_architecture_diagram.puml
+new file mode 100644
+--- /dev/null
++++ ./architecture_diagrams/hdfs_architecture_diagram.puml
+@@ -0,0 +1,46 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++!define RECTANGLE class
++
++RECTANGLE NameNode {
++  +管理文件系统命名空间
++  +维护文件系统树
++  +映射数据块到DataNode
++  +处理客户端请求
++  +维护数据块列表和位置信息
++}
++
++RECTANGLE DataNode {
++  +存储数据
++  +向NameNode报告数据块信息
++  +执行数据块读写操作
++  +维护数据块的完整性
++}
++
++RECTANGLE SecondaryNameNode {
++  +辅助NameNode
++  +合并编辑日志和文件系统图像
++  +定期与NameNode同步
++  +帮助恢复NameNode
++}
++
++RECTANGLE Client {
++  +文件读取和写入
++  +与NameNode和DataNode交互
++  +处理文件的分块
++  +执行数据块定位
++}
++
++RECTANGLE Block {
++  +文件分块
++  +存储在DataNode上
++  +有唯一标识符
++}
++
++NameNode -down-> DataNode : 管理
++DataNode -up-> NameNode : 报告状态
++NameNode -right-> SecondaryNameNode : 交互
++Client -left-> NameNode : 请求文件信息
++Client -right-> DataNode : 读/写数据
++DataNode -down-> Block : 包含
++@enduml
+diff --git a/architecture_diagrams/kafka_architecture_overview.puml b/architecture_diagrams/kafka_architecture_overview.puml
+new file mode 100644
+--- /dev/null
++++ ./architecture_diagrams/kafka_architecture_overview.puml
+@@ -0,0 +1,60 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++
++!define KafkaNode(x) class x << (K,orchid) >> 
++!define ZookeeperNode(x) class x << (Z,yellow) >> 
++!define ProducerNode(x) class x << (P,blue) >> 
++!define ConsumerNode(x) class x << (C,red) >> 
++
++package "Kafka Cluster" {
++    KafkaNode("Broker1\n(物理)") 
++    KafkaNode("Broker2\n(物理)") 
++    KafkaNode("Broker3\n(物理)") 
++    ZookeeperNode("Zookeeper\n(物理)") 
++
++    class "Topic1\n(逻辑)" << (T,purple) >> 
++    class "Topic2\n(逻辑)" << (T,purple) >> 
++
++    class "Partition1_1\n(逻辑)" 
++    class "Partition1_2\n(逻辑)"  
++    class "Partition2_1\n(逻辑)"  
++    class "Partition2_2\n(逻辑)"  
++
++    "Topic1\n(逻辑)" -- "Partition1_1\n(逻辑)" : contains
++    "Topic1\n(逻辑)" -- "Partition1_2\n(逻辑)" : contains
++    "Topic2\n(逻辑)" -- "Partition2_1\n(逻辑)" : contains
++    "Topic2\n(逻辑)" -- "Partition2_2\n(逻辑)" : contains
++
++    "Partition1_1\n(逻辑)" -- "Broker1\n(物理)" : Leader at
++    "Partition1_1\n(逻辑)" -- "Broker2\n(物理)" : Follower at
++    "Partition1_1\n(逻辑)" -- "Broker3\n(物理)" : Follower at
++
++    "Partition1_2\n(逻辑)" -- "Broker1\n(物理)" 
++    "Partition2_1\n(逻辑)" -- "Broker2\n(物理)" 
++    "Partition2_2\n(逻辑)" -- "Broker2\n(物理)" 
++
++    "Broker1\n(物理)" --|> "Zookeeper\n(物理)" 
++    "Broker2\n(物理)" --|> "Zookeeper\n(物理)" 
++    "Broker3\n(物理)" --|> "Zookeeper\n(物理)" 
++    "Topic1\n(逻辑)" --|> "Zookeeper\n(物理)" 
++    "Topic2\n(逻辑)" --|> "Zookeeper\n(物理)" 
++}
++
++ProducerNode("Producer1\n(物理)") 
++ProducerNode("Producer2\n(物理)") 
++ConsumerNode("Consumer1\n(物理)") 
++ConsumerNode("Consumer2\n(物理)") 
++
++"Producer1\n(物理)" --> "Topic1\n(逻辑)" : writes to
++"Producer2\n(物理)" --> "Topic2\n(逻辑)" : writes to
++
++"Consumer1\n(物理)" --> "Partition1_1\n(逻辑)" : reads from
++"Consumer1\n(物理)" --> "Partition1_2\n(逻辑)" : reads from
++"Consumer2\n(物理)" --> "Partition2_1\n(逻辑)" : reads from
++"Consumer2\n(物理)" --> "Partition2_2\n(逻辑)" : reads from
++
++' 假设使用旧版本的 Kafka，消费者偏移量还存储在 Zookeeper 中
++"Consumer1\n(物理)" --|> "Zookeeper\n(物理)" : offsets stored in
++"Consumer2\n(物理)" --|> "Zookeeper\n(物理)" : offsets stored in
++
++@enduml
+diff --git a/architecture_diagrams/kafka_cluster_architecture_overview.puml b/architecture_diagrams/kafka_cluster_architecture_overview.puml
+new file mode 100644
+--- /dev/null
++++ ./architecture_diagrams/kafka_cluster_architecture_overview.puml
+@@ -0,0 +1,45 @@
++@startuml
++skinparam backgroundColor #EEEEE
++skinparam packageStyle rectangle
++skinparam node {
++    BackgroundColor lightblue
++    BorderColor Black
++    FontName Courier
++}
++
++' Define Brokers and Zookeeper
++node "Broker1\n(物理)" as Broker1 << (K,orchid) >>
++node "Broker2\n(物理)" as Broker2 << (K,orchid) >>
++node "Broker3\n(物理)" as Broker3 << (K,orchid) >>
++node "Broker4\n(物理)" as Broker4 << (K,orchid) >>
++node "Zookeeper\n(物理)" as Zookeeper << (Z,yellow) >>
++
++' Define internal components
++node "Controller\n(Broker3)" as Controller << (C,lightblue) >>
++node "Replication Manager\n(Broker3)" as ReplicationManager << (C,lightblue) >>
++node "Log Manager\n(Broker3)" as LogManager << (C,lightblue) >>
++node "Network Processor\n(Broker4)" as NetworkProcessor << (C,lightblue) >>
++node "Request Handler\n(Broker1)" as RequestHandler << (C,lightblue) >>
++
++' Connections
++Controller --> Zookeeper : "manages & coordinates"
++Broker3 --> Controller : "hosts"
++Broker3 --> ReplicationManager : "hosts"
++Broker3 --> LogManager : "hosts"
++Broker4 --> NetworkProcessor : "hosts"
++Broker1 --> RequestHandler : "hosts"
++
++Zookeeper -[dotted]-> Broker1 : "coordinates"
++Zookeeper -[dotted]-> Broker2 : "coordinates"
++Zookeeper -[dotted]-> Broker3 : "coordinates"
++Zookeeper -[dotted]-> Broker4 : "coordinates"
++
++' Annotations for clarity
++note right of Zookeeper : "Zookeeper\nCluster Management & Coordination"
++note right of Controller : "Controller\nCluster Leadership & Coordination"
++note right of ReplicationManager : "Replication Manager\nManages Replication"
++note right of LogManager : "Log Manager\nManages Logs"
++note right of NetworkProcessor : "Network Processor\nHandles Network Requests"
++note right of RequestHandler : "Request Handler\nProcesses Client Requests"
++
++@enduml
+diff --git a/architecture_diagrams/kubernetes_persistent_storage_process.puml b/architecture_diagrams/kubernetes_persistent_storage_process.puml
+new file mode 100644
+--- /dev/null
++++ ./architecture_diagrams/kubernetes_persistent_storage_process.puml
+@@ -0,0 +1,22 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++
++actor 管理员
++actor 用户
++participant "PersistentVolume\n(PV)" as PV
++participant "PersistentVolumeClaim\n(PVC)" as PVC
++participant "Pod"
++
++管理员 -> PV : 创建PV
++用户 -> PVC : 创建PVC
++PVC -> PV : 匹配到PV
++
++用户 -> Pod : 创建并配置Pod
++Pod -> PVC : 请求挂载PVC
++
++alt Pod崩溃
++    用户 -> Pod : Pod重启
++    Pod -> PVC : 重新挂载PVC
++end
++
++@enduml
+diff --git a/architecture_diagrams/microservices_with_databases.puml b/architecture_diagrams/microservices_with_databases.puml
+new file mode 100644
+--- /dev/null
++++ ./architecture_diagrams/microservices_with_databases.puml
+@@ -0,0 +1,52 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++
++!define MICROSERVICE(x) component x <<Microservice>>
++!define MONGOS(x) database x <<Mongos>>
++!define SHARD(x) database x <<Shard>>
++!define CONFIGSVR(x) database x <<ConfigServer>>
++
++' 定义微服务
++MICROSERVICE(Service1)
++MICROSERVICE(Service2)
++
++' 定义路由服务器（Mongos）
++MONGOS(Mongos1)
++MONGOS(Mongos2)
++
++' 定义分片
++SHARD(Shard1)
++SHARD(Shard2)
++SHARD(Shard3)
++
++' 定义配置服务器
++CONFIGSVR(ConfigServer1)
++CONFIGSVR(ConfigServer2)
++CONFIGSVR(ConfigServer3)
++
++' 微服务连接到Mongos
++Service1 --> Mongos1 : 查询
++Service2 --> Mongos2 : 查询
++
++' Mongos连接到分片
++Mongos1 --> Shard1
++Mongos1 --> Shard2
++Mongos1 --> Shard3
++Mongos2 --> Shard1
++Mongos2 --> Shard2
++Mongos2 --> Shard3
++
++' Mongos连接到配置服务器
++Mongos1 --> ConfigServer1
++Mongos1 --> ConfigServer2
++Mongos1 --> ConfigServer3
++Mongos2 --> ConfigServer1
++Mongos2 --> ConfigServer2
++Mongos2 --> ConfigServer3
++
++' 分片间的副本集关系
++Shard1 .. Shard2 : 副本集
++Shard2 .. Shard3 : 副本集
++Shard3 .. Shard1 : 副本集
++
++@enduml
+diff --git a/architecture_diagrams/rate_limiting_system_design.puml b/architecture_diagrams/rate_limiting_system_design.puml
+new file mode 100644
+--- /dev/null
++++ ./architecture_diagrams/rate_limiting_system_design.puml
+@@ -0,0 +1,43 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++
++!define RECTANGLE class
++!define DATABASE class
++
++RECTANGLE Clients
++RECTANGLE "Server Cluster"
++RECTANGLE "Distributed\nRate Limiter"
++RECTANGLE "Enhanced Rules\nEngine"
++DATABASE "Distributed\nData Store"
++RECTANGLE "Request\nProcessor"
++RECTANGLE "Reject\nResponse" as Reject
++RECTANGLE "Allow\nResponse" as Allow
++
++Clients -right-> "Server Cluster" : API Requests
++"Server Cluster" -down-> "Distributed\nRate Limiter" : Check Rate
++"Distributed\nRate Limiter" -down-> "Enhanced Rules\nEngine" : Fetch Rules
++"Enhanced Rules\nEngine" -down-> "Distributed\nData Store" : Update Rules
++"Distributed\nRate Limiter" -right-> "Request\nProcessor" : Send Request
++"Request\nProcessor" -up-> Allow : Allow Request
++"Request\nProcessor" -down-> Reject : Reject Request
++
++note right of "Distributed\nRate Limiter"
++  If request matches limit criteria:
++  - Reject additional requests
++  - Until next allowable time window
++end note
++
++note right of "Enhanced Rules\nEngine"
++  - Basic Rate Rules
++  - User-Level Rules
++  - Behavior-Triggered Rules
++end note
++
++note right of "Distributed\nData Store"
++  Stores:
++  - Rate limiting rules
++  - User behavior data
++  - Request logs
++end note
++
++@enduml
+diff --git a/architecture_diagrams/redis_cluster_architecture.puml b/architecture_diagrams/redis_cluster_architecture.puml
+new file mode 100644
+--- /dev/null
++++ ./architecture_diagrams/redis_cluster_architecture.puml
+@@ -0,0 +1,41 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++!define RedisNode(x) class x << (R,orchid) >>
++!define ClientNode(x) class x << (C,lightblue) >>
++
++package "Redis Cluster" {
++    RedisNode(Master1)
++    RedisNode(Master2)
++    RedisNode(Master3)
++    RedisNode(Slave1)
++    RedisNode(Slave2)
++    RedisNode(Slave3)
++
++    Master1 -[hidden]down- Master2
++    Master2 -[hidden]down- Master3
++    Slave1 -[hidden]right- Slave2
++    Slave2 -[hidden]right- Slave3
++
++    Master1 -down-> Slave1 : replication
++    Master2 -down-> Slave2 : replication
++    Master3 -down-> Slave3 : replication
++
++    interface "Cluster Communication" as ClusterComm
++
++    Master1 -right-> ClusterComm : heartbeat
++    Master2 -right-> ClusterComm
++    Master3 -right-> ClusterComm
++    Slave1 -left-> ClusterComm
++    Slave2 -left-> ClusterComm
++    Slave3 -left-> ClusterComm
++}
++
++ClientNode(Client1)
++ClientNode(Client2)
++
++Client1 -down-> Master1 : read/write
++Client1 -down-> Master2
++Client2 -down-> Master3 : read/write
++Client2 -down-> Slave3 : read
++
++@enduml
+diff --git a/architecture_diagrams/spark_data_partitioning_and_optimization_framework.puml b/architecture_diagrams/spark_data_partitioning_and_optimization_framework.puml
+new file mode 100644
+--- /dev/null
++++ ./architecture_diagrams/spark_data_partitioning_and_optimization_framework.puml
+@@ -0,0 +1,62 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++
++class "Data Partitioning" as Partitioning {
++  + Hash Partitioning
++  + Range Partitioning
++  + Custom Partitioning
++}
++
++class "Partitioning Strategies" as Strategies {
++  + Define number of partitions
++  + Select partitioning method
++  + Consider data skewness
++}
++
++class "Optimization Techniques" as Optimization {
++  + Coalesce for reducing partitions
++  + Repartition for increasing or reshuffling partitions
++  + Persist partitions in memory
++  + Adjust parallelism
++}
++
++class "Data Skewness Handling" as Skewness {
++  + Identify skewed keys
++  + Use salting technique
++  + Split skewed partitions
++}
++
++class "RDD/DataFrame" as Data {
++  + Data is divided into partitions
++}
++
++Partitioning --> Data : Applies to
++Strategies --> Partitioning : Guides
++Optimization --> Strategies : Implements
++Skewness --> Optimization : Part of
++
++note right of Partitioning
++  Partitioning is how Spark splits data
++  into chunks that can be processed in parallel.
++  Different methods are available based on data characteristics.
++end note
++
++note left of Strategies
++  Strategies include how to choose the partitioning method
++  and the number of partitions, considering data characteristics
++  and processing requirements.
++end note
++
++note right of Optimization
++  Optimization techniques involve methods
++  to improve the efficiency of data processing
++  through effective partition management.
++end note
++
++note left of Skewness
++  Handling data skewness involves techniques
++  to evenly distribute data across partitions,
++  especially when certain keys are over-represented.
++end note
++
++@enduml
+diff --git a/architecture_diagrams/spark_kubernetes_architecture.puml b/architecture_diagrams/spark_kubernetes_architecture.puml
+new file mode 100644
+--- /dev/null
++++ ./architecture_diagrams/spark_kubernetes_architecture.puml
+@@ -0,0 +1,129 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++
++package "Spark on Kubernetes Application" #LightYellow {
++    [Driver Program\n(Scala, Java, Python, R)] as Driver
++        [SparkContext\n(Scala, Java, Python, R)] as SC
++        [RDD Operations\n(Scala, Java, Python, R)] as RDDOps
++        [DAG Scheduler\n(Scala)] as DAG
++        [Task Scheduler\n(Scala)] as TS
++}
++
++package "Kubernetes Cluster" #LightGreen {
++        [Kubernetes Master\n(Java, Scala)] as K8sMaster
++        [Kubernetes API] as K8sAPI
++    }
++
++package "Kubernetes Worker Node 1" #LightBlue {
++        [Pod 1\n(Kubernetes)] as Pod1
++        [Executor 1\n(Scala, Java, Python, R)] as E1
++        [Cache 1] as C1
++    frame "Logical Data Processing 1" #Pink {
++        [Map Task 1.1\n(Scala, Java, Python, R)] as MT11
++        [Reduce Task 1.2\n(Scala, Java, Python, R)] as RT12
++    }
++}
++
++package "Kubernetes Worker Node 2" #LightBlue {
++        [Pod 2\n(Kubernetes)] as Pod2
++        [Executor 2\n(Scala, Java, Python, R)] as E2
++        [Cache 2] as C2
++    frame "Logical Data Processing 2" #Pink {
++        [Map Task 2.1\n(Scala, Java, Python, R)] as MT21
++        [Reduce Task 2.2\n(Scala, Java, Python, R)] as RT22
++    }
++}
++
++    [Final Reduce and Merge\n(Scala, Java, Python, R)] as FinalReduce
++
++database "Data Storage System\n(Java)" as Storage #LightCoral {
++        [HDFS\n(Java)]
++        [Elasticsearch]
++        [Other Sources] as Others
++    }
++
++Driver --> SC : Use
++SC --> RDDOps : Data Transformations
++RDDOps --> DAG : Convert to DAG
++SC --> TS : Submit Tasks
++SC --> K8sAPI : Deploy Driver/Executors
++DAG --> TS : Execution Planning
++TS --> K8sAPI : Request Executors
++K8sMaster --> Pod1 : Schedule Pod
++K8sMaster --> Pod2 : Schedule Pod
++Pod1 --> E1 : Run Executor
++E1 --> C1 : Data Caching
++E1 --> MT11 : Execute Map Task
++MT11 --> RT12 : Followed by Reduce Task
++Pod2 --> E2 : Run Executor
++E2 --> C2 : Data Caching
++E2 --> MT21 : Execute Map Task
++MT21 --> RT22 : Followed by Reduce Task
++RT12 --> FinalReduce : Send Results
++RT22 --> FinalReduce : Send Results
++FinalReduce --> Storage : Final Output
++
++note right of RT12
++  Reduce Task 1.2:
++  - Performs local reduce operations on Node 1
++  - Part of the distributed reduce phase
++end note
++
++note right of RDDOps
++  RDD Operations define data processing logic:
++  - Transformations (e.g., map, filter) define how to process data
++  - Actions (e.g., count, collect) trigger computation and output results
++  - Operations are lazily evaluated: executed when action is called
++  - The basis for distributed data processing tasks on Worker Nodes
++end note
++
++note right of DAG
++  DAG (Directed Acyclic Graph) represents:
++  - Data processing steps and their dependencies
++  - Optimizes task execution
++  - Provides a fault-tolerance mechanism
++  - No cyclic dependencies in the workflow
++  - Basis for execution planning and optimization
++end note
++
++note right of Elasticsearch
++  Elasticsearch is used for:
++  - Full-text Search and Complex Queries
++  - Real-time Analysis and Dashboards
++  - Log and Event Data Analysis
++  - Big Data Integration
++  - Data Enrichment
++end note
++
++note top of C1
++  Cache for Accelerating Data Access
++  Supports Various Persistence Levels
++end note
++
++note right of Storage
++  External Persistent Storage System
++  Provides Long-term Data Storage and Fault Tolerance
++end note
++
++note right of K8sMaster
++  Kubernetes Master:
++  - Manages the Kubernetes Cluster
++  - Schedules and Orchestrates Pods
++  - Provides Cluster Management Capabilities
++end note
++
++note right of E1
++  Executors run in Kubernetes Pods
++  Each Pod represents a Spark Executor
++  Pods are managed by Kubernetes
++  Executors perform Tasks and may have local Cache
++end note
++
++note right of FinalReduce
++  Final Reduce and Merge:
++  - Aggregates results from all Reduce Tasks
++  - Performs final data merging and processing
++  - Outputs the final result to the Data Storage System
++end note
++
++@enduml
+diff --git a/architecture_diagrams/spark_mapreduce_comparison.puml b/architecture_diagrams/spark_mapreduce_comparison.puml
+new file mode 100644
+--- /dev/null
++++ ./architecture_diagrams/spark_mapreduce_comparison.puml
+@@ -0,0 +1,64 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++
++skinparam class {
++    BackgroundColor LightYellow
++    ArrowColor Brown
++    BorderColor Brown
++}
++
++skinparam packageStyle rectangle
++
++package "Spark System" {
++class SparkContext {
++  - initialize cluster
++  - distribute data
++  - execute tasks
++}
++
++class RDD {
++  - parallelize data
++  - lineage information
++  - transformations
++  - actions
++}
++
++class Transformation {
++  - map()
++  - filter()
++  - flatMap()
++  - groupBy()
++}
++
++class Action {
++  - reduce()
++  - collect()
++  - count()
++  - take()
++}
++}
++
++package "MapReduce Model" {
++class MapReduceModel {
++  + Map()
++  + Reduce()
++}
++
++class MapOperation {
++}
++
++class ReduceOperation {
++}
++}
++
++SparkContext -down-> RDD : creates >
++RDD -down-> Transformation : performs >
++RDD -down-> Action : performs >
++Transformation -[hidden]down-> MapReduceModel 
++Action -[hidden]down-> MapReduceModel 
++MapReduceModel -left-> MapOperation : corresponds to >
++MapReduceModel -right-> ReduceOperation : corresponds to >
++Transformation ..> MapOperation : includes > #DashedBrown
++Action ..> ReduceOperation : includes > #DashedBrown
++
++@enduml
+diff --git a/cohesity_system_architecture/cohesity_azure_integration_diagram.puml b/cohesity_system_architecture/cohesity_azure_integration_diagram.puml
+new file mode 100644
+--- /dev/null
++++ ./cohesity_system_architecture/cohesity_azure_integration_diagram.puml
+@@ -0,0 +1,83 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++
++package "Cohesity Platform" {
++    [REST Endpoint]
++}
++
++package "Microsoft Azure" {
++    [Azure Sentinel]
++    [Producer Function App with Timer Trigger]
++    [Consumer Function App]
++    [Service Bus Queue]
++    [Playbooks]
++    [Sentinel API]
++    [Azure Cache for Redis]
++}
++
++package "Third-party Applications" {
++    [ServiceNow]
++}
++
++[REST Endpoint] --> [Producer Function App with Timer Trigger] : Fetch and Transform Data
++[Producer Function App with Timer Trigger] --> [Service Bus Queue] : Queue Alerts
++[Producer Function App with Timer Trigger] --> [Azure Cache for Redis] : Store Query Times
++[Azure Cache for Redis] --> [Producer Function App with Timer Trigger] : Get Start Time for Next Query
++[Service Bus Queue] --> [Consumer Function App] : FIFO, Deduplication, Transactions
++[Consumer Function App] --> [Azure Sentinel] : Create Incidents
++[Azure Sentinel] --> [Playbooks] : Execute on New Incident
++[Playbooks] --> [Sentinel API] : Read Incident Data
++[Playbooks] --> [ServiceNow] : Create Ticket on New Incident
++[Playbooks] -down-> (Email Notifications) : Send Email on New Incident
++
++note right of [REST Endpoint]
++  - Fetch alerts from Cohesity
++end note
++
++note left of [Producer Function App with Timer Trigger]
++  - Data transformation
++  - Triggered by Timer
++  - Use Cached Time for Query
++  - Store data in Service Bus Queue
++end note
++
++note right of [Azure Cache for Redis]
++  - Store Current Query End Time
++  - Retrieve Start Time for Next Query
++end note
++
++note right of [Consumer Function App]
++  - Triggered by new data in Service Bus Queue
++  - Create incidents in Azure Sentinel
++end note
++
++note right of [Playbooks]
++  - Automated execution on new incident
++  - Extract incident data using API
++  - Email notifications
++  - Create ServiceNow ticket
++end note
++
++note left of [Sentinel API]
++  - Retrieve incident metadata
++  - Support data analysis and reporting
++end note
++
++note right of [Azure Sentinel]
++  - Utilized function apps
++  - Increased integration efficiency
++end note
++
++note right of [Service Bus Queue]
++  - FIFO Order Guarantee
++  - Automatic Duplication Detection
++  - Transactional Behavior
++  - Long-Polling Receive Operations
++end note
++
++note right of [ServiceNow]
++  - Integrated with Playbooks
++  - Automated ticket creation
++end note
++
++@enduml
+diff --git a/google_docs_architecture/google_docs_architecture.puml b/google_docs_architecture/google_docs_architecture.puml
+new file mode 100644
+--- /dev/null
++++ ./google_docs_architecture/google_docs_architecture.puml
+@@ -0,0 +1,21 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++
++package "Google Docs System" {
++    component [Frontend UI] as UI
++    component [Backend Services] as Backend
++    component [Storage System] as Storage
++    component [Collaboration Synchronization] as Sync
++    component [Security and Permissions] as Security
++    component [Message Queue] as MQ
++
++    UI --> Backend : sends user requests
++    Backend --> Security : access validation
++    Security --> Backend : validation results
++    Backend --> MQ : enqueue tasks/data
++    MQ --> Storage : store processed data
++    Backend --> Sync : manage real-time updates
++    Sync --> UI : update user views
++}
++
++@enduml
+diff --git a/imvu_system_architecture/avatar_loading_optimization_process.puml b/imvu_system_architecture/avatar_loading_optimization_process.puml
+new file mode 100644
+--- /dev/null
++++ ./imvu_system_architecture/avatar_loading_optimization_process.puml
+@@ -0,0 +1,29 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++
++actor User
++participant "Chat Room Service" as ChatRoomService
++participant "Metadata Analysis" as MetadataAnalysis
++participant "Sorting System" as SortingSystem
++database "Cache" as Cache
++participant "Avatar Loading Module" as AvatarLoading
++
++User -> ChatRoomService: Request product IDs
++ChatRoomService -> MetadataAnalysis: Analyze product IDs metadata
++loop Each Product ID
++    MetadataAnalysis -> MetadataAnalysis: Determine overlaps and visibility
++end
++MetadataAnalysis -> SortingSystem: Provide product IDs with visibility and overlap info
++SortingSystem -> SortingSystem: Canonical sort of product IDs
++SortingSystem -> Cache: Check cached avatars for sorted product IDs
++alt Cache hit
++    Cache -> ChatRoomService: Provide cached avatars
++    ChatRoomService -> User: Display cached avatars
++else Cache miss
++    SortingSystem -> AvatarLoading: Request avatar generation for sorted product IDs
++    AvatarLoading -> AvatarLoading: Generate avatars
++    AvatarLoading -> Cache: Update cache with new avatars
++    Cache -> ChatRoomService: Provide newly generated avatars
++    ChatRoomService -> User: Display newly generated avatars
++end
++@enduml
+diff --git a/imvu_system_architecture/imvu_data_storage_overview.puml b/imvu_system_architecture/imvu_data_storage_overview.puml
+new file mode 100644
+--- /dev/null
++++ ./imvu_system_architecture/imvu_data_storage_overview.puml
+@@ -0,0 +1,52 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++
++' Define database components in a more space-efficient layout
++package "Relational Database" as RDB {
++    [User Basic Information]
++    [Transaction Records]
++    [Virtual Goods Catalog]
++    [Social Relationship Network]
++}
++note right of RDB : Suitable for structured and\ntransactional data\nSupports complex relationship queries
++
++package "NoSQL Database" as NoSQL {
++    [User Behavior Data]
++    [Social Interaction Content]
++    [User Preferences and Settings]
++}
++note left of NoSQL : Flexible data models\nSuitable for personalized services\nand large data sets\nSuitable for User Preferences\nand Settings
++
++package "Elasticsearch" as ES {
++    [User Browsing History]
++    [Search Queries]
++    [Click Data]
++    [Purchase History]
++    [Product Descriptions]
++    [Tags and Keywords]
++    [Ratings and Reviews]
++    [User Activity Logs and System Metrics]
++}
++note right of ES : Fast searching and real-time analysis\nSuitable for logs and large data sets\nIdeal for analyzing user data and behavior\nfor recommendations\nFast searching and real-time analysis\nSuitable for logs and large data sets\nIdeal for analyzing user data, behavior, and system metrics
++
++package "Redis" as Redis {
++    [User Session Data]
++    [Frequently Accessed Data Cache]
++    [Real-time Leaderboards]
++    [Counters and Rate Limiters]
++}
++note left of Redis : Fast access and caching\nSuitable for sessions, leaderboards,\nmessaging, and rate limiting
++
++package "Apache Kafka" as Kafka {
++    [Publish/Subscribe Messaging]
++    [Task Queues]
++}
++note right of Kafka : High-throughput, distributed messaging\nSuitable for large-scale message processing\nand task queues
++
++' Define relationships in a more efficient manner
++RDB -[hidden]-> NoSQL
++NoSQL -[hidden]-> ES
++ES -[hidden]-> Redis
++Redis -[hidden]-> Kafka
++
++@enduml
+diff --git a/imvu_system_architecture/imvu_elasticsearch_architecture_diagram.puml b/imvu_system_architecture/imvu_elasticsearch_architecture_diagram.puml
+new file mode 100644
+--- /dev/null
++++ ./imvu_system_architecture/imvu_elasticsearch_architecture_diagram.puml
+@@ -0,0 +1,49 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++
++' Data Collection & Import Components
++component "Logstash" as Logstash
++component "Fluentd" as Fluentd
++component "Custom API" as CustomAPI
++
++' Data Streaming & Processing Components
++component "Apache Kafka" as Kafka {
++    note right of Kafka : 实时数据流处理\n高吞吐量数据传输\n连接数据源和目标
++}
++component "Apache Spark" as Spark {
++    note right of Spark : 数据处理和分析\n批处理和流处理能力\n大规模数据集处理
++}
++
++' Data Analysis Components
++component "TensorFlow" as TensorFlow {
++    note right of TensorFlow : 深度学习和机器学习库\n图像识别、自然语言处理\n推荐系统、异常检测
++}
++component "Elasticsearch SQL" as ESSQL {
++    note right of ESSQL : 使用SQL查询Elasticsearch\n日志分析、商业智能报告\n安全分析、实时监控
++}
++component "Kibana" as Kibana
++
++' Elasticsearch Database
++database "Elasticsearch" {
++    [Elasticsearch DB]
++}
++
++' Connections for Data Collection & Import
++Logstash --> Kafka : Ingest logs
++Fluentd --> Kafka : Ingest logs
++CustomAPI --> Kafka : Ingest custom data
++
++' Connections for Data Streaming & Processing
++Kafka --> Spark : Stream data
++
++' Connections for Data Processing & Analysis
++Spark --> [Elasticsearch DB] : Process data &\nStore results
++
++' Data Analysis Connections
++[Elasticsearch DB] --> TensorFlow : Source data for analysis
++TensorFlow --> [Elasticsearch DB] : Store analysis results
++[Elasticsearch DB] --> ESSQL : Query execution
++ESSQL --> [Elasticsearch DB] : Store query results
++Kibana -.-> [Elasticsearch DB] : Visualize data
++
++@enduml
+diff --git a/imvu_system_architecture/imvu_kafka_spark_real_time_processing.puml b/imvu_system_architecture/imvu_kafka_spark_real_time_processing.puml
+new file mode 100644
+--- /dev/null
++++ ./imvu_system_architecture/imvu_kafka_spark_real_time_processing.puml
+@@ -0,0 +1,55 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++
++package "IMVU Data Sources" {
++    [User Activity]
++    [Transaction Records]
++    [System Logs]
++}
++
++package "Kafka Cluster" {
++    [User Events Topic]
++    [Transaction Topic]
++    [Log Topic]
++}
++
++package "Spark Cluster" {
++    package "Spark Streaming" {
++        [Data Receiver] as Receiver
++        [Data Transformation] as Transformation
++        [Data Aggregation] as Aggregation
++        [Output Processor] as Output
++
++        Receiver --> Transformation : Streams raw data
++        Transformation --> Aggregation : Transforms data
++        Aggregation --> Output : Aggregates data
++    }
++}
++
++package "Data Storage" {
++    [MongoDB]
++    [Amazon S3 Data Lake]
++    [Elasticsearch]
++}
++
++package "Monitoring & Logging" {
++    [Monitoring System]
++    [Logging System]
++}
++
++[User Activity] --> [User Events Topic] : Streams data
++[Transaction Records] --> [Transaction Topic] : Streams data
++[System Logs] --> [Log Topic] : Streams data
++
++[User Events Topic] --> Receiver
++[Transaction Topic] --> Receiver
++[Log Topic] --> Receiver
++
++Output --> [MongoDB] : Stores processed data
++Output --> [Amazon S3 Data Lake] : Stores processed data
++Output --> [Elasticsearch] : Indexes data for search
++
++[Spark Streaming] ..> [Monitoring System] : Reports status
++[Spark Streaming] ..> [Logging System] : Logs activities
++
++@enduml
+diff --git a/interview_questions/big_file_upload_system_architecture.puml b/interview_questions/big_file_upload_system_architecture.puml
+new file mode 100644
+--- /dev/null
++++ ./interview_questions/big_file_upload_system_architecture.puml
+@@ -0,0 +1,27 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++
++!define RECTANGLE class
++
++RECTANGLE Client
++RECTANGLE FileChunker
++RECTANGLE LoadBalancer
++RECTANGLE UploadService
++RECTANGLE HDFSStorageService
++RECTANGLE Database
++RECTANGLE ResumableUploadManager
++RECTANGLE SecurityService
++RECTANGLE DataValidationService
++
++Client -down-> FileChunker : Split large file
++FileChunker -down-> LoadBalancer : Upload file chunks
++LoadBalancer -down-> UploadService : Route file chunks
++UploadService -down-> HDFSStorageService : Store file chunks
++HDFSStorageService -right-> Database : Log chunk location & status
++Database -up-> UploadService : Map chunks to original file
++Client -right-> ResumableUploadManager : Manage file chunks
++ResumableUploadManager -down-> UploadService : Manage upload status
++UploadService -down-> SecurityService : Security checks
++UploadService -down-> DataValidationService : Validate file integrity
++
++@enduml
+diff --git a/interview_questions/distributed_password_cracker_architecture.puml b/interview_questions/distributed_password_cracker_architecture.puml
+new file mode 100644
+--- /dev/null
++++ ./interview_questions/distributed_password_cracker_architecture.puml
+@@ -0,0 +1,75 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++
++' System Description
++' Brute-Force Password Cracker: Aiming to recover a lost password for a colleague's Threads account using brute-force attack.
++' The process could take several months to years, utilizing both paid computing resources (from private cloud providers like AWS, Azure, GCP)
++' and free resources in the form of a temporary public computer network.
++' The integration of these two types of resources (Private Cloud Resources and Free Compute Resources) is not clear.
++
++package "Private Cloud Compute Nodes" {
++    [Central Coordination Node] as Coordinator
++    frame ApacheSparkCluster as "Apache Spark Cluster" {
++        note right of ApacheSparkCluster
++          Advantages of Apache Spark:
++          - Efficient large-scale data processing
++          - Superior in-memory computing performance
++          - Easy to parallelize processing
++          - Resilient Distributed Datasets (RDD) for fault tolerance
++          - Good adaptability to dynamic workloads
++          - Flexible integration capabilities
++        end note
++        [Distributed Producer Node 1 (Range A)] as DistProducer1
++        [Distributed Producer Node 2 (Range B)] as DistProducer2
++        [Kubernetes Autoscaler] as Autoscaler
++        [Consumer Node 3 (Dynamic)] as DynamicConsumer3
++    }
++    [Central Pub/Sub Messaging System] as PubSub
++    note right of Autoscaler
++      Kubernetes Autoscaler:
++      - Monitors the length of the message queue
++      - Dynamically scales producer and consumer nodes
++        based on the queue length
++    end note
++    note right of Coordinator
++      Central Coordination Node:
++      - Manages overall system operation
++      - Configures and oversees the Pub/Sub system
++      - Handles general system monitoring and fault management
++    end note
++}
++
++package "Free Compute Resources Nodes" {
++    [Consumer Node 1] as FreeConsumer1
++    [Consumer Node 2] as FreeConsumer2
++}
++    
++[RESTful Thread API] as API
++
++Autoscaler --> PubSub : Monitor Queue Length
++Autoscaler --> DistProducer1 : Scale In/Out
++Autoscaler --> DistProducer2 : Scale In/Out
++Autoscaler --> DynamicConsumer3 : Scale In/Out
++
++Coordinator --> DistProducer1 : Assign Range & Manage
++Coordinator --> DistProducer2 : Assign Range & Manage
++Coordinator --> PubSub : System Management & Configuration
++    
++DistProducer1 --> PubSub : Publish Passwords
++DistProducer2 --> PubSub : Publish Passwords
++
++PubSub --> FreeConsumer1 : Subscribe & Get Passwords
++PubSub --> FreeConsumer2 : Subscribe & Get Passwords
++PubSub --> DynamicConsumer3 : Subscribe & Get Passwords
++
++FreeConsumer1 --> API : Validate Password
++FreeConsumer2 --> API : Validate Password
++DynamicConsumer3 --> API : Validate Password
++
++API --> FreeConsumer1 : Return Status Code
++API --> FreeConsumer2 : Return Status Code
++API --> DynamicConsumer3 : Return Status Code
++
++Coordinator -up-> [Stop Signal] : If Correct Password Found
++
++@enduml
+diff --git a/interview_questions/iot_log_alert_system_architecture.puml b/interview_questions/iot_log_alert_system_architecture.puml
+new file mode 100644
+--- /dev/null
++++ ./interview_questions/iot_log_alert_system_architecture.puml
+@@ -0,0 +1,69 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++
++skinparam rectangle {
++    BackgroundColor PaleGreen
++    BorderColor DarkSlateGray
++}
++
++class "IoT Device" as IoTDevice {
++    +Generate Logs
++}
++
++class "Log Collector" as LogCollector {
++    +Collect Logs
++}
++
++class "Kafka Queue" as Kafka {
++    +Queue Logs
++}
++
++class "Log Processing Service" as LogProcessing {
++    +Initial Log Processing
++}
++
++class "Master Database" as MasterDB {
++    +Store Processed Logs
++}
++
++class "Replica Database" as ReplicaDB {
++    +Handle Read Queries
++}
++
++class "Query Service" as QueryService {
++    +Handle Log Queries
++}
++
++class "Alert Service" as AlertService {
++    +Generate and Manage Alerts
++}
++
++class "Stream Processing\n(Flink/Spark)" as StreamProcessing {
++    +Real-time Log Analysis
++}
++
++class "Statistics Database" as StatsDB {
++    +Store Analysis Results
++}
++
++class "API Server" as APIServer {
++    +Provide Statistics Data
++}
++
++IoTDevice -right-> LogCollector : Send Logs
++LogCollector -down-> Kafka : Push Logs
++Kafka -down-> LogProcessing : Transfer Logs
++Kafka -right-> StreamProcessing : Stream Logs
++LogProcessing -down-> MasterDB : Store Logs
++MasterDB -left-> ReplicaDB : Replicate Data
++ReplicaDB -up-> QueryService : Retrieve Logs for Queries
++ReplicaDB -right-> AlertService : Analyze for Alerts
++StreamProcessing -down-> StatsDB : Store Statistics
++StatsDB -right-> APIServer : Fetch Statistics
++
++note right of MasterDB
++  Composite Sharding Strategy:
++  - By Device
++  - By Time
++end note
++@enduml
+diff --git a/seckill_system_architecture/seckill_system_architecture.puml b/seckill_system_architecture/seckill_system_architecture.puml
+new file mode 100644
+--- /dev/null
++++ ./seckill_system_architecture/seckill_system_architecture.puml
+@@ -0,0 +1,39 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++!define RECTANGLE class
++
++RECTANGLE Frontend
++RECTANGLE ReverseProxy
++RECTANGLE Controller
++RECTANGLE SecurityLayer
++RECTANGLE BusinessLogicLayer
++RECTANGLE CacheLayer <<High-Performance Cache>>
++RECTANGLE MessageQueue <<Asynchronous & Scalable>>
++RECTANGLE DataAccessLayer <<Efficient Data Handling>>
++RECTANGLE DatabaseSharding <<Horizontal Scaling>>
++RECTANGLE RateLimiting <<Traffic Control>>
++RECTANGLE TCCTransactionManagement <<Distributed Transaction Control>>
++RECTANGLE LoadBalancer <<Dynamic Load Distribution>>
++RECTANGLE CacheWarmup <<Pre-load Hot Data>>
++RECTANGLE AsyncProcessor <<High-Speed Order Processing>>
++RECTANGLE DatabaseOptimization <<Indexing & Query Optimization>>
++RECTANGLE MonitoringSystem <<Performance Monitoring>>
++
++Frontend -right-> ReverseProxy : Sends request
++ReverseProxy -right-> Controller : Load balancing
++Controller -down-> SecurityLayer : Security check
++SecurityLayer -down-> BusinessLogicLayer : Verification passed
++BusinessLogicLayer -left-> CacheLayer : Query/Update cache
++CacheLayer -left-> CacheWarmup : Initialize hot data
++BusinessLogicLayer -right-> DataAccessLayer : Database operations
++DataAccessLayer -right-> TCCTransactionManagement : Manages distributed transactions
++BusinessLogicLayer -up-> MessageQueue : Sends order message
++MessageQueue -down-> AsyncProcessor : Asynchronous processing
++AsyncProcessor -down-> DataAccessLayer : Processes orders
++DataAccessLayer -down-> DatabaseSharding : Accesses database
++DatabaseSharding -right-> DatabaseOptimization : Index optimization
++Controller -down-> RateLimiting : Limits request frequency
++ReverseProxy -down-> LoadBalancer : Dynamic adjustment
++BusinessLogicLayer -right-> MonitoringSystem : Monitors operations
++
++@enduml
+diff --git a/telegram/uml_diagrams/Telegram_Complete_Database_Schema.puml b/telegram/uml_diagrams/Telegram_Complete_Database_Schema.puml
+new file mode 100644
+--- /dev/null
++++ ./telegram/uml_diagrams/Telegram_Complete_Database_Schema.puml
+@@ -0,0 +1,97 @@
++@startuml
++skinparam backgroundColor #2C2F33
++skinparam DefaultFontColor #FFFFFF
++skinparam Shadowing false
++skinparam Class {
++    BackgroundColor #7289DA
++    BorderColor #FFFFFF
++    FontColor #FFFFFF
++    ArrowColor #FFFFFF
++    BorderThickness 2
++}
++
++class "User" {
++    + user_id: int (PK)
++    ---
++    username: varchar
++    phone_number: varchar
++    email: varchar
++    password_hash: varchar
++    last_login: datetime
++    registration_date: datetime
++    status_timestamp: datetime
++}
++
++class "PrivateChat" {
++    + chat_id: int (PK)
++    ---
++    sender_id: int (FK)
++    recipient_id: int (FK)
++}
++
++class "GroupChat" {
++    + chat_id: int (PK)
++    ---
++    chat_name: varchar
++    chat_type: enum ('group', 'channel')
++    creation_date: datetime
++}
++
++class "MongoDB_Message_NoSQL" {
++    + message_id: ObjectID (PK)
++    ---
++    chat_id: int (FK) <<sharding key>>
++    sender_user_id: int (FK)
++    content: text
++    timestamp: datetime
++    type: enum('text', 'photo', 'video', 'document')
++}
++
++class "GroupMembers" {
++    + group_id: int (FK)
++    + user_id: int (FK)
++    ---
++    join_date: datetime
++    role: enum ('member', 'admin', 'owner')
++}
++
++class "UserProfile" {
++    + user_id: int (FK)
++    ---
++    avatar: image
++    about: text
++}
++
++class "Stickers" {
++    + sticker_id: int (PK)
++    ---
++    user_id: int (FK)
++    image: image
++    added_date: datetime
++}
++
++class "RedisCache" {
++    + User Status and Last Seen
++    + Unread Messages Count
++}
++
++class "Contacts" {
++    + user_id: int (FK)
++    + contact_id: int (FK)
++    ---
++}
++
++User "1" -- "1" PrivateChat : Initiates
++User "1" -- "1" PrivateChat : Receives
++User "1" -- "n" GroupChat : Participates
++User "1" -- "n" MongoDB_Message_NoSQL : Sends
++PrivateChat "1" -- "n" MongoDB_Message_NoSQL : Contains
++GroupChat "1" -- "n" MongoDB_Message_NoSQL : Contains
++GroupChat "1" -- "n" GroupMembers : Has
++User "1" -- "1" UserProfile : Has
++User "n" -- "n" GroupMembers : Joins
++User "1" -- "n" Stickers : Owns
++User --> RedisCache : Uses for\nfrequent updates
++User "n" -- "n" Contacts
++
++@enduml
+diff --git a/telegram/uml_diagrams/Telegram_Message_Prioritization_Architecture.puml b/telegram/uml_diagrams/Telegram_Message_Prioritization_Architecture.puml
+new file mode 100644
+--- /dev/null
++++ ./telegram/uml_diagrams/Telegram_Message_Prioritization_Architecture.puml
+@@ -0,0 +1,104 @@
++@startuml
++title System Architecture with Message Notifications
++
++' 设置浅灰色背景
++skinparam backgroundColor #D3D3D3
++
++' 关闭阴影
++skinparam Shadowing false
++
++' 设置矩形样式
++skinparam rectangle {
++  BackgroundColor #4F6377
++  BorderColor #AAB3C2
++  FontColor #F1F1F1
++  BorderThickness 2
++}
++
++' 设置软件包样式
++skinparam package {
++  BackgroundColor #677B94
++  BorderColor #AAB3C2
++  FontColor #F1F1F1
++  RoundCorner 25
++}
++
++' 设置云样式
++skinparam cloud {
++  BackgroundColor #5D8299
++  BorderColor #AAB3C2
++  FontColor #F1F1F1
++  RoundCorner 30
++}
++
++' 设置数据库样式
++skinparam database {
++  BackgroundColor #708AA6
++  BorderColor #AAB3C2
++  FontColor #FFCC00 // 明亮的字体颜色
++  RoundCorner 20
++}
++
++' 定义元素
++package "Client Side" {
++  [Telegram User's Client] -down-> [Other Telegram Users]
++}
++
++rectangle "Telegram Service" {
++  [Load Balancer] 
++  [Service Instance]
++}
++
++database "Centralized Database System" {
++  [Database Master]
++  [Database Read Replica] 
++  [Cache Level 1] 
++  [Cache Level 2] 
++  [Database Slave]
++}
++
++rectangle "Message System" {
++  [Kafka (Message Queue)]
++  [Kafka (Pub/Sub Model)]
++  [Worker]
++}
++
++rectangle "Notification Service" {
++  [Notification Handling]
++  [Message Notification Center]
++  [Message Notification Service]
++}
++
++rectangle "Authorization Service" {
++  [Authorization & Permissions]
++}
++
++cloud "Monitoring & Logging" {
++  [Monitoring]
++  [Logging]
++}
++
++' 定义连接
++[Telegram User's Client] --> [Telegram Service] : Send Message
++[Load Balancer] --> [Service Instance]
++[Service Instance] --> [Authorization Service] : Check Permission
++[Authorization Service] -down-> [Message System] : Authorized Message
++[Cache Level 1] --> [Database Master] : Fallback if Miss
++[Database Master] --> [Cache Level 2] : Update Cache
++[Cache Level 2] --> [Database Slave] : Fallback if Miss
++[Database Read Replica] --> [Database Slave] : Read Operations
++[Database Master] --> [Message System] : After user updates
++[Kafka (Message Queue)] --> [Worker] : Process Message
++[Worker] --> [Kafka (Pub/Sub Model)] : Publish Processed Message with Priority
++[Notification Service] --> [Other Telegram Users] : Receive Message
++[Service Instance] --> [Monitoring & Logging]
++
++' 消息系统与数据库系统的交互
++[Worker] --> [Centralized Database System] : Data Processing and Logging
++[Kafka (Pub/Sub Model)] --> [Notification Service] : Publish Notification Events
++[Notification Service] --> [Centralized Database System] : Retrieve User Settings / Log Notifications
++[Message Notification Center] --> [Notification Handling] : Dispatch Notifications
++[Notification Handling] --> [Message Notification Service] : Process and Send Notifications
++[Notification Handling] --> [Centralized Database System] : Retrieve User Settings / Update Notification Status
++
++@enduml
+diff --git a/twitter/tweet_system_detailed_architecture.puml b/twitter/tweet_system_detailed_architecture.puml
+new file mode 100644
+--- /dev/null
++++ ./twitter/tweet_system_detailed_architecture.puml
+@@ -0,0 +1,64 @@
++@startuml
++
++skinparam backgroundColor #D3D3D3
++
++title Enhanced Twitter System Architecture with Scalability and Performance Strategies
++
++rectangle Client
++
++rectangle "Core Services" as Core {
++    rectangle "Load Balancer & Web Server" as LBWS
++    rectangle "Application & Monitoring Services" as AMS {
++        rectangle "Service Circuit Breaker"
++        rectangle "Service Auto-Scaling"
++    }
++}
++
++rectangle "Tweet Processing Service" as TPS {
++    rectangle "Tweet & Comment Handlers" as TCH
++    rectangle "Async Processing Queue (Kafka/RabbitMQ)" as APQ
++    rectangle "Workers for Processing" as Workers
++}
++
++rectangle "Supporting Services" as SS {
++    rectangle "Search & Notification Services" as SNS
++    rectangle "Timeline Update Service" as TUS
++}
++
++rectangle "Data Persistence Layer" as DPS {
++    rectangle "Caching (Redis Cluster)" as Cache {
++        rectangle "Tweet & Timeline Caches"
++        rectangle "Edge Caching (CDN)"
++    }
++    rectangle "Databases (Sharded & Read-Replica)" as DB {
++        rectangle "Tweet & Comment Data"
++        rectangle "Data Partitioning & Sharding"
++    }
++}
++
++rectangle "Data Consistency & Distributed Transactions" as DCDT {
++    rectangle "Eventual Consistency Model"
++    rectangle "Distributed Transaction Management"
++}
++
++Client -down-> Core : Sends Request
++LBWS -down-> AMS : Routes Request
++AMS -down-> TPS : Handles Tweet/Comment
++TCH -down-> APQ : Queues Tasks
++APQ -down-> Workers : Processes Tasks
++Workers -down-> DPS : Updates Data
++Cache -> DB : Persists Cached Data
++Workers -down-> SS : Updates Search/Notifies
++TUS -down-> DPS : Updates Timelines
++Client -down-> Core : Requests Timeline
++AMS -down-> TUS : Fetches Timeline Data
++TUS -down-> DPS : Checks Cache
++Cache -> TUS : Returns Cached Data
++TUS -> AMS : Returns Timeline Data
++AMS -> LBWS : Sends Back Data
++LBWS -> Client : Returns Data/Updates Timeline
++
++AMS -right-> DCDT : Ensures Data Consistency
++DB -down-> DCDT : Manages Distributed Transactions
++
++@enduml
+diff --git a/twitter/twitter_database_schema.puml b/twitter/twitter_database_schema.puml
+new file mode 100644
+--- /dev/null
++++ ./twitter/twitter_database_schema.puml
+@@ -0,0 +1,122 @@
++@startuml
++
++skinparam backgroundColor #D3D3D3
++skinparam class {
++  BackgroundColor #FFFFFF
++  BorderColor #222
++  ArrowColor #222
++}
++
++entity "User" as user {
++  +user_id : integer {PK}
++  username : varchar(15)
++  name : varchar(50)
++  email : varchar(255)
++  password : varchar(255)
++  bio : varchar(160)
++  location : varchar(30)
++  website : varchar(100)
++  join_date : datetime
++}
++
++entity "UserStatus" as userstatus {
++  +user_id : integer {PK, FK}
++  last_login : datetime
++  is_online : boolean
++  --
++  Storage: Redis
++}
++
++entity "Tweet" as tweet {
++  +tweet_id : integer {PK}
++  user_id : integer {FK}
++  text : varchar(280)
++  created_at : datetime
++  updated_at : datetime
++  retweet_count : integer
++  like_count : integer
++  --
++  NoSQL: Yes
++  Shard Key: tweet_id
++}
++
++entity "Followers" as followers {
++  +follow_id : integer {PK}
++  follower_id : integer {FK}
++  followed_id : integer {FK}
++  follow_date : datetime
++  --
++  NoSQL: Yes
++  Shard Key: followed_id
++}
++
++entity "Likes" as likes {
++  +like_id : integer {PK}
++  user_id : integer {FK}
++  tweet_id : integer {FK}
++  like_date : datetime
++  --
++  NoSQL: Yes
++  Shard Key: tweet_id
++}
++
++entity "Retweets" as retweets {
++  +retweet_id : integer {PK}
++  user_id : integer {FK}
++  tweet_id : integer {FK}
++  retweet_date : datetime
++  --
++  NoSQL: Yes
++  Shard Key: tweet_id
++}
++
++entity "Comments" as comments {
++  +comment_id : integer {PK}
++  user_id : integer {FK}
++  tweet_id : integer {FK}
++  text : varchar(280)
++  created_at : datetime
++  updated_at : datetime
++  --
++  NoSQL: Yes
++  Shard Key: tweet_id
++}
++
++entity "Hashtags" as hashtags {
++  +hashtag_id : integer {PK}
++  hashtag_text : varchar(140)
++}
++
++entity "Tweet_Hashtags" as tweet_hashtags {
++  tweet_id : integer {FK, PK}
++  hashtag_id : integer {FK, PK}
++  --
++  NoSQL: Yes
++  Shard Key: (tweet_id, hashtag_id)
++}
++
++entity "Timeline" as timeline {
++  +timeline_id : integer {PK}
++  user_id : integer {FK}
++  tweet_id : integer {FK}
++  timestamp : datetime
++  --
++  NoSQL: Yes
++  Shard Key: user_id
++}
++
++user --|> userstatus : "1..1 has"
++user --|> tweet : "1..* posts *"
++user --|> followers : "1 has Followers *"
++user --|> likes : "1..* likes *"
++user --|> retweets : "1..* retweets *"
++user --|> comments : "1..* comments *"
++user --|> timeline : "1 has Timeline *"
++tweet --|> likes : "1..* has Likes *"
++tweet --|> retweets : "1..* has Retweets *"
++tweet --|> comments : "1..* has Comments *"
++tweet --|> tweet_hashtags : "1..* has Hashtags *"
++tweet --|> timeline : "* appears in *..* Timelines"
++hashtags --|> tweet_hashtags : "* appears in *..* Tweets"
++
++@enduml
+diff --git a/uber_system_architecture/uber_system_architecture.puml b/uber_system_architecture/uber_system_architecture.puml
+new file mode 100644
+--- /dev/null
++++ ./uber_system_architecture/uber_system_architecture.puml
+@@ -0,0 +1,34 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++!define Rectangle class
++
++package "Uber System" {
++
++    Rectangle "User App\n(Passenger Interface)" as UserApp
++    Rectangle "Driver App\n(Driver Interface)" as DriverApp
++    Rectangle "Backend Server\n(APIs & Core Logic)" as Backend
++    Rectangle "Geolocation Service\n(Location & Routing)" as Geolocation
++    Rectangle "Trip Matcher\n(Algorithm for Matching)" as Matcher
++    Rectangle "GPS Service\n(Real-time Location Tracking)" as GPSService
++    Rectangle "Location Data Processor\n(Handling Location Updates)" as LocationProcessor
++
++    UserApp -down-> Backend : Sends requests
++    DriverApp -down-> Backend : Updates status/accepts rides
++    Backend -right-> Geolocation : Requests location/routing
++    Backend -down-> Matcher : Matches drivers with riders
++    DriverApp -right-> GPSService : Sends real-time location
++    GPSService -down-> LocationProcessor : Transmits location data
++    LocationProcessor -down-> Backend : Updates driver location
++
++    package "Data Storage Layer" {
++        Rectangle "Database\n(User & Trip Data)" as Database
++        Rectangle "Redis Service\n(Real-time Data Cache)" as RedisService
++    }
++
++    Backend -down-> "Data Storage Layer" : Queries/Updates data
++    Geolocation -down-> "Data Storage Layer"
++    Matcher -down-> "Data Storage Layer"
++    LocationProcessor -left-> "Data Storage Layer"
++}
++
++@enduml
+diff --git a/uber_system_architecture/uber_system_data_sharding_design.puml b/uber_system_architecture/uber_system_data_sharding_design.puml
+new file mode 100644
+--- /dev/null
++++ ./uber_system_architecture/uber_system_data_sharding_design.puml
+@@ -0,0 +1,41 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++!define Rectangle class
++
++package "Uber System" {
++
++    Rectangle "Backend Server\n(APIs & Core Logic)" as Backend
++
++    package "Data Storage Layer" {
++        package "Orders Database Shard" {
++            Rectangle "Orders Shard #1\n(Time/Region Based)" as OrdersShard1
++            Rectangle "Orders Shard #2\n(Time/Region Based)" as OrdersShard2
++            ' 可以根据需要添加更多分片
++        }
++
++        package "User Database Shard" {
++            Rectangle "Users Shard #1\n(Region/User ID Based)" as UsersShard1
++            Rectangle "Users Shard #2\n(Region/User ID Based)" as UsersShard2
++            ' 可以根据需要添加更多分片
++        }
++
++        package "Driver Location Shard" {
++            Rectangle "Location Shard #1\n(City Based)" as LocationShard1
++            Rectangle "Location Shard #2\n(City Based)" as LocationShard2
++            ' 可以根据需要添加更多分片
++        }
++
++        package "Trip Records Shard" {
++            Rectangle "Trip Shard #1\n(Time/Region Based)" as TripShard1
++            Rectangle "Trip Shard #2\n(Time/Region Based)" as TripShard2
++            ' 可以根据需要添加更多分片
++        }
++
++        Rectangle "Redis Service\n(Real-time Data Cache)" as RedisService
++    }
++
++    Backend -down-> "Data Storage Layer" : Queries/Updates data
++
++}
++
++@enduml
+diff --git a/url_shortener_system_architecture/url_shortener_system_architecture.puml b/url_shortener_system_architecture/url_shortener_system_architecture.puml
+new file mode 100644
+--- /dev/null
++++ ./url_shortener_system_architecture/url_shortener_system_architecture.puml
+@@ -0,0 +1,35 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++!define RECTANGLE class
++
++RECTANGLE Client
++RECTANGLE LoadBalancer
++RECTANGLE "API Server\n(API_Server)" as API_Server
++RECTANGLE "Cache\n(Cache_Read_Write)" as Cache_Read_Write
++RECTANGLE "MongoDB Shard 1 Master\n(Write)" as MongoDB_Shard_1_Master
++RECTANGLE "MongoDB Shard 1 Slave\n(Read)" as MongoDB_Shard_1_Slave
++RECTANGLE "MongoDB Shard 2 Master\n(Write)" as MongoDB_Shard_2_Master
++RECTANGLE "MongoDB Shard 2 Slave\n(Read)" as MongoDB_Shard_2_Slave
++RECTANGLE "MongoDB Config Server\n(Configuration)" as MongoDB_Config
++RECTANGLE "MongoDB Router\n(MongoS)" as MongoDB_Router
++RECTANGLE BackgroundWorker
++
++Client -down-> LoadBalancer : 请求生成/解析短URL
++LoadBalancer -down-> API_Server : 分发请求
++API_Server -right-> Cache_Read_Write : 查询缓存
++Cache_Read_Write -right-> MongoDB_Router : 缓存未命中时查询数据库
++MongoDB_Router -down-> MongoDB_Shard_1_Master : 路由写操作到分片 1 主节点
++MongoDB_Router -down-> MongoDB_Shard_1_Slave : 路由读操作到分片 1 从节点
++MongoDB_Router -down-> MongoDB_Shard_2_Master : 路由写操作到分片 2 主节点
++MongoDB_Router -down-> MongoDB_Shard_2_Slave : 路由读操作到分片 2 从节点
++MongoDB_Shard_1_Master -up-> MongoDB_Router : 返回写入确认
++MongoDB_Shard_1_Slave -up-> MongoDB_Router : 返回查询结果
++MongoDB_Shard_2_Master -up-> MongoDB_Router : 返回写入确认
++MongoDB_Shard_2_Slave -up-> MongoDB_Router : 返回查询结果
++MongoDB_Router -up-> Cache_Read_Write : 返回数据库查询结果
++Cache_Read_Write -up-> API_Server : 返回短URL/原始URL
++API_Server -up-> Client : 返回原始URL/短URL
++MongoDB_Config -left-> MongoDB_Router : 提供配置信息
++MongoDB_Router -down-> BackgroundWorker : 异步任务处理
++
++@enduml
+diff --git a/youtube/YouTubeSystemArchitecture.puml b/youtube/YouTubeSystemArchitecture.puml
+new file mode 100644
+--- /dev/null
++++ ./youtube/YouTubeSystemArchitecture.puml
+@@ -0,0 +1,99 @@
++@startuml
++!define AWSPUML https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v14.0/dist
++!includeurl AWSPUML/AWSCommon.puml
++
++skinparam BackgroundColor #2C2C2C
++skinparam component {
++  BackgroundColor #555
++  BorderColor #FFD700
++  FontColor #FFD700
++}
++skinparam package {
++  BackgroundColor Transparent
++  BorderColor #FFD700
++  FontColor #FFF
++}
++skinparam actor {
++  BackgroundColor #555
++  BorderColor #FFD700
++  FontColor #FFD700
++}
++skinparam Arrow {
++  FontColor #FFD700
++}
++skinparam note {
++  BackgroundColor #555
++  BorderColor #FFD700
++  FontColor #FFD700
++}
++
++actor "User\n(Browser)" as User
++
++package "Backend Layer" {
++  component "[Auto Scaling]\nLoadBalancer" as LoadBalancer
++  component "[Auto Scaling]\nWeb Server" as AutoScalingWeb
++  component "[Auto Scaling]\nApplication Server" as AutoScalingApp
++}
++
++User -> LoadBalancer : 1. Action (Upload/Access)
++LoadBalancer -> AutoScalingWeb : 2. Distribute Request
++AutoScalingWeb -> AutoScalingApp : 3. Process Request (Upload/Business Logic)
++
++package "Processing Layer" {
++  component "[Asynchronous]\nMessage Queue\nService" as MQS
++  component "[GPU-based]\nVideo Processing Server" as GPUVPS
++  component "[Enhanced]\nTranscodingServer" as TranscodingServer
++}
++
++AutoScalingApp -> MQS : 4. Enqueue Video for Processing (Upload Scenario)
++MQS -> GPUVPS : 5. Dequeue Video for Processing
++GPUVPS -> TranscodingServer : 6. Request Transcoding
++
++package "Data Layer" {
++  component "[Enhanced]\nCache" as Cache
++  component "[Scalable]\nVideoStorage" as VideoStorage
++  component "[Optimized]\nNoSQL Database" as NoSQLDB
++  component "[Optimized]\nRDBMS" as RDBMS
++}
++
++TranscodingServer -> VideoStorage : 7. Store Transcoded Videos (Various Resolutions)
++AutoScalingApp -down-> Cache : 8. Check Cache (Read Scenario)
++Cache -down-> VideoStorage : 9. Fetch Video if not in Cache
++Cache -down-> RDBMS : 10. Fetch Data if not in Cache
++Cache -down-> NoSQLDB : Fetch and Cache Data
++RDBMS -down-> AutoScalingApp : Return Data
++
++package "Content Delivery Network" {
++component CDN
++  component "[Enhanced]\nEdge Cache" as EdgeCache
++}
++
++VideoStorage -right-> CDN : Upload Videos to CDN
++CDN -down-> User : Deliver Video Content
++CDN -down-> EdgeCache : Cache Popular Content at Edge
++
++note "Auto Scaling Load Balancer:\n- Dynamic scaling based on performance metrics\n- Intelligent routing for optimal request distribution" as NoteLoadBalancer
++NoteLoadBalancer .. LoadBalancer
++
++note "Auto Scaling Web & App Server:\n- Elastic scaling based on traffic\n- Flexible resource pools for peak times" as NoteAutoScalingServers
++NoteAutoScalingServers .. AutoScalingWeb
++NoteAutoScalingServers .. AutoScalingApp
++
++note "Asynchronous Message Queue Service:\n- Asynchronous communication for reduced processing time\n- High-density task management via message queues" as NoteMQS
++NoteMQS .. MQS
++
++note "GPU-based Video Processing Server:\n- GPU acceleration for enhanced video processing\n- Parallel processing for large-scale video tasks" as NoteGPUVPS
++NoteGPUVPS .. GPUVPS
++
++note "Enhanced Cache:\n- Multi-level caching strategy\n- Intelligent cache invalidation for data accuracy" as NoteCache
++NoteCache .. Cache
++
++note "Scalable Video Storage & Optimized Databases:\n- Distributed storage for horizontal scalability\n- Database optimization with read-write separation and efficient indexing" as NoteStorageDB
++NoteStorageDB .. VideoStorage
++NoteStorageDB .. NoSQLDB
++NoteStorageDB .. RDBMS
++
++note "Enhanced Edge Cache in CDN:\n- Advanced caching algorithms for prioritizing popular content\n- Dynamic cache adjustment based on access patterns" as NoteEdgeCache
++NoteEdgeCache .. EdgeCache
++
++@enduml
+diff --git a/youtube/YouTube_Data_Schema.puml b/youtube/YouTube_Data_Schema.puml
+new file mode 100644
+--- /dev/null
++++ ./youtube/YouTube_Data_Schema.puml
+@@ -0,0 +1,110 @@
++@startuml
++' Set global skin parameters for dark mode
++skinparam backgroundColor #2C2C2C
++skinparam defaultFontColor #FFD700
++skinparam class {
++  BackgroundColor #2C2C2C
++  ArrowColor #FFD700
++  BorderColor #FFD700
++  FontColor #FFD700
++}
++
++' Define classes with PK, FK, and note composite sharding key with <<Composite Shard-Key>>
++' And Redis cache with <<Redis>>
++class User {
++  +id : int <<PK, Shard-Key>>
++  +username : varchar
++  +password : varchar
++  +email : varchar
++  +created_at : datetime
++}
++
++class Video {
++  +id : int <<PK>>
++  +user_id : int <<FK, Shard-Key>>
++  +title : varchar
++  +description : text
++  +upload_date : datetime
++  +video_path : varchar
++  +status : varchar
++}
++
++class Tag {
++  +id : int <<PK>>
++  +name : varchar
++}
++
++' Define association class for Video-Tag relationship
++class VideoTag {
++  +video_id : int <<FK>>
++  +tag_id : int <<FK>>
++  +created_at : datetime
++}
++
++class Comment {
++  +id : int <<PK>>
++  +video_id : int <<FK, Shard-Key>>
++  +user_id : int <<FK>>
++  +text : text
++  +created_at : datetime
++}
++
++class VideoView {
++  +video_id : int <<PK, FK, Composite Shard-Key>>
++  +user_id : int <<PK, FK>>
++  +view_date : datetime <<Composite Shard-Key>>
++}
++
++class VideoRating {
++  +video_id : int <<PK, FK, Composite Shard-Key>>
++  +user_id : int <<PK, FK>>
++  +rating : int <<Composite Shard-Key>>
++  +created_at : datetime
++}
++
++' Define Redis storage classes with <<Redis>> stereotype
++class SessionToken <<Redis>> {
++  +user_id : int <<FK>>
++  +token : varchar
++}
++
++class VideoStatusCache <<Redis>> {
++  +video_id : int <<FK>>
++  +status : varchar
++}
++
++class CommentCountCache <<Redis>> {
++  +video_id : int <<FK>>
++  +count : int
++}
++
++class RecentViewsCache <<Redis>> {
++  +user_id : int <<FK>>
++  +video_ids : varchar
++}
++
++class RatingCountCache <<Redis>> {
++  +video_id : int <<FK>>
++  +count : int
++}
++
++' Define relationships with cardinality
++Video "1" - "N" VideoTag
++Tag "1" - "N" VideoTag
++User "1" -down- "N" Video : Owns >
++Video "1" -down- "N" Comment : Includes >
++User "1" -down- "N" Comment : Creates >
++Video "1" -down- "N" VideoView : Records View >
++User "1" -down- "N" VideoView : Records User >
++Video "1" -down- "N" VideoRating : Includes Rating >
++User "1" -down- "N" VideoRating : Rates >
++
++' Define cache relationships
++Video ..> VideoStatusCache : Cache >
++User ..> SessionToken : Cache >
++Comment ..> CommentCountCache : Counts >
++VideoView ..> RecentViewsCache : Cache >
++VideoRating ..> RatingCountCache : Cache >
++
++' End UML
++@enduml
