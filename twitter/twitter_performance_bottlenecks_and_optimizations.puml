@@ -1,0 +1,92 @@
+@startuml
+
+skinparam backgroundColor #F5F5F5
+
+title Performance Bottlenecks and Optimizations in Twitter System Architecture
+
+' Load Balancer & Web Server Performance Bottlenecks
+rectangle "Load Balancer & Web Server" as LBWS {
+    rectangle "Load Balancer" as LB
+    rectangle "Web Server" as WS
+}
+
+note right of LBWS
+  **负载均衡器和Web服务器性能瓶颈**:
+  - 原因：处理能力不足
+  - 解决方法：使用高性能负载均衡器，增加实例
+end note
+
+' Application Server Performance Bottlenecks
+rectangle "Application & Monitoring Services" as AMS {
+    rectangle "Application Server" as AS
+}
+
+note right of AS
+  **应用服务器性能瓶颈**:
+  - 原因：高并发处理
+  - 解决方法：优化代码，增加服务器实例
+end note
+
+' Async Processing Queue Performance Bottlenecks
+rectangle "Tweet Processing Service" as TPS {
+    rectangle "Async Processing Queue (Kafka/RabbitMQ)" as APQ
+}
+
+note right of APQ
+  **异步处理队列性能瓶颈**:
+  - 原因：容量和处理速度不足
+  - 解决方法：使用高性能消息队列，增加分区和消费者
+end note
+
+' Search & Notification Services Performance Bottlenecks
+rectangle "Search & Notification Services" as SNS {
+    rectangle "Search Service" as SSrv
+    rectangle "Notification Service" as NSrv
+}
+
+note right of SSrv
+  **搜索服务性能瓶颈**:
+  - 原因：数据库查询效率低
+  - 解决方法：优化查询，使用索引，分布式搜索引擎
+end note
+
+note right of NSrv
+  **通知服务性能瓶颈**:
+  - 原因：数据库查询效率低
+  - 解决方法：优化查询，使用索引，分布式搜索引擎
+end note
+
+' Timeline Update Service Performance Bottlenecks
+rectangle "Timeline Update Service" as TUS
+
+note right of TUS
+  **时间线更新服务性能瓶颈**:
+  - 原因：实时数据读取和写入
+  - 解决方法：优化算法，使用缓存，数据库分片和复制
+end note
+
+' Databases Performance Bottlenecks
+rectangle "Data Persistence Layer" as DPS {
+    rectangle "Databases (Sharded & Read-Replica)" as DB {
+        rectangle "Tweet & Comment Data" as TCD
+    }
+}
+
+note right of TCD
+  **数据库性能瓶颈**:
+  - 原因：高并发读写
+  - 解决方法：分片，读写分离，优化索引
+end note
+
+' Distributed Transaction Management Performance Bottlenecks
+rectangle "Data Consistency & Distributed Transactions" as DCDT {
+    rectangle "Distributed Transaction Management" as DTM
+}
+
+note right of DTM
+  **分布式事务管理性能瓶颈**:
+  - 原因：跨服务操作协调
+  - 解决方法：减少分布式事务，采用最终一致性
+end note
+
+@enduml
