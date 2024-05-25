@@ -1,0 +1,1322 @@
+diff --git a/architecture_diagrams/akamai_cdn_edge_caching_architecture.puml b/architecture_diagrams/akamai_cdn_edge_caching_architecture.puml
+new file mode 100644
+--- /dev/null
++++ ./architecture_diagrams/akamai_cdn_edge_caching_architecture.puml
+@@ -0,0 +1,66 @@
++@startuml
++skinparam backgroundColor #EEEBDA
++skinparam rectangle {
++  BackgroundColor White
++  BorderColor Black
++  Shadowing false
++}
++
++' Akamai CDN System Structure
++package "Akamai CDN System" {
++    rectangle "Global Load Balancer" as GLB
++    rectangle "Geo-Location Database" as GeoDB
++
++    rectangle "Edge Server A" as EdgeA {
++        database "Cache A" as CacheA
++    }
++    rectangle "Edge Server B" as EdgeB {
++        database "Cache B" as CacheB
++    }
++    rectangle "Origin Server" as Origin
++
++    ' Connection between components
++    GLB --> GeoDB : "Geolocation Query"
++    GeoDB -down-> EdgeA : "Route Request to A"
++    GeoDB -down-> EdgeB : "Route Request to B"
++    EdgeA --> CacheA : "Request/Store Content"
++    EdgeB --> CacheB : "Request/Store Content"
++    CacheA --> Origin : "Back to Origin (if not cached)"
++    CacheB --> Origin : "Back to Origin (if not cached)"
++
++    CacheA ..> CacheB : "Cache Key Query"
++    CacheB ..> CacheA : "Cache Key Query"
++    CacheA ..> EdgeA : "TTL Expiry Handling"
++    CacheB ..> EdgeB : "TTL Expiry Handling"
++
++    ' Cache Management and Optimization
++    rectangle "CDN Cache Management and Optimization" as CDNManagement {
++        rectangle "Pre-Caching Strategy" as PreCache
++        rectangle "Cache Synchronization" as Sync
++        rectangle "Intelligent Routing" as Routing
++        rectangle "Locality Principle" as Locality
++    }
++
++    ' Interaction with other system components
++    PreCache -down-> [Hidden]
++    Sync -down-> [Hidden]
++    Routing -down-> GLB
++    Locality -down-> GeoDB
++
++    [Hidden] -down-> CacheA : "Pre-Caching\nSync Data"
++    [Hidden] -down-> CacheB : "Pre-Caching\nSync Data"
++}
++
++rectangle "User" as User
++User -right-> GLB : "Request Content"
++
++    ' Composite Key
++    note right of CacheA
++      Composite Key:
++      - Hostname
++      - Path
++      - Query String
++      - Request Headers
++    end note
++
++@enduml
+diff --git a/architecture_diagrams/cache_consistency_strategies.puml b/architecture_diagrams/cache_consistency_strategies.puml
+--- ./architecture_diagrams/cache_consistency_strategies.puml
++++ ./architecture_diagrams/cache_consistency_strategies.puml
+@@ -6,44 +6,61 @@ skinparam class {
+     BorderColor Black
+ }
+ 
+-' 抽象类
+-abstract class CacheConsistencySolution {
+-    #strategyName: String
+-    +applyStrategy(): void
+-}
+-
+-' 具体策略类
+-class InvalidateCacheStrategy
+-class UpdateCacheOnWriteStrategy
+-class TimestampOrVersioningStrategy
+-class AsynchronousUpdateStrategy
+-class ConsistentHashingStrategy
+-class DistributedCacheStrategy
+-class TransactionalCacheStrategy
+-
+-' 抽象类居中布局
+-CacheConsistencySolution -left-|> InvalidateCacheStrategy
+-CacheConsistencySolution -left-|> UpdateCacheOnWriteStrategy
+-CacheConsistencySolution -up-|> TimestampOrVersioningStrategy
+-CacheConsistencySolution -right-|> AsynchronousUpdateStrategy
+-CacheConsistencySolution -right-|> ConsistentHashingStrategy
+-CacheConsistencySolution -down-|> DistributedCacheStrategy
+-CacheConsistencySolution -down-|> TransactionalCacheStrategy
+-
+-' 类细节
+-InvalidateCacheStrategy : -cache: Cache
+-InvalidateCacheStrategy : -dataService: DataService
+-UpdateCacheOnWriteStrategy : -cache: Cache
+-UpdateCacheOnWriteStrategy : -dataService: DataService
+-TimestampOrVersioningStrategy : -cache: Cache
+-TimestampOrVersioningStrategy : -dataService: DataService
+-AsynchronousUpdateStrategy : -cache: Cache
+-AsynchronousUpdateStrategy : -messageQueue: MessageQueue
+-ConsistentHashingStrategy : -cacheNodes: List<CacheNode>
+-ConsistentHashingStrategy : -hashFunction: HashFunction
+-DistributedCacheStrategy : -cacheClusters: List<CacheCluster>
+-DistributedCacheStrategy : -loadBalancer: LoadBalancer
+-TransactionalCacheStrategy : -cache: Cache
+-TransactionalCacheStrategy : -database: Database
++' 定义策略类
++class InvalidateCacheStrategy {
++}
++class UpdateCacheOnWriteStrategy {
++}
++class TimestampOrVersioningStrategy {
++}
++class AsynchronousUpdateStrategy {
++}
++class ConsistentHashingStrategy {
++}
++class DistributedCacheStrategy {
++}
++class TransactionalCacheStrategy {
++}
++
++' 垂直布局
++InvalidateCacheStrategy -[hidden]- UpdateCacheOnWriteStrategy
++UpdateCacheOnWriteStrategy -[hidden]- TimestampOrVersioningStrategy
++TimestampOrVersioningStrategy -[hidden]- AsynchronousUpdateStrategy
++AsynchronousUpdateStrategy -[hidden]- ConsistentHashingStrategy
++ConsistentHashingStrategy -[hidden]- DistributedCacheStrategy
++DistributedCacheStrategy -[hidden]- TransactionalCacheStrategy
++
++' 添加注释描述
++note right of InvalidateCacheStrategy
++  Invalidate on data change.
++  High consistency, potential performance hit.
++end note
++
++note right of UpdateCacheOnWriteStrategy
++  Update cache on data write.
++  Balance of consistency and performance.
++end note
++
++note right of TimestampOrVersioningStrategy
++  Use timestamps or versions.
++  For conditional updates.
++end note
++
++note right of AsynchronousUpdateStrategy
++  Update cache asynchronously.
++  Lower consistency, higher performance.
++end note
++
++note right of ConsistentHashingStrategy
++  Minimize cache invalidation for distributed caches.
++end note
++
++note right of DistributedCacheStrategy
++  Spread data across clusters for scalability and fault tolerance.
++end note
++
++note right of TransactionalCacheStrategy
++  Ensure atomicity in cache and database operations for transactional integrity.
++end note
+ 
+ @enduml
+diff --git a/architecture_diagrams/cdn_architecture_diagram.puml b/architecture_diagrams/cdn_architecture_diagram.puml
+new file mode 100644
+--- /dev/null
++++ ./architecture_diagrams/cdn_architecture_diagram.puml
+@@ -0,0 +1,53 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++skinparam rectangle {
++  BackgroundColor White
++  BorderColor Black
++  Shadowing false
++}
++
++package "CDN System Architecture" {
++    RECTANGLE "Origin Server" as Origin
++    
++    RECTANGLE "Global Load Balancer" as GLB {
++        RECTANGLE "Geo-Location Database" as GeoDB
++    }
++    
++    DATABASE "Regional Load Balancer 1" as RLB1
++    DATABASE "Regional Load Balancer 2" as RLB2
++    
++    DATABASE "Distribution Server 1" as DS1 {
++        DATABASE "Cache 1" as Cache1
++    }
++    
++    DATABASE "Distribution Server 2" as DS2 {
++        DATABASE "Cache 2" as Cache2
++    }
++
++    RECTANGLE "Cache Decision System" as CDS
++    RECTANGLE "DNS Server" as DNSServer
++
++    DNSServer -down-> GLB : "Step 2: DNS Resolution"
++    GLB -down-> GeoDB : "Step 3: Geo-Location Lookup"
++    GeoDB -left-> RLB1 : "Step 4: Route to Region 1"
++    GeoDB -right-> RLB2 : "Step 4: Route to Region 2"
++    RLB1 -down-> DS1 : "Step 5: Load Balance within Region"
++    RLB2 -down-> DS2
++    DS1 -down-> Cache1 : "Step 6: Check Cache"
++    DS2 -down-> Cache2
++    Cache1 -left-> CDS : "Cache Query"
++    Cache2 -right-> CDS : "Cache Query"
++    CDS -up-> Cache1 : "Cache Decision"
++    CDS -up-> Cache2 : "Cache Decision"
++    Cache1 -down-> Origin : "Step 7: Request Origin (if not cached)"
++    Cache2 -down-> Origin
++    Origin -up-> Cache1 : "Step 8: Update Cache and Deliver Content"
++    Origin -up-> Cache2
++}
++
++RECTANGLE "User" as User
++User -right-> DNSServer : "Step 1: User Request"
++DS1 -up-> User : "Step 9: Respond to User Request"
++DS2 -up-> User
++
++@enduml
+diff --git a/architecture_diagrams/data_storage_options.puml b/architecture_diagrams/data_storage_options.puml
+new file mode 100644
+--- /dev/null
++++ ./architecture_diagrams/data_storage_options.puml
+@@ -0,0 +1,34 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++
++skinparam rectangle {
++    BackgroundColor<<数据库>> Wheat
++    BackgroundColor<<Elasticsearch>> LightGreen
++}
++
++package "数据存储方案选择" {
++    rectangle 数据库 <<数据库>> as DB {
++        note right of DB
++            结构化数据
++            事务支持
++            ACID属性
++            复杂查询能力
++            数据完整性和安全性
++        end note
++    }
++
++    rectangle Elasticsearch <<Elasticsearch>> as ES {
++        note right of ES
++            非结构化/半结构化数据
++            全文搜索和分析
++            扩展性和高可用性
++            实时处理
++            灵活性
++        end note
++    }
++}
++
++[应用场景] ..> DB : 需要\n- 结构化数据处理\n- 复杂事务\n- 数据完整性\n- 复杂查询
++[应用场景] ..> ES : 需要\n- 全文搜索\n- 实时分析\n- 大规模数据集\n- 灵活的数据模型
++
++@enduml
+diff --git a/architecture_diagrams/imvu_spark_integration_workflow.puml b/architecture_diagrams/imvu_spark_integration_workflow.puml
+deleted file mode 100644
+--- ./architecture_diagrams/imvu_spark_integration_workflow.puml
++++ /dev/null
+@@ -1,18 +0,0 @@
+-@startuml
+-skinparam backgroundColor #D3D3D3
+-
+-actor "PHP应用程序" as PHP
+-participant "Spark REST API" as SparkAPI
+-participant "Spark集群" as SparkCluster
+-    participant "数据处理" as DataProcess
+-    participant "数据分析" as DataAnalyse
+-database "数据源" as DataSource
+-database "数据存储" as DataStorage
+-
+-PHP -> SparkAPI : 发送数据处理请求
+-SparkAPI -> SparkCluster : 委派请求
+-SparkCluster -> DataProcess : 数据处理
+-DataProcess -> DataAnalyse : 数据分析
+-DataAnalyse -> DataStorage : 存储结果
+-DataStorage -> PHP : 返回处理后的数据
+-@enduml
+diff --git a/architecture_diagrams/kafka_architecture_overview.puml b/architecture_diagrams/kafka_architecture_overview.puml
+new file mode 100644
+--- /dev/null
++++ ./architecture_diagrams/kafka_architecture_overview.puml
+@@ -0,0 +1,60 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++
++!define KafkaNode(x) class x << (K,orchid) >> 
++!define ZookeeperNode(x) class x << (Z,yellow) >> 
++!define ProducerNode(x) class x << (P,blue) >> 
++!define ConsumerNode(x) class x << (C,red) >> 
++
++package "Kafka Cluster" {
++    KafkaNode("Broker1\n(物理)") 
++    KafkaNode("Broker2\n(物理)") 
++    KafkaNode("Broker3\n(物理)") 
++    ZookeeperNode("Zookeeper\n(物理)") 
++
++    class "Topic1\n(逻辑)" << (T,purple) >> 
++    class "Topic2\n(逻辑)" << (T,purple) >> 
++
++    class "Partition1_1\n(逻辑)" 
++    class "Partition1_2\n(逻辑)"  
++    class "Partition2_1\n(逻辑)"  
++    class "Partition2_2\n(逻辑)"  
++
++    "Topic1\n(逻辑)" -- "Partition1_1\n(逻辑)" : contains
++    "Topic1\n(逻辑)" -- "Partition1_2\n(逻辑)" : contains
++    "Topic2\n(逻辑)" -- "Partition2_1\n(逻辑)" : contains
++    "Topic2\n(逻辑)" -- "Partition2_2\n(逻辑)" : contains
++
++    "Partition1_1\n(逻辑)" -- "Broker1\n(物理)" : Leader at
++    "Partition1_1\n(逻辑)" -- "Broker2\n(物理)" : Follower at
++    "Partition1_1\n(逻辑)" -- "Broker3\n(物理)" : Follower at
++
++    "Partition1_2\n(逻辑)" -- "Broker1\n(物理)" 
++    "Partition2_1\n(逻辑)" -- "Broker2\n(物理)" 
++    "Partition2_2\n(逻辑)" -- "Broker2\n(物理)" 
++
++    "Broker1\n(物理)" --|> "Zookeeper\n(物理)" 
++    "Broker2\n(物理)" --|> "Zookeeper\n(物理)" 
++    "Broker3\n(物理)" --|> "Zookeeper\n(物理)" 
++    "Topic1\n(逻辑)" --|> "Zookeeper\n(物理)" 
++    "Topic2\n(逻辑)" --|> "Zookeeper\n(物理)" 
++}
++
++ProducerNode("Producer1\n(物理)") 
++ProducerNode("Producer2\n(物理)") 
++ConsumerNode("Consumer1\n(物理)") 
++ConsumerNode("Consumer2\n(物理)") 
++
++"Producer1\n(物理)" --> "Topic1\n(逻辑)" : writes to
++"Producer2\n(物理)" --> "Topic2\n(逻辑)" : writes to
++
++"Consumer1\n(物理)" --> "Partition1_1\n(逻辑)" : reads from
++"Consumer1\n(物理)" --> "Partition1_2\n(逻辑)" : reads from
++"Consumer2\n(物理)" --> "Partition2_1\n(逻辑)" : reads from
++"Consumer2\n(物理)" --> "Partition2_2\n(逻辑)" : reads from
++
++' 假设使用旧版本的 Kafka，消费者偏移量还存储在 Zookeeper 中
++"Consumer1\n(物理)" --|> "Zookeeper\n(物理)" : offsets stored in
++"Consumer2\n(物理)" --|> "Zookeeper\n(物理)" : offsets stored in
++
++@enduml
+diff --git a/architecture_diagrams/kafka_cluster_architecture_overview.puml b/architecture_diagrams/kafka_cluster_architecture_overview.puml
+new file mode 100644
+--- /dev/null
++++ ./architecture_diagrams/kafka_cluster_architecture_overview.puml
+@@ -0,0 +1,45 @@
++@startuml
++skinparam backgroundColor #EEEEE
++skinparam packageStyle rectangle
++skinparam node {
++    BackgroundColor lightblue
++    BorderColor Black
++    FontName Courier
++}
++
++' Define Brokers and Zookeeper
++node "Broker1\n(物理)" as Broker1 << (K,orchid) >>
++node "Broker2\n(物理)" as Broker2 << (K,orchid) >>
++node "Broker3\n(物理)" as Broker3 << (K,orchid) >>
++node "Broker4\n(物理)" as Broker4 << (K,orchid) >>
++node "Zookeeper\n(物理)" as Zookeeper << (Z,yellow) >>
++
++' Define internal components
++node "Controller\n(Broker3)" as Controller << (C,lightblue) >>
++node "Replication Manager\n(Broker3)" as ReplicationManager << (C,lightblue) >>
++node "Log Manager\n(Broker3)" as LogManager << (C,lightblue) >>
++node "Network Processor\n(Broker4)" as NetworkProcessor << (C,lightblue) >>
++node "Request Handler\n(Broker1)" as RequestHandler << (C,lightblue) >>
++
++' Connections
++Controller --> Zookeeper : "manages & coordinates"
++Broker3 --> Controller : "hosts"
++Broker3 --> ReplicationManager : "hosts"
++Broker3 --> LogManager : "hosts"
++Broker4 --> NetworkProcessor : "hosts"
++Broker1 --> RequestHandler : "hosts"
++
++Zookeeper -[dotted]-> Broker1 : "coordinates"
++Zookeeper -[dotted]-> Broker2 : "coordinates"
++Zookeeper -[dotted]-> Broker3 : "coordinates"
++Zookeeper -[dotted]-> Broker4 : "coordinates"
++
++' Annotations for clarity
++note right of Zookeeper : "Zookeeper\nCluster Management & Coordination"
++note right of Controller : "Controller\nCluster Leadership & Coordination"
++note right of ReplicationManager : "Replication Manager\nManages Replication"
++note right of LogManager : "Log Manager\nManages Logs"
++note right of NetworkProcessor : "Network Processor\nHandles Network Requests"
++note right of RequestHandler : "Request Handler\nProcesses Client Requests"
++
++@enduml
+diff --git a/architecture_diagrams/spark_architecture.puml b/architecture_diagrams/spark_architecture.puml
+deleted file mode 100644
+--- ./architecture_diagrams/spark_architecture.puml
++++ /dev/null
+@@ -1,83 +0,0 @@
+-@startuml
+-skinparam backgroundColor #D3D3D3
+-
+-package "Apache Spark Application" {
+-    [Driver Program\n(Scala, Java, Python, R)] as Driver
+-        [SparkContext\n(Scala, Java, Python, R)] as SC
+-        [DAG Scheduler\n(Scala)] as DAG
+-        [Task Scheduler\n(Scala)] as TS
+-    [Cluster Manager\n(Java, Scala)] as Manager
+-    database "Data Storage System\n(Java)" as Storage {
+-        [HDFS\n(Java)]
+-        [Elasticsearch]
+-        [Other Sources] as Others
+-    }
+-
+-    package "Worker Node 1" {
+-        [Executor 1\n(Scala, Java, Python, R)] as E1
+-        [Cache 1] as C1
+-        [Task 1.1\n(Scala, Java, Python, R)] as T11
+-        [Task 1.2\n(Scala, Java, Python, R)] as T12
+-    }
+-    package "Worker Node 2" {
+-        [Executor 2\n(Scala, Java, Python, R)] as E2
+-        [Cache 2] as C2
+-        [Task 2.1\n(Scala, Java, Python, R)] as T21
+-        [Task 2.2\n(Scala, Java, Python, R)] as T22
+-    }
+-}
+-
+-Driver --> SC : Use
+-SC --> DAG : Convert to DAG
+-SC --> TS : Submit Tasks
+-SC --> Manager : Resource Request
+-DAG --> TS : Execution Planning
+-TS --> Manager : Task Allocation
+-Manager --> E1 : Allocate Executor
+-Manager --> E2 : Allocate Executor
+-E1 --> T11 : Execute Task
+-E1 --> T12 : Execute Task
+-E2 --> T21 : Execute Task
+-E2 --> T22 : Execute Task
+-E1 --> C1 : Data Caching
+-E2 --> C2 : Data Caching
+-E1 --> Storage : Read/Write Data
+-E2 --> Storage : Read/Write Data
+-
+-note right of DAG
+-  DAG (Directed Acyclic Graph) represents:
+-  - Data processing steps and their dependencies
+-  - Optimizes task execution
+-  - Provides a fault-tolerance mechanism
+-  - No cyclic dependencies in the workflow
+-  - Basis for execution planning and optimization
+-end note
+-
+-note right of Elasticsearch
+-  Elasticsearch is used for:
+-  - Full-text Search and Complex Queries
+-  - Real-time Analysis and Dashboards
+-  - Log and Event Data Analysis
+-  - Big Data Integration
+-  - Data Enrichment
+-end note
+-
+-note top of C1
+-  Cache for Accelerating Data Access
+-  Supports Various Persistence Levels
+-end note
+-
+-note right of Storage
+-  External Persistent Storage System
+-  Provides Long-term Data Storage and Fault Tolerance
+-end note
+-
+-note right of Manager
+-  Fault Tolerance and Recovery Mechanism
+-  Detect Node Failures
+-  Reallocate Tasks
+-  Lost Partitions Recomputed
+-  Based on Original Data and RDD
+-end note
+-
+-@enduml
+diff --git a/architecture_diagrams/spark_data_partitioning_and_optimization_framework.puml b/architecture_diagrams/spark_data_partitioning_and_optimization_framework.puml
+new file mode 100644
+--- /dev/null
++++ ./architecture_diagrams/spark_data_partitioning_and_optimization_framework.puml
+@@ -0,0 +1,62 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++
++class "Data Partitioning" as Partitioning {
++  + Hash Partitioning
++  + Range Partitioning
++  + Custom Partitioning
++}
++
++class "Partitioning Strategies" as Strategies {
++  + Define number of partitions
++  + Select partitioning method
++  + Consider data skewness
++}
++
++class "Optimization Techniques" as Optimization {
++  + Coalesce for reducing partitions
++  + Repartition for increasing or reshuffling partitions
++  + Persist partitions in memory
++  + Adjust parallelism
++}
++
++class "Data Skewness Handling" as Skewness {
++  + Identify skewed keys
++  + Use salting technique
++  + Split skewed partitions
++}
++
++class "RDD/DataFrame" as Data {
++  + Data is divided into partitions
++}
++
++Partitioning --> Data : Applies to
++Strategies --> Partitioning : Guides
++Optimization --> Strategies : Implements
++Skewness --> Optimization : Part of
++
++note right of Partitioning
++  Partitioning is how Spark splits data
++  into chunks that can be processed in parallel.
++  Different methods are available based on data characteristics.
++end note
++
++note left of Strategies
++  Strategies include how to choose the partitioning method
++  and the number of partitions, considering data characteristics
++  and processing requirements.
++end note
++
++note right of Optimization
++  Optimization techniques involve methods
++  to improve the efficiency of data processing
++  through effective partition management.
++end note
++
++note left of Skewness
++  Handling data skewness involves techniques
++  to evenly distribute data across partitions,
++  especially when certain keys are over-represented.
++end note
++
++@enduml
+diff --git a/architecture_diagrams/spark_kubernetes_architecture.puml b/architecture_diagrams/spark_kubernetes_architecture.puml
+new file mode 100644
+--- /dev/null
++++ ./architecture_diagrams/spark_kubernetes_architecture.puml
+@@ -0,0 +1,129 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++
++package "Spark on Kubernetes Application" #LightYellow {
++    [Driver Program\n(Scala, Java, Python, R)] as Driver
++        [SparkContext\n(Scala, Java, Python, R)] as SC
++        [RDD Operations\n(Scala, Java, Python, R)] as RDDOps
++        [DAG Scheduler\n(Scala)] as DAG
++        [Task Scheduler\n(Scala)] as TS
++}
++
++package "Kubernetes Cluster" #LightGreen {
++        [Kubernetes Master\n(Java, Scala)] as K8sMaster
++        [Kubernetes API] as K8sAPI
++    }
++
++package "Kubernetes Worker Node 1" #LightBlue {
++        [Pod 1\n(Kubernetes)] as Pod1
++        [Executor 1\n(Scala, Java, Python, R)] as E1
++        [Cache 1] as C1
++    frame "Logical Data Processing 1" #Pink {
++        [Map Task 1.1\n(Scala, Java, Python, R)] as MT11
++        [Reduce Task 1.2\n(Scala, Java, Python, R)] as RT12
++    }
++}
++
++package "Kubernetes Worker Node 2" #LightBlue {
++        [Pod 2\n(Kubernetes)] as Pod2
++        [Executor 2\n(Scala, Java, Python, R)] as E2
++        [Cache 2] as C2
++    frame "Logical Data Processing 2" #Pink {
++        [Map Task 2.1\n(Scala, Java, Python, R)] as MT21
++        [Reduce Task 2.2\n(Scala, Java, Python, R)] as RT22
++    }
++}
++
++    [Final Reduce and Merge\n(Scala, Java, Python, R)] as FinalReduce
++
++database "Data Storage System\n(Java)" as Storage #LightCoral {
++        [HDFS\n(Java)]
++        [Elasticsearch]
++        [Other Sources] as Others
++    }
++
++Driver --> SC : Use
++SC --> RDDOps : Data Transformations
++RDDOps --> DAG : Convert to DAG
++SC --> TS : Submit Tasks
++SC --> K8sAPI : Deploy Driver/Executors
++DAG --> TS : Execution Planning
++TS --> K8sAPI : Request Executors
++K8sMaster --> Pod1 : Schedule Pod
++K8sMaster --> Pod2 : Schedule Pod
++Pod1 --> E1 : Run Executor
++E1 --> C1 : Data Caching
++E1 --> MT11 : Execute Map Task
++MT11 --> RT12 : Followed by Reduce Task
++Pod2 --> E2 : Run Executor
++E2 --> C2 : Data Caching
++E2 --> MT21 : Execute Map Task
++MT21 --> RT22 : Followed by Reduce Task
++RT12 --> FinalReduce : Send Results
++RT22 --> FinalReduce : Send Results
++FinalReduce --> Storage : Final Output
++
++note right of RT12
++  Reduce Task 1.2:
++  - Performs local reduce operations on Node 1
++  - Part of the distributed reduce phase
++end note
++
++note right of RDDOps
++  RDD Operations define data processing logic:
++  - Transformations (e.g., map, filter) define how to process data
++  - Actions (e.g., count, collect) trigger computation and output results
++  - Operations are lazily evaluated: executed when action is called
++  - The basis for distributed data processing tasks on Worker Nodes
++end note
++
++note right of DAG
++  DAG (Directed Acyclic Graph) represents:
++  - Data processing steps and their dependencies
++  - Optimizes task execution
++  - Provides a fault-tolerance mechanism
++  - No cyclic dependencies in the workflow
++  - Basis for execution planning and optimization
++end note
++
++note right of Elasticsearch
++  Elasticsearch is used for:
++  - Full-text Search and Complex Queries
++  - Real-time Analysis and Dashboards
++  - Log and Event Data Analysis
++  - Big Data Integration
++  - Data Enrichment
++end note
++
++note top of C1
++  Cache for Accelerating Data Access
++  Supports Various Persistence Levels
++end note
++
++note right of Storage
++  External Persistent Storage System
++  Provides Long-term Data Storage and Fault Tolerance
++end note
++
++note right of K8sMaster
++  Kubernetes Master:
++  - Manages the Kubernetes Cluster
++  - Schedules and Orchestrates Pods
++  - Provides Cluster Management Capabilities
++end note
++
++note right of E1
++  Executors run in Kubernetes Pods
++  Each Pod represents a Spark Executor
++  Pods are managed by Kubernetes
++  Executors perform Tasks and may have local Cache
++end note
++
++note right of FinalReduce
++  Final Reduce and Merge:
++  - Aggregates results from all Reduce Tasks
++  - Performs final data merging and processing
++  - Outputs the final result to the Data Storage System
++end note
++
++@enduml
+diff --git a/architecture_diagrams/spark_mapreduce_comparison.puml b/architecture_diagrams/spark_mapreduce_comparison.puml
+new file mode 100644
+--- /dev/null
++++ ./architecture_diagrams/spark_mapreduce_comparison.puml
+@@ -0,0 +1,64 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++
++skinparam class {
++    BackgroundColor LightYellow
++    ArrowColor Brown
++    BorderColor Brown
++}
++
++skinparam packageStyle rectangle
++
++package "Spark System" {
++class SparkContext {
++  - initialize cluster
++  - distribute data
++  - execute tasks
++}
++
++class RDD {
++  - parallelize data
++  - lineage information
++  - transformations
++  - actions
++}
++
++class Transformation {
++  - map()
++  - filter()
++  - flatMap()
++  - groupBy()
++}
++
++class Action {
++  - reduce()
++  - collect()
++  - count()
++  - take()
++}
++}
++
++package "MapReduce Model" {
++class MapReduceModel {
++  + Map()
++  + Reduce()
++}
++
++class MapOperation {
++}
++
++class ReduceOperation {
++}
++}
++
++SparkContext -down-> RDD : creates >
++RDD -down-> Transformation : performs >
++RDD -down-> Action : performs >
++Transformation -[hidden]down-> MapReduceModel 
++Action -[hidden]down-> MapReduceModel 
++MapReduceModel -left-> MapOperation : corresponds to >
++MapReduceModel -right-> ReduceOperation : corresponds to >
++Transformation ..> MapOperation : includes > #DashedBrown
++Action ..> ReduceOperation : includes > #DashedBrown
++
++@enduml
+diff --git a/imvu_system_architecture/imvu_kafka_spark_real_time_processing.puml b/imvu_system_architecture/imvu_kafka_spark_real_time_processing.puml
+new file mode 100644
+--- /dev/null
++++ ./imvu_system_architecture/imvu_kafka_spark_real_time_processing.puml
+@@ -0,0 +1,55 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++
++package "IMVU Data Sources" {
++    [User Activity]
++    [Transaction Records]
++    [System Logs]
++}
++
++package "Kafka Cluster" {
++    [User Events Topic]
++    [Transaction Topic]
++    [Log Topic]
++}
++
++package "Spark Cluster" {
++    package "Spark Streaming" {
++        [Data Receiver] as Receiver
++        [Data Transformation] as Transformation
++        [Data Aggregation] as Aggregation
++        [Output Processor] as Output
++
++        Receiver --> Transformation : Streams raw data
++        Transformation --> Aggregation : Transforms data
++        Aggregation --> Output : Aggregates data
++    }
++}
++
++package "Data Storage" {
++    [MongoDB]
++    [Amazon S3 Data Lake]
++    [Elasticsearch]
++}
++
++package "Monitoring & Logging" {
++    [Monitoring System]
++    [Logging System]
++}
++
++[User Activity] --> [User Events Topic] : Streams data
++[Transaction Records] --> [Transaction Topic] : Streams data
++[System Logs] --> [Log Topic] : Streams data
++
++[User Events Topic] --> Receiver
++[Transaction Topic] --> Receiver
++[Log Topic] --> Receiver
++
++Output --> [MongoDB] : Stores processed data
++Output --> [Amazon S3 Data Lake] : Stores processed data
++Output --> [Elasticsearch] : Indexes data for search
++
++[Spark Streaming] ..> [Monitoring System] : Reports status
++[Spark Streaming] ..> [Logging System] : Logs activities
++
++@enduml
+diff --git a/imvu_system_architecture/imvu_mongodb_kafka_spark_integration.puml b/imvu_system_architecture/imvu_mongodb_kafka_spark_integration.puml
+deleted file mode 100644
+--- ./imvu_system_architecture/imvu_mongodb_kafka_spark_integration.puml
++++ /dev/null
+@@ -1,62 +0,0 @@
+-@startuml
+-skinparam backgroundColor #D3D3D3
+-skinparam packageStyle rectangle
+-!define SERVICE class
+-
+-SERVICE APP {
+-  :Generates real-time user data;
+-}
+-
+-SERVICE Kafka {
+-  :Provides high-throughput message passing (Java);
+-  :Ensures message order and durability (Kafka Streams);
+-  :Includes topics for raw and processed data;
+-}
+-
+-SERVICE "Spark Streaming" {
+-  :Consumes raw data messages from Kafka (Java);
+-  :Performs real-time data processing (Spark SQL);
+-  :Publishes results back to Kafka (Java);
+-}
+-
+-SERVICE "Spark Batch Processing" as BatchProcessing {
+-  :Periodically processes large batches of data (Java);
+-  :Executes complex data transformations and analysis (Spark MLlib);
+-  :Publishes results back to Kafka (Java);
+-}
+-
+-SERVICE "MongoDB Kafka Connector" as Connector {
+-  :Captures real-time data changes from MongoDB (Java);
+-  :Publishes changes as messages to Kafka topics (Java);
+-}
+-
+-SERVICE MongoDB {
+-  :Stores user and interaction data (Python);
+-  :Supports complex queries (PyMongo);
+-}
+-
+-SERVICE Elasticsearch {
+-  :Stores and indexes processed data (Java);
+-  :Supports fast search and real-time analytics (Elasticsearch DSL);
+-}
+-
+-' Data flow from APP to Kafka
+-APP -down-> Kafka : Sends real-time data\n(Java)
+-
+-' Data flow from Kafka to MongoDB
+-Kafka -down-> "Spark Streaming" : Streams raw data for processing\n(Java)
+-Kafka -down-> BatchProcessing : Batch processes raw data\n(Java)
+-
+-' Data flow from Processing to Kafka
+-"Spark Streaming" -down-> Kafka : Publishes processed data messages\n(Java)
+-BatchProcessing -down-> Kafka : Publishes batch-processed data messages\n(Java)
+-
+-' Data flow to storage
+-Kafka -right-> MongoDB : Stores processed data\n(Java)
+-Kafka -down-> Elasticsearch : Stores real-time processing results\n(Java)
+-
+-' Data flow from MongoDB to Kafka
+-MongoDB -up-> Connector : Captures data changes\n(Java)
+-Connector -up-> Kafka : Publishes raw data messages to Kafka\n(Java)
+-
+-@enduml
+diff --git a/imvu_system_architecture/imvu_spark_application_overview.puml b/imvu_system_architecture/imvu_spark_application_overview.puml
+deleted file mode 100644
+--- ./imvu_system_architecture/imvu_spark_application_overview.puml
++++ /dev/null
+@@ -1,49 +0,0 @@
+-@startuml
+-skinparam backgroundColor #D3D3D3
+-
+-package "IMVU Backend System" {
+-    [Web Server] as WS
+-    [API Server] as AS
+-    [Cron Job Scheduler] as Cron
+-    [User Data] as UD
+-    [Real Time Data] as RTD
+-    [User Interaction] as UI
+-}
+-
+-package "Apache Spark Cluster" {
+-    [Driver Program] as Driver
+-    note right of Driver : 使用 Java
+-    [Cluster Manager] as Manager
+-    package "Worker Node 1" {
+-        [Executor 1] as E1
+-        note right of E1 : 使用 Java
+-        [Task 1.1 - Data Processing\n(Shopping Habits Analysis, Activity History Analysis)] as T11
+-        [Task 1.2 - Real Time Analysis\n(Real-time User Behavior Tracking, Social Interaction Monitoring)] as T12
+-    }
+-    package "Worker Node 2" {
+-        [Executor 2] as E2
+-        note right of E2 : 使用 Python
+-        [Task 2.1 - User Behavior Analysis\n(User Behavior Patterns Analysis, User Profiling)] as T21
+-        [Task 2.2 - Other Task] as T22
+-    }
+-    [Personalized Recommendation\n(Personalized Content)] as PR
+-    [Machine Learning\n(Machine Learning Models)] as ML
+-}
+-
+-WS --> Driver : Trigger Real-time Data Processing
+-AS --> Driver : Trigger User Request Response
+-Cron --> Driver : Trigger Scheduled Tasks
+-UD --> Driver : Provides Data
+-RTD --> Driver : Provides Data
+-UI --> Driver : Provides Data
+-Driver --> Manager : Request Resource Allocation
+-Manager --> E1 : Assign Executors
+-Manager --> E2 : Assign Executors
+-E1 --> T11 : Execute Data Processing
+-E1 --> T12 : Execute Real-time Analysis
+-E2 --> T21 : Execute User Behavior Analysis
+-T11 --> PR : Provide Inputs
+-T21 --> ML : Feed Data to Models
+-E2 --> T22 : Execute Other Tasks
+-
+-@enduml
+diff --git a/interview_questions/big_file_upload_system_architecture.puml b/interview_questions/big_file_upload_system_architecture.puml
+new file mode 100644
+--- /dev/null
++++ ./interview_questions/big_file_upload_system_architecture.puml
+@@ -0,0 +1,27 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++
++!define RECTANGLE class
++
++RECTANGLE Client
++RECTANGLE FileChunker
++RECTANGLE LoadBalancer
++RECTANGLE UploadService
++RECTANGLE HDFSStorageService
++RECTANGLE Database
++RECTANGLE ResumableUploadManager
++RECTANGLE SecurityService
++RECTANGLE DataValidationService
++
++Client -down-> FileChunker : Split large file
++FileChunker -down-> LoadBalancer : Upload file chunks
++LoadBalancer -down-> UploadService : Route file chunks
++UploadService -down-> HDFSStorageService : Store file chunks
++HDFSStorageService -right-> Database : Log chunk location & status
++Database -up-> UploadService : Map chunks to original file
++Client -right-> ResumableUploadManager : Manage file chunks
++ResumableUploadManager -down-> UploadService : Manage upload status
++UploadService -down-> SecurityService : Security checks
++UploadService -down-> DataValidationService : Validate file integrity
++
++@enduml
+diff --git a/interview_questions/distributed_password_cracker_architecture.puml b/interview_questions/distributed_password_cracker_architecture.puml
+new file mode 100644
+--- /dev/null
++++ ./interview_questions/distributed_password_cracker_architecture.puml
+@@ -0,0 +1,75 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++
++' System Description
++' Brute-Force Password Cracker: Aiming to recover a lost password for a colleague's Threads account using brute-force attack.
++' The process could take several months to years, utilizing both paid computing resources (from private cloud providers like AWS, Azure, GCP)
++' and free resources in the form of a temporary public computer network.
++' The integration of these two types of resources (Private Cloud Resources and Free Compute Resources) is not clear.
++
++package "Private Cloud Compute Nodes" {
++    [Central Coordination Node] as Coordinator
++    frame ApacheSparkCluster as "Apache Spark Cluster" {
++        note right of ApacheSparkCluster
++          Advantages of Apache Spark:
++          - Efficient large-scale data processing
++          - Superior in-memory computing performance
++          - Easy to parallelize processing
++          - Resilient Distributed Datasets (RDD) for fault tolerance
++          - Good adaptability to dynamic workloads
++          - Flexible integration capabilities
++        end note
++        [Distributed Producer Node 1 (Range A)] as DistProducer1
++        [Distributed Producer Node 2 (Range B)] as DistProducer2
++        [Kubernetes Autoscaler] as Autoscaler
++        [Consumer Node 3 (Dynamic)] as DynamicConsumer3
++    }
++    [Central Pub/Sub Messaging System] as PubSub
++    note right of Autoscaler
++      Kubernetes Autoscaler:
++      - Monitors the length of the message queue
++      - Dynamically scales producer and consumer nodes
++        based on the queue length
++    end note
++    note right of Coordinator
++      Central Coordination Node:
++      - Manages overall system operation
++      - Configures and oversees the Pub/Sub system
++      - Handles general system monitoring and fault management
++    end note
++}
++
++package "Free Compute Resources Nodes" {
++    [Consumer Node 1] as FreeConsumer1
++    [Consumer Node 2] as FreeConsumer2
++}
++    
++[RESTful Thread API] as API
++
++Autoscaler --> PubSub : Monitor Queue Length
++Autoscaler --> DistProducer1 : Scale In/Out
++Autoscaler --> DistProducer2 : Scale In/Out
++Autoscaler --> DynamicConsumer3 : Scale In/Out
++
++Coordinator --> DistProducer1 : Assign Range & Manage
++Coordinator --> DistProducer2 : Assign Range & Manage
++Coordinator --> PubSub : System Management & Configuration
++    
++DistProducer1 --> PubSub : Publish Passwords
++DistProducer2 --> PubSub : Publish Passwords
++
++PubSub --> FreeConsumer1 : Subscribe & Get Passwords
++PubSub --> FreeConsumer2 : Subscribe & Get Passwords
++PubSub --> DynamicConsumer3 : Subscribe & Get Passwords
++
++FreeConsumer1 --> API : Validate Password
++FreeConsumer2 --> API : Validate Password
++DynamicConsumer3 --> API : Validate Password
++
++API --> FreeConsumer1 : Return Status Code
++API --> FreeConsumer2 : Return Status Code
++API --> DynamicConsumer3 : Return Status Code
++
++Coordinator -up-> [Stop Signal] : If Correct Password Found
++
++@enduml
+diff --git a/interview_questions/distributed_string_guesser_architecture.puml b/interview_questions/distributed_string_guesser_architecture.puml
+deleted file mode 100644
+--- ./interview_questions/distributed_string_guesser_architecture.puml
++++ /dev/null
+@@ -1,19 +0,0 @@
+-@startuml
+-skinparam backgroundColor #D3D3D3
+-
+-package "Distributed Guessing System" {
+-    [Central Coordination Node] as Coordinator
+-    [Private Cloud Compute Nodes] as PrivateCloud
+-    [Free Compute Resources Nodes] as FreeCompute
+-    [Thread API] as API
+-    database "Results Database" as ResultsDB
+-}
+-
+-Coordinator --> PrivateCloud : Assign Tasks
+-Coordinator --> FreeCompute : Assign Tasks
+-PrivateCloud --> API : Validate String
+-FreeCompute --> API : Validate String
+-API --> ResultsDB : Store Results
+-Coordinator --> ResultsDB : Aggregate Results
+-
+-@enduml
+diff --git a/interview_questions/iot_log_alert_system_architecture.puml b/interview_questions/iot_log_alert_system_architecture.puml
+new file mode 100644
+--- /dev/null
++++ ./interview_questions/iot_log_alert_system_architecture.puml
+@@ -0,0 +1,69 @@
++@startuml
++skinparam backgroundColor #D3D3D3
++
++skinparam rectangle {
++    BackgroundColor PaleGreen
++    BorderColor DarkSlateGray
++}
++
++class "IoT Device" as IoTDevice {
++    +Generate Logs
++}
++
++class "Log Collector" as LogCollector {
++    +Collect Logs
++}
++
++class "Kafka Queue" as Kafka {
++    +Queue Logs
++}
++
++class "Log Processing Service" as LogProcessing {
++    +Initial Log Processing
++}
++
++class "Master Database" as MasterDB {
++    +Store Processed Logs
++}
++
++class "Replica Database" as ReplicaDB {
++    +Handle Read Queries
++}
++
++class "Query Service" as QueryService {
++    +Handle Log Queries
++}
++
++class "Alert Service" as AlertService {
++    +Generate and Manage Alerts
++}
++
++class "Stream Processing\n(Flink/Spark)" as StreamProcessing {
++    +Real-time Log Analysis
++}
++
++class "Statistics Database" as StatsDB {
++    +Store Analysis Results
++}
++
++class "API Server" as APIServer {
++    +Provide Statistics Data
++}
++
++IoTDevice -right-> LogCollector : Send Logs
++LogCollector -down-> Kafka : Push Logs
++Kafka -down-> LogProcessing : Transfer Logs
++Kafka -right-> StreamProcessing : Stream Logs
++LogProcessing -down-> MasterDB : Store Logs
++MasterDB -left-> ReplicaDB : Replicate Data
++ReplicaDB -up-> QueryService : Retrieve Logs for Queries
++ReplicaDB -right-> AlertService : Analyze for Alerts
++StreamProcessing -down-> StatsDB : Store Statistics
++StatsDB -right-> APIServer : Fetch Statistics
++
++note right of MasterDB
++  Composite Sharding Strategy:
++  - By Device
++  - By Time
++end note
++@enduml
+diff --git a/twitter/TweetSystemDetailedArchitecture.puml b/twitter/TweetSystemDetailedArchitecture.puml
+deleted file mode 100644
+--- ./twitter/TweetSystemDetailedArchitecture.puml
++++ /dev/null
+@@ -1,74 +0,0 @@
+-@startuml
+-
+-skinparam backgroundColor #2C2C2C
+-skinparam rectangle {
+-  BackgroundColor #444
+-  BorderColor #FFFFFF
+-  FontColor #FFFFFF
+-}
+-skinparam arrowColor #FFFFFF
+-skinparam titleBorderRoundCorner 15
+-skinparam titleBorderColor #FFFFFF
+-skinparam titleBackgroundColor #333
+-skinparam titleFontColor #FFFFFF
+-skinparam sequenceArrowFontColor #FFFFFF
+-skinparam sequenceActorFontColor #FFFFFF
+-
+-title Twitter System Architecture - Tweet Posting and Timeline Update Process
+-
+-rectangle Client
+-
+-rectangle CoreService {
+-    rectangle LoadBalancer
+-    rectangle WebServer
+-    rectangle ApplicationServer
+-    rectangle MonitoringService
+-    rectangle AutoScalingService
+-}
+-
+-rectangle TweetProcessingService {
+-    rectangle TweetService
+-    rectangle MessageQueue
+-    rectangle Worker
+-}
+-
+-rectangle SearchService
+-rectangle NotificationService
+-rectangle TimelineService
+-
+-rectangle "DataPersistenceService" as DPS {
+-    rectangle "Redis Cluster" as Redis {
+-        rectangle TweetCache
+-            rectangle TimelineCache
+-            rectangle HotTweetsAndTopicsCache
+-    }
+-    rectangle "Sharded Database" as Database
+-}
+-
+-Client -down-> CoreService : Request to Post Tweet
+-LoadBalancer -down-> WebServer : Forward Request
+-WebServer -down-> ApplicationServer : Process Request
+-ApplicationServer -> TweetProcessingService: Handle Tweet
+-TweetService -down-> MessageQueue : Publish Tweet Event (Pub)
+-MessageQueue -down-> Worker : Subscribe and Receive Tweet Event (Sub)
+-Worker -down-> DPS : Update DPS
+-Redis -> Database : Persist Cache Data
+-Worker -down-> SearchService : Index Tweet
+-Worker -down-> NotificationService : Notify Followers
+-Worker -down-> TimelineService : Update User Timelines
+-TimelineService -down-> DPS : Update Timeline Cache
+-
+-Client -down-> CoreService: Request to Read Timeline
+-LoadBalancer -down-> WebServer : Forward Request
+-WebServer -down-> ApplicationServer : Process Request
+-ApplicationServer -> TimelineService : Handle Read Timeline Request
+-TimelineService -> DPS: Check Timeline Cache
+-Redis -> TimelineService : Return Cached Timeline
+-TimelineService -> ApplicationServer : Return Timeline Data
+-ApplicationServer -> WebServer : Forward Timeline Data
+-WebServer -up-> Client : Return Timeline Data
+-
+-MonitoringService -> AutoScalingService : Monitor Load
+-AutoScalingService -> LoadBalancer : Scale Resources
+-
+-@enduml
+diff --git a/twitter/tweet_system_detailed_architecture.puml b/twitter/tweet_system_detailed_architecture.puml
+new file mode 100644
+--- /dev/null
++++ ./twitter/tweet_system_detailed_architecture.puml
+@@ -0,0 +1,64 @@
++@startuml
++
++skinparam backgroundColor #D3D3D3
++
++title Enhanced Twitter System Architecture with Scalability and Performance Strategies
++
++rectangle Client
++
++rectangle "Core Services" as Core {
++    rectangle "Load Balancer & Web Server" as LBWS
++    rectangle "Application & Monitoring Services" as AMS {
++        rectangle "Service Circuit Breaker"
++        rectangle "Service Auto-Scaling"
++    }
++}
++
++rectangle "Tweet Processing Service" as TPS {
++    rectangle "Tweet & Comment Handlers" as TCH
++    rectangle "Async Processing Queue (Kafka/RabbitMQ)" as APQ
++    rectangle "Workers for Processing" as Workers
++}
++
++rectangle "Supporting Services" as SS {
++    rectangle "Search & Notification Services" as SNS
++    rectangle "Timeline Update Service" as TUS
++}
++
++rectangle "Data Persistence Layer" as DPS {
++    rectangle "Caching (Redis Cluster)" as Cache {
++        rectangle "Tweet & Timeline Caches"
++        rectangle "Edge Caching (CDN)"
++    }
++    rectangle "Databases (Sharded & Read-Replica)" as DB {
++        rectangle "Tweet & Comment Data"
++        rectangle "Data Partitioning & Sharding"
++    }
++}
++
++rectangle "Data Consistency & Distributed Transactions" as DCDT {
++    rectangle "Eventual Consistency Model"
++    rectangle "Distributed Transaction Management"
++}
++
++Client -down-> Core : Sends Request
++LBWS -down-> AMS : Routes Request
++AMS -down-> TPS : Handles Tweet/Comment
++TCH -down-> APQ : Queues Tasks
++APQ -down-> Workers : Processes Tasks
++Workers -down-> DPS : Updates Data
++Cache -> DB : Persists Cached Data
++Workers -down-> SS : Updates Search/Notifies
++TUS -down-> DPS : Updates Timelines
++Client -down-> Core : Requests Timeline
++AMS -down-> TUS : Fetches Timeline Data
++TUS -down-> DPS : Checks Cache
++Cache -> TUS : Returns Cached Data
++TUS -> AMS : Returns Timeline Data
++AMS -> LBWS : Sends Back Data
++LBWS -> Client : Returns Data/Updates Timeline
++
++AMS -right-> DCDT : Ensures Data Consistency
++DB -down-> DCDT : Manages Distributed Transactions
++
++@enduml
+diff --git a/twitter/TwitterDatabaseSchema.puml b/twitter/twitter_database_schema.puml
+similarity index 97%
+rename from twitter/TwitterDatabaseSchema.puml
+rename to twitter/twitter_database_schema.puml
+--- ./twitter/TwitterDatabaseSchema.puml
++++ ./twitter/twitter_database_schema.puml
+@@ -1,6 +1,6 @@
+-@startuml TwitterDatabaseSchema
++@startuml
+ 
+-skinparam backgroundColor #EEEBDC
++skinparam backgroundColor #D3D3D3
+ skinparam class {
+   BackgroundColor #FFFFFF
+   BorderColor #222
