@@ -5,21 +5,23 @@ skinparam backgroundColor #F5F5F5
 title Performance Bottlenecks and Optimizations in Twitter System Architecture
 
 ' Load Balancer & Web Server Performance Bottlenecks
-rectangle "Load Balancer & Web Server" as LBWS {
-    rectangle "Load Balancer" as LB
-    rectangle "Web Server" as WS
-}
+rectangle "Load Balancer" as LB
+rectangle "Web Server" as WS
 
-note right of LBWS
-  **负载均衡器和Web服务器性能瓶颈**:
+note right of LB
+  **负载均衡器性能瓶颈**:
   - 原因：处理能力不足
   - 解决方法：使用高性能负载均衡器，增加实例
 end note
 
+note right of WS
+  **Web服务器性能瓶颈**:
+  - 原因：处理能力不足
+  - 解决方法：增加Web服务器实例
+end note
+
 ' Application Server Performance Bottlenecks
-rectangle "Application & Monitoring Services" as AMS {
-    rectangle "Application Server" as AS
-}
+rectangle "Application Server" as AS
 
 note right of AS
   **应用服务器性能瓶颈**:
@@ -28,9 +30,7 @@ note right of AS
 end note
 
 ' Async Processing Queue Performance Bottlenecks
-rectangle "Tweet Processing Service" as TPS {
-    rectangle "Async Processing Queue (Kafka/RabbitMQ)" as APQ
-}
+rectangle "Async Processing Queue (Kafka/RabbitMQ)" as APQ
 
 note right of APQ
   **异步处理队列性能瓶颈**:
@@ -39,10 +39,8 @@ note right of APQ
 end note
 
 ' Search & Notification Services Performance Bottlenecks
-rectangle "Search & Notification Services" as SNS {
-    rectangle "Search Service" as SSrv
-    rectangle "Notification Service" as NSrv
-}
+rectangle "Search Service" as SSrv
+rectangle "Notification Service" as NSrv
 
 note right of SSrv
   **搜索服务性能瓶颈**:
@@ -66,11 +64,7 @@ note right of TUS
 end note
 
 ' Databases Performance Bottlenecks
-rectangle "Data Persistence Layer" as DPS {
-    rectangle "Databases (Sharded & Read-Replica)" as DB {
-        rectangle "Tweet & Comment Data" as TCD
-    }
-}
+rectangle "Tweet & Comment Data" as TCD
 
 note right of TCD
   **数据库性能瓶颈**:
@@ -79,14 +73,22 @@ note right of TCD
 end note
 
 ' Distributed Transaction Management Performance Bottlenecks
-rectangle "Data Consistency & Distributed Transactions" as DCDT {
-    rectangle "Distributed Transaction Management" as DTM
-}
+rectangle "Distributed Transaction Management" as DTM
 
 note right of DTM
   **分布式事务管理性能瓶颈**:
   - 原因：跨服务操作协调
   - 解决方法：减少分布式事务，采用最终一致性
 end note
+
+' Layout adjustments
+LB -[hidden]-> WS
+LB -down-> AS
+AS -down-> APQ
+APQ -down-> SSrv
+SSrv -down-> NSrv
+NSrv -down-> TUS
+TUS -down-> TCD
+TCD -down-> DTM
 
 @enduml
