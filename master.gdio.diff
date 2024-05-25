@@ -1,21 +1,3 @@
-diff --git a/.gitconfig b/.gitconfig
-new file mode 100644
---- /dev/null
-+++ ./.gitconfig
-@@ -0,0 +1,13 @@
-+[deploy]
-+    host = localhost
-+    path = ~/Dropbox/myproject/git/system_design
-+[remote "origin"]
-+    url = git@github.com:huangyingw/system_design.git
-+    fetch = +refs/heads/*:refs/remotes/origin/*
-+[push]
-+    remote = origin
-+[gsync]
-+    remote = origin
-+    target = 7d45fb18c64ecdf68d2983b4cb4551cf25f11232
-+[gdio]
-+    ignore = ./bashrc/cscope_old.sh
 diff --git a/architecture_diagrams/akamai_cdn_edge_caching_architecture.puml b/architecture_diagrams/akamai_cdn_edge_caching_architecture.puml
 new file mode 100644
 --- /dev/null
