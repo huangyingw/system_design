@@ -10,4 +10,4 @@
     remote = origin
     target = 7d45fb18c64ecdf68d2983b4cb4551cf25f11232
 [gdio]
-    ignore = ./bashrc/cscope_old.sh
+    ignore = ./.gitconfig
