@@ -1,14 +1,13 @@
 [deploy]
-	host = localhost
-	path = ~/Dropbox/myproject/git/system_design
+    host = localhost
+    path = ~/Dropbox/myproject/git/system_design
 [remote "origin"]
-	url = git@github.com:huangyingw/system_design.git
-	fetch = +refs/heads/*:refs/remotes/origin/*
+    url = git@github.com:huangyingw/system_design.git
+    fetch = +refs/heads/*:refs/remotes/origin/*
 [push]
     remote = origin
 [gsync]
     remote = origin
-    target = f8d122839c5b9389bee156c69956443cdda04299
-
+    target = 7d45fb18c64ecdf68d2983b4cb4551cf25f11232
 [gdio]
     ignore = ./bashrc/cscope_old.sh
