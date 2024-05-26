@@ -1932,69 +1932,84 @@ diff --git a/twitter/tweet_system_detailed_architecture.puml b/twitter/tweet_sys
 new file mode 100644
 --- /dev/null
 +++ ./twitter/tweet_system_detailed_architecture.puml
-@@ -0,0 +1,64 @@
+@@ -0,0 +1,79 @@
 +@startuml
 +
 +skinparam backgroundColor #D3D3D3
++skinparam defaultFontName "Arial"
++skinparam defaultFontSize 16
++skinparam note {
++  BackgroundColor #FFFFFF
++  BorderColor #000000
++  FontSize 16
++  FontName "Arial"
++}
 +
 +title Enhanced Twitter System Architecture with Scalability and Performance Strategies
 +
-+rectangle Client
++' Define components
++rectangle "Client" as Client
 +
 +rectangle "Core Services" as Core {
-+    rectangle "Load Balancer & Web Server" as LBWS
++    rectangle "Load Balancer & Web Server" as LBWS {
++        rectangle "Load Balancer" as LB
++        rectangle "Web Server" as WS
++    }
 +    rectangle "Application & Monitoring Services" as AMS {
-+        rectangle "Service Circuit Breaker"
-+        rectangle "Service Auto-Scaling"
++        rectangle "Application Server" as AS
++        rectangle "Service Circuit Breaker" as SCB
++        rectangle "Service Auto-Scaling" as SAS
 +    }
 +}
 +
 +rectangle "Tweet Processing Service" as TPS {
-+    rectangle "Tweet & Comment Handlers" as TCH
++    rectangle "Tweet & Comment Handlers" as TCH {
++        rectangle "Text Processing" as TP
++        rectangle "Sensitive Word Filtering" as SWF
++    }
 +    rectangle "Async Processing Queue (Kafka/RabbitMQ)" as APQ
-+    rectangle "Workers for Processing" as Workers
++    rectangle "Workers for Processing" as Workers {
++        rectangle "Task Processing" as TProc
++        rectangle "Database Update" as DBU
++        rectangle "Cache Update" as CU
++    }
 +}
 +
 +rectangle "Supporting Services" as SS {
-+    rectangle "Search & Notification Services" as SNS
++    rectangle "Search & Notification Services" as SNS {
++        rectangle "Search Service" as SSrv
++        rectangle "Notification Service" as NSrv
++    }
 +    rectangle "Timeline Update Service" as TUS
 +}
 +
 +rectangle "Data Persistence Layer" as DPS {
 +    rectangle "Caching (Redis Cluster)" as Cache {
-+        rectangle "Tweet & Timeline Caches"
-+        rectangle "Edge Caching (CDN)"
++        rectangle "Tweet & Timeline Caches" as TTC
++        rectangle "Edge Caching (CDN)" as EC
 +    }
 +    rectangle "Databases (Sharded & Read-Replica)" as DB {
-+        rectangle "Tweet & Comment Data"
-+        rectangle "Data Partitioning & Sharding"
++        rectangle "Tweet & Comment Data" as TCD
++        rectangle "Data Partitioning & Sharding" as DPSH
 +    }
 +}
 +
-+rectangle "Data Consistency & Distributed Transactions" as DCDT {
-+    rectangle "Eventual Consistency Model"
-+    rectangle "Distributed Transaction Management"
-+}
-+
-+Client -down-> Core : Sends Request
++' Define data flows
++Client -down-> LBWS : Sends Request
 +LBWS -down-> AMS : Routes Request
-+AMS -down-> TPS : Handles Tweet/Comment
++AMS -right-> TCH : Handles Tweet/Comment
 +TCH -down-> APQ : Queues Tasks
 +APQ -down-> Workers : Processes Tasks
 +Workers -down-> DPS : Updates Data
-+Cache -> DB : Persists Cached Data
-+Workers -down-> SS : Updates Search/Notifies
++Workers -left-> SNS : Updates Search/Notifies
 +TUS -down-> DPS : Updates Timelines
-+Client -down-> Core : Requests Timeline
++Client -left-> LBWS : Requests Timeline
 +AMS -down-> TUS : Fetches Timeline Data
-+TUS -down-> DPS : Checks Cache
-+Cache -> TUS : Returns Cached Data
-+TUS -> AMS : Returns Timeline Data
-+AMS -> LBWS : Sends Back Data
-+LBWS -> Client : Returns Data/Updates Timeline
-+
-+AMS -right-> DCDT : Ensures Data Consistency
-+DB -down-> DCDT : Manages Distributed Transactions
++TUS -left-> Cache : Checks Cache
++Cache -down-> TUS : Returns Cached Data
++TUS -up-> AMS : Returns Timeline Data
++AMS -up-> LBWS : Sends Back Data
++LBWS -up-> Client : Returns Data/Updates Timeline
 +
 +@enduml
 diff --git a/twitter/twitter_database_schema.puml b/twitter/twitter_database_schema.puml
@@ -2122,6 +2137,105 @@ new file mode 100644
 +tweet --|> tweet_hashtags : "1..* has Hashtags *"
 +tweet --|> timeline : "* appears in *..* Timelines"
 +hashtags --|> tweet_hashtags : "* appears in *..* Tweets"
++
++@enduml
+diff --git a/twitter/twitter_performance_bottlenecks_and_optimizations.puml b/twitter/twitter_performance_bottlenecks_and_optimizations.puml
+new file mode 100644
+--- /dev/null
++++ ./twitter/twitter_performance_bottlenecks_and_optimizations.puml
+@@ -0,0 +1,94 @@
++@startuml
++
++skinparam backgroundColor #F5F5F5
++
++title Performance Bottlenecks and Optimizations in Twitter System Architecture
++
++' Load Balancer & Web Server Performance Bottlenecks
++rectangle "Load Balancer" as LB
++rectangle "Web Server" as WS
++
++note right of LB
++  **负载均衡器性能瓶颈**:
++  - 原因：处理能力不足
++  - 解决方法：使用高性能负载均衡器，增加实例
++end note
++
++note right of WS
++  **Web服务器性能瓶颈**:
++  - 原因：处理能力不足
++  - 解决方法：增加Web服务器实例
++end note
++
++' Application Server Performance Bottlenecks
++rectangle "Application Server" as AS
++
++note right of AS
++  **应用服务器性能瓶颈**:
++  - 原因：高并发处理
++  - 解决方法：优化代码，增加服务器实例
++end note
++
++' Async Processing Queue Performance Bottlenecks
++rectangle "Async Processing Queue (Kafka/RabbitMQ)" as APQ
++
++note right of APQ
++  **异步处理队列性能瓶颈**:
++  - 原因：容量和处理速度不足
++  - 解决方法：使用高性能消息队列，增加分区和消费者
++end note
++
++' Search & Notification Services Performance Bottlenecks
++rectangle "Search Service" as SSrv
++rectangle "Notification Service" as NSrv
++
++note right of SSrv
++  **搜索服务性能瓶颈**:
++  - 原因：数据库查询效率低
++  - 解决方法：优化查询，使用索引，分布式搜索引擎
++end note
++
++note right of NSrv
++  **通知服务性能瓶颈**:
++  - 原因：数据库查询效率低
++  - 解决方法：优化查询，使用索引，分布式搜索引擎
++end note
++
++' Timeline Update Service Performance Bottlenecks
++rectangle "Timeline Update Service" as TUS
++
++note right of TUS
++  **时间线更新服务性能瓶颈**:
++  - 原因：实时数据读取和写入
++  - 解决方法：优化算法，使用缓存，数据库分片和复制
++end note
++
++' Databases Performance Bottlenecks
++rectangle "Tweet & Comment Data" as TCD
++
++note right of TCD
++  **数据库性能瓶颈**:
++  - 原因：高并发读写
++  - 解决方法：分片，读写分离，优化索引
++end note
++
++' Distributed Transaction Management Performance Bottlenecks
++rectangle "Distributed Transaction Management" as DTM
++
++note right of DTM
++  **分布式事务管理性能瓶颈**:
++  - 原因：跨服务操作协调
++  - 解决方法：减少分布式事务，采用最终一致性
++end note
++
++' Layout adjustments
++LB -[hidden]-> WS
++LB -down-> AS
++AS -down-> APQ
++APQ -down-> SSrv
++SSrv -down-> NSrv
++NSrv -down-> TUS
++TUS -down-> TCD
++TCD -down-> DTM
 +
 +@enduml
 diff --git a/uber_system_architecture/uber_system_architecture.puml b/uber_system_architecture/uber_system_architecture.puml
