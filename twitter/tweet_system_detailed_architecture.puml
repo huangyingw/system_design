@@ -3,6 +3,11 @@
 skinparam backgroundColor #D3D3D3
 skinparam defaultFontName "Arial"
 skinparam defaultFontSize 16
+skinparam rectangle {
+  FontColor black
+  FontSize 16
+  FontName "Arial"
+}
 skinparam note {
   BackgroundColor #FFFFFF
   BorderColor #000000
@@ -12,7 +17,6 @@ skinparam note {
 
 title Enhanced Twitter System Architecture with Scalability and Performance Strategies
 
-' Define components
 rectangle "Client" as Client
 
 rectangle "Core Services" as Core {
