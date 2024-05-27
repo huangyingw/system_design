@@ -16,7 +16,7 @@ rectangle "Client" as Client
 
 rectangle "Auth Service" as Auth {
     rectangle "Login Handler" as LH
-        rectangle "Registration Handler" as RH
+        rectangle "Registration Handler" as RegH
         rectangle "Token Service" as TS
         rectangle "Permission Checker" as PC
 }
@@ -28,14 +28,14 @@ rectangle "Data Persistence Layer" as DPS {
 
 Client -down-> LH : Sends Login Request
 LH -down-> UD : Verifies User Credentials
-LH -down-> TS : Generates Token
+LH -right-> TS : Generates Token
 TS -down-> SD : Stores Session Data
-TS -up-> LH : Returns Token
+TS -left-> LH : Returns Token
 LH -up-> Client : Returns Login Response
 
-Client -down-> RH : Sends Registration Request
-RH -down-> UD : Stores User Data
-RH -up-> Client : Returns Registration Response
+Client -down-> RegH : Sends Registration Request
+RegH -down-> UD : Stores User Data
+RegH -up-> Client : Returns Registration Response
 
 Client -down-> PC : Sends Permission Check Request
 PC -down-> SD : Verifies Session Data
