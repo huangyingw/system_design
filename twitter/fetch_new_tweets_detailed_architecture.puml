@@ -24,14 +24,14 @@ rectangle "Core Services" as Core {
 rectangle "Timeline Update Service" as TUS {
     rectangle "Request Handler" as RH
     rectangle "Async Queue (Kafka/RabbitMQ)" as AQ
-    rectangle "Timeline Workers" as TW {
-        rectangle "Fetch New Tweets" as FNT {
-            rectangle "Cache Query" as CQ
-            rectangle "Database Query" as DBQ
-            rectangle "De-duplicate & Sort" as DDS
-            rectangle "Cache Update" as CU
-        }
-    }
+}
+
+rectangle "Timeline Workers" as TW {
+    rectangle "Fetch New Tweets" as FNT
+    rectangle "Cache Query" as CQ
+    rectangle "Database Query" as DBQ
+    rectangle "De-duplicate & Sort" as DDS
+    rectangle "Cache Update" as CU
 }
 
 rectangle "Data Persistence Layer" as DPS {
@@ -48,7 +48,6 @@ LBWS -down-> AMS : Routes Request
 AMS -down-> TUS : Passes Request to TUS
 RH -down-> AQ : Queues Fetch New Tweets Task
 AQ -down-> TW : Processes Tasks
-TW -down-> FNT : Executes Fetch New Tweets
 FNT -down-> CQ : Query Tweet Cache
 CQ -right-> TC : Fetches from Cache
 CQ -down-> DBQ : Cache Miss, Query Database
