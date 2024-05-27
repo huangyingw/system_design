@@ -1,0 +1,51 @@
+@startuml
+
+skinparam backgroundColor #D3D3D3
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 16
+skinparam note {
+    BackgroundColor #FFFFFF
+        BorderColor #000000
+        FontSize 16
+        FontName "Arial"
+}
+
+title User Authentication and Authorization Service Architecture
+
+rectangle "Client" as Client
+
+rectangle "Auth Service" as Auth {
+    rectangle "Login Handler" as LH
+        rectangle "Registration Handler" as RH
+        rectangle "Token Service" as TS
+        rectangle "Permission Checker" as PC
+}
+
+rectangle "Data Persistence Layer" as DPS {
+    rectangle "User Data (DB)" as UD
+        rectangle "Session Data (Redis)" as SD
+}
+
+Client -down-> LH : Sends Login Request
+LH -down-> UD : Verifies User Credentials
+LH -down-> TS : Generates Token
+TS -down-> SD : Stores Session Data
+TS -up-> LH : Returns Token
+LH -up-> Client : Returns Login Response
+
+Client -down-> RH : Sends Registration Request
+RH -down-> UD : Stores User Data
+RH -up-> Client : Returns Registration Response
+
+Client -down-> PC : Sends Permission Check Request
+PC -down-> SD : Verifies Session Data
+PC -up-> Client : Returns Permission Check Response
+
+note right of Auth
+**性能优化**:
+- 使用Redis缓存会话数据
+- 优化数据库查询
+- 使用JWT进行轻量级权限验证
+end note
+
+@enduml
