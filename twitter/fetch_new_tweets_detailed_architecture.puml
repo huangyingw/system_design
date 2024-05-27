@@ -26,6 +26,7 @@ rectangle "Timeline Update Service" as TUS {
     rectangle "Async Queue (Kafka/RabbitMQ)" as AQ
     rectangle "Timeline Workers" as TW {
         rectangle "Fetch New Tweets" as FNT {
+            rectangle "Cache Query" as CQ
             rectangle "Database Query" as DBQ
             rectangle "De-duplicate & Sort" as DDS
             rectangle "Cache Update" as CU
@@ -48,7 +49,9 @@ AMS -down-> TUS : Passes Request to TUS
 RH -down-> AQ : Queues Fetch New Tweets Task
 AQ -down-> TW : Processes Tasks
 TW -down-> FNT : Executes Fetch New Tweets
-FNT -down-> DBQ : Query Latest Tweets
+FNT -down-> CQ : Query Tweet Cache
+CQ -right-> TC : Fetches from Cache
+CQ -down-> DBQ : Cache Miss, Query Database
 DBQ -down-> TD : Fetches Tweet Data
 DBQ -right-> DDS : De-duplicate & Sort Tweets
 DDS -right-> CU : Updates Tweet Cache
@@ -56,6 +59,7 @@ CU -right-> TC : Stores Tweets in Cache
 
 note right of FNT
   **性能优化**:
+  - 优先查询缓存，减少数据库访问
   - 数据库查询优化（索引、缓存）
   - 多线程并行处理
   - 利用缓存加快读取速度
