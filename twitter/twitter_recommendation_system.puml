@@ -10,14 +10,14 @@ skinparam note {
     FontName "Arial"
 }
 
-title Recommendation System Architecture
+title Recommendation System Architecture (Proactive Push)
 
 rectangle "Client" as Client
 
 rectangle "Recommendation Service" as RS {
-    rectangle "Request Handler" as RH
     rectangle "Recommendation Engine" as RE
     rectangle "Result Caching" as RC
+    rectangle "Push Notification Service" as PNS
 }
 
 rectangle "Data Persistence Layer" as DPS {
@@ -26,15 +26,12 @@ rectangle "Data Persistence Layer" as DPS {
     rectangle "Recommendation Cache (Redis)" as RCache
 }
 
-Client -down-> RH : Sends Recommendation Request
-RH -down-> RC : Checks Cache
-RC -down-> RCache : Fetches from Cache
-RC -down-> RE : Cache Miss, Generates Recommendations
 RE -down-> UID : Fetches User Data
 RE -down-> CD : Fetches Content Data
-RE -up-> RC : Stores Recommendations in Cache
-RC -up-> RH : Returns Recommendations
-RH -up-> Client : Sends Recommendations
+RE -up-> RC : Caches Recommendations
+RC -down-> RCache : Stores Recommendations in Cache
+PNS -down-> RCache : Fetches Recommendations from Cache
+PNS -right-> Client : Pushes Recommendations
 
 note right of RS
   **性能优化**:
