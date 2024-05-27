@@ -2495,6 +2495,67 @@ new file mode 100644
 +TCD -down-> DTM
 +
 +@enduml
+diff --git a/twitter/twitter_search_service_architecture.puml b/twitter/twitter_search_service_architecture.puml
+new file mode 100644
+--- /dev/null
++++ ./twitter/twitter_search_service_architecture.puml
+@@ -0,0 +1,56 @@
++@startuml
++
++skinparam backgroundColor #D3D3D3
++skinparam defaultFontName "Arial"
++skinparam defaultFontSize 16
++skinparam note {
++  BackgroundColor #FFFFFF
++  BorderColor #000000
++  FontSize 16
++  FontName "Arial"
++}
++
++title Twitter Search Service Architecture
++
++rectangle "Client" as Client
++
++rectangle "Search Service" as Search {
++    rectangle "Request Handler" as RH
++    rectangle "Query Parser" as QP
++    rectangle "Cache Query" as CQ
++    rectangle "Index Query" as IQ {
++        rectangle "Search Index" as Index {
++            rectangle "Elasticsearch" as ES
++        }
++    }
++    rectangle "Result Handler" as RHdl {
++        rectangle "Result Sorting & Filtering" as RSF
++        rectangle "Result Caching" as RC
++    }
++    rectangle "Cache (Redis Cluster)" as Cache {
++        rectangle "Search Result Cache" as SRC
++    }
++}
++
++Client -down-> RH : Sends Search Request
++RH -down-> QP : Parses Query
++QP -down-> CQ : Queries Cache
++CQ -down-> SRC : Reads from Cache
++CQ -down-> IQ : Cache Miss, Queries Index
++IQ -down-> ES : Queries Elasticsearch
++ES -up-> IQ : Returns Search Results
++IQ -down-> RSF : Sorts & Filters Results
++RSF -down-> RC : Caches Results
++RC -down-> SRC : Stores in Cache
++SRC -up-> RC : Retrieves from Cache
++RC -up-> RH : Returns Results
++RH -up-> Client : Returns Search Results
++
++note right of Search
++  **性能优化**:
++  - 使用缓存（Redis）减少重复查询
++  - 使用Elasticsearch提高搜索查询速度
++  - 查询解析和结果排序优化
++end note
++
++@enduml
 diff --git a/uber_system_architecture/uber_system_architecture.puml b/uber_system_architecture/uber_system_architecture.puml
 new file mode 100644
 --- /dev/null
