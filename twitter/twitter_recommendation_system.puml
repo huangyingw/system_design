@@ -1,0 +1,46 @@
+@startuml
+
+skinparam backgroundColor #D3D3D3
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 16
+skinparam note {
+    BackgroundColor #FFFFFF
+    BorderColor #000000
+    FontSize 16
+    FontName "Arial"
+}
+
+title Recommendation System Architecture
+
+rectangle "Client" as Client
+
+rectangle "Recommendation Service" as RS {
+    rectangle "Request Handler" as RH
+    rectangle "Recommendation Engine" as RE
+    rectangle "Result Caching" as RC
+}
+
+rectangle "Data Persistence Layer" as DPS {
+    rectangle "User Interaction Data (DB)" as UID
+    rectangle "Content Data (DB)" as CD
+    rectangle "Recommendation Cache (Redis)" as RCache
+}
+
+Client -down-> RH : Sends Recommendation Request
+RH -down-> RC : Checks Cache
+RC -down-> RCache : Fetches from Cache
+RC -down-> RE : Cache Miss, Generates Recommendations
+RE -down-> UID : Fetches User Data
+RE -down-> CD : Fetches Content Data
+RE -up-> RC : Stores Recommendations in Cache
+RC -up-> RH : Returns Recommendations
+RH -up-> Client : Sends Recommendations
+
+note right of RS
+  **性能优化**:
+  - 使用缓存减少推荐计算
+  - 优化推荐算法
+  - 增加推荐引擎计算资源
+end note
+
+@enduml

@@ -1,0 +1,43 @@
+@startuml
+
+skinparam backgroundColor #D3D3D3
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 16
+skinparam note {
+    BackgroundColor #FFFFFF
+    BorderColor #000000
+    FontSize 16
+    FontName "Arial"
+}
+
+title Push Notification Service Architecture
+
+rectangle "Client" as Client
+
+rectangle "Notification Service" as NS {
+    rectangle "Request Handler" as RH
+    rectangle "Notification Queue" as NQ
+    rectangle "Notification Workers" as NW
+    rectangle "Push Gateway" as PG
+}
+
+rectangle "Data Persistence Layer" as DPS {
+    rectangle "Notification Data (DB)" as ND
+    rectangle "User Device Data (DB)" as UDD
+}
+
+Client -down-> RH : Sends Notification Request
+RH -down-> NQ : Queues Notification Task
+NQ -down-> NW : Processes Notification Task
+NW -down-> UDD : Fetches User Device Info
+NW -down-> PG : Sends Push Notification
+NW -down-> ND : Logs Notification
+
+note right of NS
+  **性能优化**:
+  - 使用消息队列处理通知任务
+  - 增加通知处理工作线程
+  - 优化推送网关性能
+end note
+
+@enduml

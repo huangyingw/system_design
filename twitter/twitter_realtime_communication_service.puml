@@ -1,0 +1,41 @@
+@startuml
+
+skinparam backgroundColor #D3D3D3
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 16
+skinparam note {
+    BackgroundColor #FFFFFF
+        BorderColor #000000
+        FontSize 16
+        FontName "Arial"
+}
+
+title Real-time Communication Service Architecture
+
+rectangle "Client" as Client
+
+rectangle "Communication Service" as CS {
+    rectangle "WebSocket Server" as WSS
+        rectangle "Message Queue" as MQ
+        rectangle "Message Processor" as MP
+}
+
+rectangle "Data Persistence Layer" as DPS {
+    rectangle "Message Data (DB)" as MD
+        rectangle "User Status Data (Redis)" as USD
+}
+
+Client -down-> WSS : Opens WebSocket Connection
+WSS -down-> MQ : Queues Incoming Message
+MQ -down-> MP : Processes Message
+MP -down-> MD : Stores Message Data
+MP -down-> USD : Updates User Status
+
+note right of CS
+**性能优化**:
+- 使用消息队列处理高并发消息
+- 优化WebSocket服务器性能
+- 使用Redis存储用户状态
+end note
+
+@enduml
