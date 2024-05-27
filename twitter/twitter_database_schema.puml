@@ -5,7 +5,11 @@ skinparam class {
   BackgroundColor #FFFFFF
   BorderColor #222
   ArrowColor #222
+  FontName "Arial"
+  FontSize 14
 }
+
+title Twitter Database Schema
 
 entity "User" as user {
   +user_id : integer {PK}
@@ -118,5 +122,17 @@ tweet --|> comments : "1..* has Comments *"
 tweet --|> tweet_hashtags : "1..* has Hashtags *"
 tweet --|> timeline : "* appears in *..* Timelines"
 hashtags --|> tweet_hashtags : "* appears in *..* Tweets"
+
+note right of user
+  **User**:
+  - 存储用户信息
+  - 关联其他实体如状态、推文等
+end note
+
+note right of tweet
+  **Tweet**:
+  - 存储推文信息
+  - 关联用户、点赞、转发等
+end note
 
 @enduml
