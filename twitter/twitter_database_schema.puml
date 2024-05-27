@@ -173,17 +173,17 @@ rectangle "Logging" {
 }
 
 user --|> userstatus : "1..1 has"
-user --|> tweet : "1..* posts *"
 user --|> followers : "1 has Followers *"
-user --|> likes : "1..* likes *"
-user --|> retweets : "1..* retweets *"
-user --|> comments : "1..* comments *"
-user --|> timeline : "1 has Timeline *"
 user --|> messages : "1..* sends *"
 user --|> notifications : "1..* receives *"
-user --|> media_files : "1..* uploads *"
 user --|> activity_logs : "1..* logs *"
 user --|> reports : "1..* reports *"
+user --|> tweet : "1..* posts *"
+user --|> comments : "1..* comments *"
+user --|> likes : "1..* likes *"
+user --|> retweets : "1..* retweets *"
+user --|> timeline : "1 has Timeline *"
+user --|> media_files : "1..* uploads *"
 
 tweet --|> likes : "1..* has Likes *"
 tweet --|> retweets : "1..* has Retweets *"
