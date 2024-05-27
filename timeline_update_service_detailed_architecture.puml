@@ -52,14 +52,15 @@ LBWS -down-> AMS : Routes Request
 AMS -down-> TUS : Passes Request to TUS
 RH -down-> AQ : Queues Timeline Update Tasks
 AQ -down-> TW : Processes Tasks
+
 TW -down-> FNT : Fetches New Tweets
 FNT -down-> TC : Reads from Timeline Cache
-TC -down-> FNT : Cache Hit
+TC -right-> FNT : Cache Hit
 FNT -down-> TD : Cache Miss, Reads from Tweet Data
 FNT -right-> TC : Updates Timeline Cache
 TC -down-> UT : Updates User Timelines
 UT -down-> UTDB : Stores Updated Timelines
-NU -right-> SNS : Notifies Users
+TW -down-> NU : Notifies Users
 Cache -down-> EC : Uses Edge Caching for Speed
 
 note right of TUS
