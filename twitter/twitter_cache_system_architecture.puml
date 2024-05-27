@@ -2,28 +2,28 @@
 
 skinparam backgroundColor #D3D3D3
 skinparam class {
-    BackgroundColor #FFFFFF
-        BorderColor #222
-        ArrowColor #222
-        FontName "Arial"
-        FontSize 14
+  BackgroundColor #FFFFFF
+  BorderColor #222
+  ArrowColor #222
+  FontName "Arial"
+  FontSize 14
 }
 
-title Cache System Architecture
+title Twitter Cache System Architecture
 
 rectangle "Clients" as Clients {
-    rectangle "User Devices" as UD
-        rectangle "Web Servers" as WS
+  rectangle "User Devices" as UD
+  rectangle "Web Servers" as WS
 }
 
 rectangle "Cache System" as Cache {
-    rectangle "Redis Cluster" as Redis {
-        rectangle "Hot Data Cache" as HDC
-            rectangle "Timeline Cache" as TC
-    }
+  rectangle "Redis Cluster" as Redis {
+    rectangle "Hot Data Cache" as HDC
+    rectangle "Timeline Cache" as TC
+  }
 }
 
-Clients -down-> WS : Sends Requests
+UD -down-> WS : Sends Requests
 WS -down-> Redis : Accesses Cache
 Redis -down-> HDC : Hot Data
 Redis -down-> TC : Timeline Data
