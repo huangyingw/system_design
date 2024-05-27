@@ -11,102 +11,165 @@ skinparam class {
 
 title Twitter Database Schema
 
-entity "User" as user {
-  +user_id : integer {PK}
-  username : varchar(15)
-  name : varchar(50)
-  email : varchar(255)
-  password : varchar(255)
-  bio : varchar(160)
-  location : varchar(30)
-  website : varchar(100)
-  join_date : datetime
+rectangle "Users" {
+  entity "User" as user {
+    +user_id : integer {PK}
+    username : varchar(15)
+    name : varchar(50)
+    email : varchar(255)
+    password : varchar(255)
+    bio : varchar(160)
+    location : varchar(30)
+    website : varchar(100)
+    join_date : datetime
+  }
+
+  entity "UserStatus" as userstatus {
+    +user_id : integer {PK, FK}
+    last_login : datetime
+    is_online : boolean
+    --
+    Storage: Redis
+  }
 }
 
-entity "UserStatus" as userstatus {
-  +user_id : integer {PK, FK}
-  last_login : datetime
-  is_online : boolean
-  --
-  Storage: Redis
+rectangle "Tweets" {
+  entity "Tweet" as tweet {
+    +tweet_id : integer {PK}
+    user_id : integer {FK}
+    text : varchar(280)
+    created_at : datetime
+    updated_at : datetime
+    retweet_count : integer
+    like_count : integer
+    --
+    NoSQL: Yes
+    Shard Key: tweet_id
+  }
+
+  entity "Comments" as comments {
+    +comment_id : integer {PK}
+    user_id : integer {FK}
+    tweet_id : integer {FK}
+    text : varchar(280)
+    created_at : datetime
+    updated_at : datetime
+    --
+    NoSQL: Yes
+    Shard Key: tweet_id
+  }
+
+  entity "Likes" as likes {
+    +like_id : integer {PK}
+    user_id : integer {FK}
+    tweet_id : integer {FK}
+    like_date : datetime
+    --
+    NoSQL: Yes
+    Shard Key: tweet_id
+  }
+
+  entity "Retweets" as retweets {
+    +retweet_id : integer {PK}
+    user_id : integer {FK}
+    tweet_id : integer {FK}
+    retweet_date : datetime
+    --
+    NoSQL: Yes
+    Shard Key: tweet_id
+  }
+
+  entity "Tweet_Hashtags" as tweet_hashtags {
+    tweet_id : integer {FK, PK}
+    hashtag_id : integer {FK, PK}
+    --
+    NoSQL: Yes
+    Shard Key: (tweet_id, hashtag_id)
+  }
+
+  entity "Hashtags" as hashtags {
+    +hashtag_id : integer {PK}
+    hashtag_text : varchar(140)
+  }
+
+  entity "Timeline" as timeline {
+    +timeline_id : integer {PK}
+    user_id : integer {FK}
+    tweet_id : integer {FK}
+    timestamp : datetime
+    --
+    NoSQL: Yes
+    Shard Key: user_id
+  }
+
+  entity "Media Files" as media_files {
+    +media_id : integer {PK}
+    user_id : integer {FK}
+    tweet_id : integer {FK}
+    file_path : varchar(255)
+    file_type : varchar(50)
+    created_at : datetime
+    --
+    NoSQL: Yes
+    Shard Key: media_id
+  }
 }
 
-entity "Tweet" as tweet {
-  +tweet_id : integer {PK}
-  user_id : integer {FK}
-  text : varchar(280)
-  created_at : datetime
-  updated_at : datetime
-  retweet_count : integer
-  like_count : integer
-  --
-  NoSQL: Yes
-  Shard Key: tweet_id
+rectangle "Social" {
+  entity "Followers" as followers {
+    +follow_id : integer {PK}
+    follower_id : integer {FK}
+    followed_id : integer {FK}
+    follow_date : datetime
+    --
+    NoSQL: Yes
+    Shard Key: followed_id
+  }
+
+  entity "Messages" as messages {
+    +message_id : integer {PK}
+    sender_id : integer {FK}
+    receiver_id : integer {FK}
+    content : text
+    created_at : datetime
+    --
+    NoSQL: Yes
+    Shard Key: message_id
+  }
+
+  entity "Notifications" as notifications {
+    +notification_id : integer {PK}
+    user_id : integer {FK}
+    type : varchar(50)
+    message : text
+    created_at : datetime
+    --
+    NoSQL: Yes
+    Shard Key: notification_id
+  }
 }
 
-entity "Followers" as followers {
-  +follow_id : integer {PK}
-  follower_id : integer {FK}
-  followed_id : integer {FK}
-  follow_date : datetime
-  --
-  NoSQL: Yes
-  Shard Key: followed_id
-}
+rectangle "Logging" {
+  entity "Activity Logs" as activity_logs {
+    +log_id : integer {PK}
+    user_id : integer {FK}
+    action : varchar(255)
+    created_at : datetime
+    --
+    NoSQL: Yes
+    Shard Key: log_id
+  }
 
-entity "Likes" as likes {
-  +like_id : integer {PK}
-  user_id : integer {FK}
-  tweet_id : integer {FK}
-  like_date : datetime
-  --
-  NoSQL: Yes
-  Shard Key: tweet_id
-}
-
-entity "Retweets" as retweets {
-  +retweet_id : integer {PK}
-  user_id : integer {FK}
-  tweet_id : integer {FK}
-  retweet_date : datetime
-  --
-  NoSQL: Yes
-  Shard Key: tweet_id
-}
-
-entity "Comments" as comments {
-  +comment_id : integer {PK}
-  user_id : integer {FK}
-  tweet_id : integer {FK}
-  text : varchar(280)
-  created_at : datetime
-  updated_at : datetime
-  --
-  NoSQL: Yes
-  Shard Key: tweet_id
-}
-
-entity "Hashtags" as hashtags {
-  +hashtag_id : integer {PK}
-  hashtag_text : varchar(140)
-}
-
-entity "Tweet_Hashtags" as tweet_hashtags {
-  tweet_id : integer {FK, PK}
-  hashtag_id : integer {FK, PK}
-  --
-  NoSQL: Yes
-  Shard Key: (tweet_id, hashtag_id)
-}
-
-entity "Timeline" as timeline {
-  +timeline_id : integer {PK}
-  user_id : integer {FK}
-  tweet_id : integer {FK}
-  timestamp : datetime
-  --
-  NoSQL: Yes
-  Shard Key: user_id
+  entity "Reports" as reports {
+    +report_id : integer {PK}
+    reporter_id : integer {FK}
+    reported_id : integer {FK}
+    reason : text
+    created_at : datetime
+    --
+    NoSQL: Yes
+    Shard Key: report_id
+  }
 }
 
 user --|> userstatus : "1..1 has"
@@ -116,23 +179,19 @@ user --|> likes : "1..* likes *"
 user --|> retweets : "1..* retweets *"
 user --|> comments : "1..* comments *"
 user --|> timeline : "1 has Timeline *"
+user --|> messages : "1..* sends *"
+user --|> notifications : "1..* receives *"
+user --|> media_files : "1..* uploads *"
+user --|> activity_logs : "1..* logs *"
+user --|> reports : "1..* reports *"
+
 tweet --|> likes : "1..* has Likes *"
 tweet --|> retweets : "1..* has Retweets *"
 tweet --|> comments : "1..* has Comments *"
 tweet --|> tweet_hashtags : "1..* has Hashtags *"
 tweet --|> timeline : "* appears in *..* Timelines"
+tweet --|> media_files : "1..* includes *"
+
 hashtags --|> tweet_hashtags : "* appears in *..* Tweets"
-
-note right of user
-  **User**:
-  - 存储用户信息
-  - 关联其他实体如状态、推文等
-end note
-
-note right of tweet
-  **Tweet**:
-  - 存储推文信息
-  - 关联用户、点赞、转发等
-end note
 
 @enduml
