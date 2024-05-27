@@ -1,0 +1,70 @@
+@startuml
+
+skinparam backgroundColor #D3D3D3
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 16
+skinparam note {
+    BackgroundColor #FFFFFF
+        BorderColor #000000
+        FontSize 16
+        FontName "Arial"
+}
+
+title Detailed Timeline Update Service Architecture
+
+rectangle "Client" as Client
+
+rectangle "Core Services" as Core {
+    rectangle "Load Balancer & Web Server" as LBWS {
+        rectangle "Load Balancer" as LB
+            rectangle "Web Server" as WS
+    }
+    rectangle "Application & Monitoring Services" as AMS {
+        rectangle "Application Server" as AS
+            rectangle "Service Circuit Breaker" as SCB
+            rectangle "Service Auto-Scaling" as SAS
+    }
+}
+
+rectangle "Timeline Update Service" as TUS {
+    rectangle "Request Handler" as RH
+        rectangle "Async Queue (Kafka/RabbitMQ)" as AQ
+        rectangle "Timeline Workers" as TW {
+            rectangle "Fetch New Tweets" as FNT
+                rectangle "Update Timeline" as UT
+                rectangle "Notify Users" as NU
+        }
+}
+
+rectangle "Data Persistence Layer" as DPS {
+    rectangle "Caching (Redis Cluster)" as Cache {
+        rectangle "Timeline Cache" as TC
+            rectangle "Edge Caching (CDN)" as EC
+    }
+    rectangle "Databases (Sharded & Read-Replica)" as DB {
+        rectangle "User Timelines" as UTDB
+            rectangle "Tweet Data" as TD
+    }
+}
+
+Client -down-> LBWS : Requests Timeline Update
+LBWS -down-> AMS : Routes Request
+AMS -down-> TUS : Passes Request to TUS
+RH -down-> AQ : Queues Timeline Update Tasks
+AQ -down-> TW : Processes Tasks
+FNT -down-> TD : Fetches New Tweets
+FNT -down-> TC : Updates Timeline Cache
+UT -down-> UTDB : Updates User Timelines
+NU -down-> Cache : Notifies Users via Cache
+Cache -down-> EC : Uses Edge Caching for Speed
+
+note right of TUS
+**性能优化**:
+- 使用异步队列处理时间线更新任务
+- 增加工作线程处理时间线更新
+- 利用Redis缓存时间线数据
+- 使用CDN缓存静态资源
+- 数据库分片和读写分离
+end note
+
+@enduml
