@@ -40,10 +40,8 @@ rectangle "Tweet Processing Service" as TPS {
 }
 
 rectangle "Supporting Services" as SS {
-    rectangle "Search & Notification Services" as SNS {
-        rectangle "Search Service" as SSrv
-        rectangle "Notification Service" as NSrv
-    }
+    rectangle "Search Service" as SSrv
+    rectangle "Notification Service" as NSrv
     rectangle "Timeline Update Service" as TUS
 }
 
@@ -65,7 +63,8 @@ AMS -right-> TCH : Handles Tweet/Comment
 TCH -down-> APQ : Queues Tasks
 APQ -down-> Workers : Processes Tasks
 Workers -down-> DPS : Updates Data
-Workers -left-> SNS : Updates Search/Notifies
+Workers -left-> SSrv : Updates Search
+Workers -left-> NSrv : Notifies
 TUS -down-> DPS : Updates Timelines
 Client -left-> LBWS : Requests Timeline
 AMS -down-> TUS : Fetches Timeline Data
