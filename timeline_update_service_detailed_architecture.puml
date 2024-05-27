@@ -29,11 +29,12 @@ rectangle "Core Services" as Core {
 rectangle "Timeline Update Service" as TUS {
     rectangle "Request Handler" as RH
     rectangle "Async Queue (Kafka/RabbitMQ)" as AQ
-    rectangle "Timeline Workers" as TW {
-        rectangle "Fetch New Tweets" as FNT
-        rectangle "Update Timeline" as UT
-        rectangle "Notify Users" as NU
-    }
+}
+
+rectangle "Timeline Workers" as TW {
+    rectangle "Fetch New Tweets" as FNT
+    rectangle "Update Timeline" as UT
+    rectangle "Notify Users" as NU
 }
 
 rectangle "Data Persistence Layer" as DPS {
@@ -55,12 +56,13 @@ AQ -down-> TW : Processes Tasks
 
 TW -down-> FNT : Fetches New Tweets
 FNT -down-> TC : Reads from Timeline Cache
-TC -right-> FNT : Cache Hit
 FNT -down-> TD : Cache Miss, Reads from Tweet Data
-FNT -right-> TC : Updates Timeline Cache
-TC -down-> UT : Updates User Timelines
+FNT -down-> UT : Updates Timeline and Cache
+
 UT -down-> UTDB : Stores Updated Timelines
+UT -down-> TC : Updates Timeline Cache
 TW -down-> NU : Notifies Users
+
 Cache -down-> EC : Uses Edge Caching for Speed
 
 note right of TUS
