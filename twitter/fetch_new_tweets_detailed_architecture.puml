@@ -1,0 +1,67 @@
+@startuml
+
+skinparam backgroundColor #D3D3D3
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 16
+skinparam note {
+    BackgroundColor #FFFFFF
+        BorderColor #000000
+        FontSize 16
+        FontName "Arial"
+}
+
+title Detailed Fetch New Tweets Process
+
+rectangle "Client" as Client
+
+rectangle "Core Services" as Core {
+    rectangle "Load Balancer & Web Server" as LBWS {
+        rectangle "Load Balancer" as LB
+            rectangle "Web Server" as WS
+    }
+    rectangle "Application & Monitoring Services" as AMS {
+        rectangle "Application Server" as AS
+    }
+}
+
+rectangle "Timeline Update Service" as TUS {
+    rectangle "Request Handler" as RH
+        rectangle "Async Queue (Kafka/RabbitMQ)" as AQ
+        rectangle "Timeline Workers" as TW {
+            rectangle "Fetch New Tweets" as FNT {
+                rectangle "Database Query" as DBQ
+                    rectangle "De-duplicate & Sort" as DDS
+                    rectangle "Cache Update" as CU
+            }
+        }
+}
+
+rectangle "Data Persistence Layer" as DPS {
+    rectangle "Caching (Redis Cluster)" as Cache {
+        rectangle "Tweet Cache" as TC
+    }
+    rectangle "Databases (Sharded & Read-Replica)" as DB {
+        rectangle "Tweet Data" as TD
+    }
+}
+
+Client -down-> LBWS : Requests Timeline Update
+LBWS -down-> AMS : Routes Request
+AMS -down-> TUS : Passes Request to TUS
+RH -down-> AQ : Queues Fetch New Tweets Task
+AQ -down-> TW : Processes Tasks
+TW -down-> FNT : Executes Fetch New Tweets
+FNT -down-> DBQ : Query Latest Tweets
+DBQ -down-> TD : Fetches Tweet Data
+DBQ -down-> DDS : De-duplicate & Sort Tweets
+DDS -down-> CU : Updates Tweet Cache
+CU -down-> TC : Stores Tweets in Cache
+
+note right of FNT
+**性能优化**:
+- 数据库查询优化（索引、缓存）
+- 多线程并行处理
+- 利用缓存加快读取速度
+end note
+
+@enduml
