@@ -17,8 +17,11 @@ rectangle "Client" as Client
 rectangle "Search Service" as Search {
     rectangle "Request Handler" as RH
     rectangle "Query Parser" as QP
-    rectangle "Index Query Handler" as IQH {
-        rectangle "Query Execution" as QE
+    rectangle "Cache Query" as CQ
+    rectangle "Index Query" as IQ {
+        rectangle "Search Index" as Index {
+            rectangle "Elasticsearch" as ES
+        }
     }
     rectangle "Result Handler" as RHdl {
         rectangle "Result Sorting & Filtering" as RSF
@@ -27,23 +30,20 @@ rectangle "Search Service" as Search {
     rectangle "Cache (Redis Cluster)" as Cache {
         rectangle "Search Result Cache" as SRC
     }
-    rectangle "Search Index (Elasticsearch)" as Index {
-        rectangle "Elasticsearch Engine" as ES
-    }
 }
 
 Client -down-> RH : Sends Search Request
 RH -down-> QP : Parses Query
-QP -down-> IQH : Handles Index Query
-IQH -down-> QE : Executes Query
-QE -down-> ES : Queries Elasticsearch
-ES -up-> QE : Returns Search Results
-QE -up-> IQH : Passes Results
-IQH -down-> RSF : Sorts & Filters Results
+QP -down-> CQ : Queries Cache
+CQ -down-> SRC : Reads from Cache
+CQ -down-> IQ : Cache Miss, Queries Index
+IQ -down-> ES : Queries Elasticsearch
+ES -up-> IQ : Returns Search Results
+IQ -down-> RSF : Sorts & Filters Results
 RSF -down-> RC : Caches Results
 RC -down-> SRC : Stores in Cache
 SRC -up-> RC : Retrieves from Cache
-RC -up-> RH : Returns Results from Cache
+RC -up-> RH : Returns Results
 RH -up-> Client : Returns Search Results
 
 note right of Search
