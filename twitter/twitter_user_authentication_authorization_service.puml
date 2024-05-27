@@ -4,10 +4,10 @@ skinparam backgroundColor #D3D3D3
 skinparam defaultFontName "Arial"
 skinparam defaultFontSize 16
 skinparam note {
-    BackgroundColor #FFFFFF
-        BorderColor #000000
-        FontSize 16
-        FontName "Arial"
+  BackgroundColor #FFFFFF
+  BorderColor #000000
+  FontSize 16
+  FontName "Arial"
 }
 
 title User Authentication and Authorization Service Architecture
@@ -16,36 +16,38 @@ rectangle "Client" as Client
 
 rectangle "Auth Service" as Auth {
     rectangle "Login Handler" as LH
-        rectangle "Registration Handler" as RegH
-        rectangle "Token Service" as TS
-        rectangle "Permission Checker" as PC
+    rectangle "Registration Handler" as RegH
+    rectangle "Token Service" as TS
+    rectangle "Permission Checker" as PC
 }
 
 rectangle "Data Persistence Layer" as DPS {
     rectangle "User Data (DB)" as UD
-        rectangle "Session Data (Redis)" as SD
+    rectangle "Session Data (Redis)" as SD
 }
 
 Client -down-> LH : Sends Login Request
 LH -down-> UD : Verifies User Credentials
-LH -right-> TS : Generates Token
+LH -down-> TS : Generates Token
 TS -down-> SD : Stores Session Data
-TS -left-> LH : Returns Token
-LH -up-> Client : Returns Login Response
+TS -up-> LH : Returns Token
+LH -up-> Client : Returns Login Response with Token
 
 Client -down-> RegH : Sends Registration Request
 RegH -down-> UD : Stores User Data
 RegH -up-> Client : Returns Registration Response
 
-Client -down-> PC : Sends Permission Check Request
-PC -down-> SD : Verifies Session Data
+Client -down-> PC : Sends Request with Token
+PC -down-> TS : Verifies Token
+TS -down-> SD : Verifies Session Data
+TS -up-> PC : Returns Token Status
 PC -up-> Client : Returns Permission Check Response
 
 note right of Auth
-**性能优化**:
-- 使用Redis缓存会话数据
-- 优化数据库查询
-- 使用JWT进行轻量级权限验证
+  **性能优化**:
+  - 使用Redis缓存会话数据
+  - 优化数据库查询
+  - 使用JWT进行轻量级权限验证
 end note
 
 @enduml
