@@ -1,23 +1,20 @@
 @startuml
 
-skinparam backgroundColor #D3D3D3
-skinparam defaultFontName "Arial"
-skinparam defaultFontSize 16
-skinparam note {
-    BackgroundColor #FFFFFF
-        BorderColor #000000
-        FontSize 16
-        FontName "Arial"
-}
-
 title Detailed Fetch New Tweets Process
+
+skinparam rectangle {
+    BackgroundColor #E3F2FD
+    BorderColor black
+    FontName "Arial"
+    FontSize 14
+}
 
 rectangle "Client" as Client
 
 rectangle "Core Services" as Core {
     rectangle "Load Balancer & Web Server" as LBWS {
         rectangle "Load Balancer" as LB
-            rectangle "Web Server" as WS
+        rectangle "Web Server" as WS
     }
     rectangle "Application & Monitoring Services" as AMS {
         rectangle "Application Server" as AS
@@ -26,14 +23,14 @@ rectangle "Core Services" as Core {
 
 rectangle "Timeline Update Service" as TUS {
     rectangle "Request Handler" as RH
-        rectangle "Async Queue (Kafka/RabbitMQ)" as AQ
-        rectangle "Timeline Workers" as TW {
-            rectangle "Fetch New Tweets" as FNT {
-                rectangle "Database Query" as DBQ
-                    rectangle "De-duplicate & Sort" as DDS
-                    rectangle "Cache Update" as CU
-            }
+    rectangle "Async Queue (Kafka/RabbitMQ)" as AQ
+    rectangle "Timeline Workers" as TW {
+        rectangle "Fetch New Tweets" as FNT {
+            rectangle "Database Query" as DBQ
+            rectangle "De-duplicate & Sort" as DDS
+            rectangle "Cache Update" as CU
         }
+    }
 }
 
 rectangle "Data Persistence Layer" as DPS {
@@ -53,15 +50,15 @@ AQ -down-> TW : Processes Tasks
 TW -down-> FNT : Executes Fetch New Tweets
 FNT -down-> DBQ : Query Latest Tweets
 DBQ -down-> TD : Fetches Tweet Data
-DBQ -down-> DDS : De-duplicate & Sort Tweets
-DDS -down-> CU : Updates Tweet Cache
-CU -down-> TC : Stores Tweets in Cache
+DBQ -right-> DDS : De-duplicate & Sort Tweets
+DDS -right-> CU : Updates Tweet Cache
+CU -right-> TC : Stores Tweets in Cache
 
 note right of FNT
-**性能优化**:
-- 数据库查询优化（索引、缓存）
-- 多线程并行处理
-- 利用缓存加快读取速度
+  **性能优化**:
+  - 数据库查询优化（索引、缓存）
+  - 多线程并行处理
+  - 利用缓存加快读取速度
 end note
 
 @enduml
