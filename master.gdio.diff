@@ -2269,11 +2269,11 @@ new file mode 100644
 +end note
 +
 +@enduml
-diff --git a/twitter/twitter_database_schema.puml b/twitter/twitter_database_schema.puml
+diff --git a/twitter/twitter_cache_system_architecture.puml b/twitter/twitter_cache_system_architecture.puml
 new file mode 100644
 --- /dev/null
-+++ ./twitter/twitter_database_schema.puml
-@@ -0,0 +1,122 @@
++++ ./twitter/twitter_cache_system_architecture.puml
+@@ -0,0 +1,31 @@
 +@startuml
 +
 +skinparam backgroundColor #D3D3D3
@@ -2281,118 +2281,229 @@ new file mode 100644
 +  BackgroundColor #FFFFFF
 +  BorderColor #222
 +  ArrowColor #222
++  FontName "Arial"
++  FontSize 14
 +}
 +
-+entity "User" as user {
-+  +user_id : integer {PK}
-+  username : varchar(15)
-+  name : varchar(50)
-+  email : varchar(255)
-+  password : varchar(255)
-+  bio : varchar(160)
-+  location : varchar(30)
-+  website : varchar(100)
-+  join_date : datetime
++title Twitter Cache System Architecture
++
++rectangle "Clients" as Clients {
++  rectangle "User Devices" as UD
++  rectangle "Web Servers" as WS
 +}
 +
-+entity "UserStatus" as userstatus {
-+  +user_id : integer {PK, FK}
-+  last_login : datetime
-+  is_online : boolean
-+  --
-+  Storage: Redis
++rectangle "Cache System" as Cache {
++  rectangle "Redis Cluster" as Redis {
++    rectangle "Hot Data Cache" as HDC
++    rectangle "Timeline Cache" as TC
++  }
 +}
 +
-+entity "Tweet" as tweet {
-+  +tweet_id : integer {PK}
-+  user_id : integer {FK}
-+  text : varchar(280)
-+  created_at : datetime
-+  updated_at : datetime
-+  retweet_count : integer
-+  like_count : integer
-+  --
-+  NoSQL: Yes
-+  Shard Key: tweet_id
++UD -down-> WS : Sends Requests
++WS -down-> Redis : Accesses Cache
++Redis -down-> HDC : Hot Data
++Redis -down-> TC : Timeline Data
++
++@enduml
+diff --git a/twitter/twitter_database_schema.puml b/twitter/twitter_database_schema.puml
+new file mode 100644
+--- /dev/null
++++ ./twitter/twitter_database_schema.puml
+@@ -0,0 +1,197 @@
++@startuml
++
++skinparam backgroundColor #D3D3D3
++skinparam class {
++  BackgroundColor #FFFFFF
++  BorderColor #222
++  ArrowColor #222
++  FontName "Arial"
++  FontSize 14
 +}
 +
-+entity "Followers" as followers {
-+  +follow_id : integer {PK}
-+  follower_id : integer {FK}
-+  followed_id : integer {FK}
-+  follow_date : datetime
-+  --
-+  NoSQL: Yes
-+  Shard Key: followed_id
++title Twitter Database Schema
++
++rectangle "Users" {
++  entity "User" as user {
++    +user_id : integer {PK}
++    username : varchar(15)
++    name : varchar(50)
++    email : varchar(255)
++    password : varchar(255)
++    bio : varchar(160)
++    location : varchar(30)
++    website : varchar(100)
++    join_date : datetime
++  }
++
++  entity "UserStatus" as userstatus {
++    +user_id : integer {PK, FK}
++    last_login : datetime
++    is_online : boolean
++    --
++    Storage: Redis
++  }
 +}
 +
-+entity "Likes" as likes {
-+  +like_id : integer {PK}
-+  user_id : integer {FK}
-+  tweet_id : integer {FK}
-+  like_date : datetime
-+  --
-+  NoSQL: Yes
-+  Shard Key: tweet_id
++rectangle "Tweets" {
++  entity "Tweet" as tweet {
++    +tweet_id : integer {PK}
++    user_id : integer {FK}
++    text : varchar(280)
++    created_at : datetime
++    updated_at : datetime
++    retweet_count : integer
++    like_count : integer
++    --
++    NoSQL: Yes
++    Shard Key: tweet_id
++  }
++
++  entity "Comments" as comments {
++    +comment_id : integer {PK}
++    user_id : integer {FK}
++    tweet_id : integer {FK}
++    text : varchar(280)
++    created_at : datetime
++    updated_at : datetime
++    --
++    NoSQL: Yes
++    Shard Key: tweet_id
++  }
++
++  entity "Likes" as likes {
++    +like_id : integer {PK}
++    user_id : integer {FK}
++    tweet_id : integer {FK}
++    like_date : datetime
++    --
++    NoSQL: Yes
++    Shard Key: tweet_id
++  }
++
++  entity "Retweets" as retweets {
++    +retweet_id : integer {PK}
++    user_id : integer {FK}
++    tweet_id : integer {FK}
++    retweet_date : datetime
++    --
++    NoSQL: Yes
++    Shard Key: tweet_id
++  }
++
++  entity "Tweet_Hashtags" as tweet_hashtags {
++    tweet_id : integer {FK, PK}
++    hashtag_id : integer {FK, PK}
++    --
++    NoSQL: Yes
++    Shard Key: (tweet_id, hashtag_id)
++  }
++
++  entity "Hashtags" as hashtags {
++    +hashtag_id : integer {PK}
++    hashtag_text : varchar(140)
++  }
++
++  entity "Timeline" as timeline {
++    +timeline_id : integer {PK}
++    user_id : integer {FK}
++    tweet_id : integer {FK}
++    timestamp : datetime
++    --
++    NoSQL: Yes
++    Shard Key: user_id
++  }
++
++  entity "Media Files" as media_files {
++    +media_id : integer {PK}
++    user_id : integer {FK}
++    tweet_id : integer {FK}
++    file_path : varchar(255)
++    file_type : varchar(50)
++    created_at : datetime
++    --
++    NoSQL: Yes
++    Shard Key: media_id
++  }
 +}
 +
-+entity "Retweets" as retweets {
-+  +retweet_id : integer {PK}
-+  user_id : integer {FK}
-+  tweet_id : integer {FK}
-+  retweet_date : datetime
-+  --
-+  NoSQL: Yes
-+  Shard Key: tweet_id
++rectangle "Social" {
++  entity "Followers" as followers {
++    +follow_id : integer {PK}
++    follower_id : integer {FK}
++    followed_id : integer {FK}
++    follow_date : datetime
++    --
++    NoSQL: Yes
++    Shard Key: followed_id
++  }
++
++  entity "Messages" as messages {
++    +message_id : integer {PK}
++    sender_id : integer {FK}
++    receiver_id : integer {FK}
++    content : text
++    created_at : datetime
++    --
++    NoSQL: Yes
++    Shard Key: message_id
++  }
++
++  entity "Notifications" as notifications {
++    +notification_id : integer {PK}
++    user_id : integer {FK}
++    type : varchar(50)
++    message : text
++    created_at : datetime
++    --
++    NoSQL: Yes
++    Shard Key: notification_id
++  }
 +}
 +
-+entity "Comments" as comments {
-+  +comment_id : integer {PK}
-+  user_id : integer {FK}
-+  tweet_id : integer {FK}
-+  text : varchar(280)
-+  created_at : datetime
-+  updated_at : datetime
-+  --
-+  NoSQL: Yes
-+  Shard Key: tweet_id
-+}
++rectangle "Logging" {
++  entity "Activity Logs" as activity_logs {
++    +log_id : integer {PK}
++    user_id : integer {FK}
++    action : varchar(255)
++    created_at : datetime
++    --
++    NoSQL: Yes
++    Shard Key: log_id
++  }
 +
-+entity "Hashtags" as hashtags {
-+  +hashtag_id : integer {PK}
-+  hashtag_text : varchar(140)
-+}
-+
-+entity "Tweet_Hashtags" as tweet_hashtags {
-+  tweet_id : integer {FK, PK}
-+  hashtag_id : integer {FK, PK}
-+  --
-+  NoSQL: Yes
-+  Shard Key: (tweet_id, hashtag_id)
-+}
-+
-+entity "Timeline" as timeline {
-+  +timeline_id : integer {PK}
-+  user_id : integer {FK}
-+  tweet_id : integer {FK}
-+  timestamp : datetime
-+  --
-+  NoSQL: Yes
-+  Shard Key: user_id
++  entity "Reports" as reports {
++    +report_id : integer {PK}
++    reporter_id : integer {FK}
++    reported_id : integer {FK}
++    reason : text
++    created_at : datetime
++    --
++    NoSQL: Yes
++    Shard Key: report_id
++  }
 +}
 +
 +user --|> userstatus : "1..1 has"
-+user --|> tweet : "1..* posts *"
 +user --|> followers : "1 has Followers *"
++user --|> messages : "1..* sends *"
++user --|> notifications : "1..* receives *"
++user --|> activity_logs : "1..* logs *"
++user --|> reports : "1..* reports *"
++user --|> tweet : "1..* posts *"
++user --|> comments : "1..* comments *"
 +user --|> likes : "1..* likes *"
 +user --|> retweets : "1..* retweets *"
-+user --|> comments : "1..* comments *"
 +user --|> timeline : "1 has Timeline *"
++user --|> media_files : "1..* uploads *"
++
 +tweet --|> likes : "1..* has Likes *"
 +tweet --|> retweets : "1..* has Retweets *"
 +tweet --|> comments : "1..* has Comments *"
 +tweet --|> tweet_hashtags : "1..* has Hashtags *"
 +tweet --|> timeline : "* appears in *..* Timelines"
++tweet --|> media_files : "1..* includes *"
++
 +hashtags --|> tweet_hashtags : "* appears in *..* Tweets"
 +
 +@enduml
@@ -2495,6 +2606,151 @@ new file mode 100644
 +TCD -down-> DTM
 +
 +@enduml
+diff --git a/twitter/twitter_push_notification_service.puml b/twitter/twitter_push_notification_service.puml
+new file mode 100644
+--- /dev/null
++++ ./twitter/twitter_push_notification_service.puml
+@@ -0,0 +1,41 @@
++@startuml
++
++skinparam backgroundColor #D3D3D3
++skinparam defaultFontName "Arial"
++skinparam defaultFontSize 16
++skinparam note {
++    BackgroundColor #FFFFFF
++    BorderColor #000000
++    FontSize 16
++    FontName "Arial"
++}
++
++title Push Notification Service Architecture
++
++rectangle "Client" as Client
++
++rectangle "Notification Service" as NS {
++    rectangle "Notification Queue" as NQ
++    rectangle "Notification Workers" as NW
++    rectangle "WebSocket Server" as WSS
++}
++
++rectangle "Data Persistence Layer" as DPS {
++    rectangle "Notification Data (DB)" as ND
++    rectangle "User Device Data (DB)" as UDD
++}
++
++Client -down-> WSS : Opens WebSocket Connection
++NQ -down-> NW : Processes Notification Task
++NW -down-> UDD : Fetches User Device Info
++NW -down-> WSS : Sends Notification via WebSocket
++NW -down-> ND : Logs Notification
++
++note right of NS
++  **性能优化**:
++  - 使用消息队列处理通知任务
++  - 增加通知处理工作线程
++  - 优化WebSocket服务器性能
++end note
++
++@enduml
+diff --git a/twitter/twitter_realtime_communication_service.puml b/twitter/twitter_realtime_communication_service.puml
+new file mode 100644
+--- /dev/null
++++ ./twitter/twitter_realtime_communication_service.puml
+@@ -0,0 +1,46 @@
++@startuml
++
++skinparam backgroundColor #D3D3D3
++skinparam defaultFontName "Arial"
++skinparam defaultFontSize 16
++skinparam note {
++    BackgroundColor #FFFFFF
++    BorderColor #000000
++    FontSize 16
++    FontName "Arial"
++}
++
++title Real-time Communication Service Architecture
++
++rectangle "Client A" as ClientA
++rectangle "Client B" as ClientB
++
++rectangle "Communication Service" as CS {
++    rectangle "WebSocket Server" as WSS
++    rectangle "Message Queue" as MQ
++    rectangle "Message Processor" as MP
++}
++
++rectangle "Data Persistence Layer" as DPS {
++    rectangle "Message Data (DB)" as MD
++    rectangle "User Status Data (Redis)" as USD
++}
++
++ClientA -down-> WSS : Opens WebSocket Connection
++ClientB -down-> WSS : Opens WebSocket Connection
++ClientA -right-> WSS : Sends Message
++WSS -down-> MQ : Queues Message
++MQ -down-> MP : Processes Message
++MP -down-> MD : Stores Message Data
++MP -down-> USD : Updates User Status
++MP -right-> WSS : Delivers Message
++WSS -right-> ClientB : Receives Message
++
++note right of CS
++  **性能优化**:
++  - 使用消息队列处理高并发消息
++  - 优化WebSocket服务器性能
++  - 使用Redis存储用户状态
++end note
++
++@enduml
+diff --git a/twitter/twitter_recommendation_system.puml b/twitter/twitter_recommendation_system.puml
+new file mode 100644
+--- /dev/null
++++ ./twitter/twitter_recommendation_system.puml
+@@ -0,0 +1,43 @@
++@startuml
++
++skinparam backgroundColor #D3D3D3
++skinparam defaultFontName "Arial"
++skinparam defaultFontSize 16
++skinparam note {
++    BackgroundColor #FFFFFF
++    BorderColor #000000
++    FontSize 16
++    FontName "Arial"
++}
++
++title Recommendation System Architecture (Proactive Push)
++
++rectangle "Client" as Client
++
++rectangle "Recommendation Service" as RS {
++    rectangle "Recommendation Engine" as RE
++    rectangle "Result Caching" as RC
++    rectangle "Push Notification Service" as PNS
++}
++
++rectangle "Data Persistence Layer" as DPS {
++    rectangle "User Interaction Data (DB)" as UID
++    rectangle "Content Data (DB)" as CD
++    rectangle "Recommendation Cache (Redis)" as RCache
++}
++
++RE -down-> UID : Fetches User Data
++RE -down-> CD : Fetches Content Data
++RE -up-> RC : Caches Recommendations
++RC -down-> RCache : Stores Recommendations in Cache
++PNS -down-> RCache : Fetches Recommendations from Cache
++PNS -right-> Client : Pushes Recommendations
++
++note right of RS
++  **性能优化**:
++  - 使用缓存减少推荐计算
++  - 优化推荐算法
++  - 增加推荐引擎计算资源
++end note
++
++@enduml
 diff --git a/twitter/twitter_search_service_architecture.puml b/twitter/twitter_search_service_architecture.puml
 new file mode 100644
 --- /dev/null
@@ -2553,6 +2809,68 @@ new file mode 100644
 +  - 使用缓存（Redis）减少重复查询
 +  - 使用Elasticsearch提高搜索查询速度
 +  - 查询解析和结果排序优化
++end note
++
++@enduml
+diff --git a/twitter/twitter_user_authentication_authorization_service.puml b/twitter/twitter_user_authentication_authorization_service.puml
+new file mode 100644
+--- /dev/null
++++ ./twitter/twitter_user_authentication_authorization_service.puml
+@@ -0,0 +1,57 @@
++@startuml
++
++skinparam backgroundColor #D3D3D3
++skinparam defaultFontName "Arial"
++skinparam defaultFontSize 16
++skinparam note {
++  BackgroundColor #FFFFFF
++  BorderColor #000000
++  FontSize 16
++  FontName "Arial"
++}
++
++title User Authentication and Authorization Service Architecture
++
++rectangle "Client" as Client
++
++rectangle "Auth Service" as Auth {
++    rectangle "Login Handler" as LH
++    rectangle "Registration Handler" as RegH
++    rectangle "Token Service" as TS
++    rectangle "Permission Checker" as PC
++}
++
++rectangle "Data Persistence Layer" as DPS {
++    rectangle "User Data (DB)" as UD
++    rectangle "Session Data (Redis)" as SD
++    rectangle "Credential Cache (Redis)" as CC
++}
++
++Client -down-> LH : Sends Login Request
++LH -down-> CC : Checks Credential Cache
++CC -down-> UD : Cache Miss, Verifies Credentials in DB
++UD -up-> CC : Stores Verified Credentials in Cache
++LH -down-> TS : Generates Token
++TS -down-> SD : Stores Session Data
++TS -up-> LH : Returns Token
++LH -up-> Client : Returns Login Response with Token
++
++Client -down-> RegH : Sends Registration Request
++RegH -down-> UD : Stores User Data
++RegH -up-> Client : Returns Registration Response
++
++Client -down-> PC : Sends Request with Token
++PC -down-> TS : Verifies Token
++TS -down-> SD : Verifies Session Data
++TS -up-> PC : Returns Token Status
++PC -up-> Client : Returns Permission Check Response
++
++note right of Auth
++  **性能优化**:
++  - 使用Redis缓存会话数据
++  - 优化数据库查询
++  - 使用JWT进行轻量级权限验证
++  - 缓存用户凭证验证结果
 +end note
 +
 +@enduml
