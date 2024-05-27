@@ -24,10 +24,13 @@ rectangle "Auth Service" as Auth {
 rectangle "Data Persistence Layer" as DPS {
     rectangle "User Data (DB)" as UD
     rectangle "Session Data (Redis)" as SD
+    rectangle "Credential Cache (Redis)" as CC
 }
 
 Client -down-> LH : Sends Login Request
-LH -down-> UD : Verifies User Credentials
+LH -down-> CC : Checks Credential Cache
+CC -down-> UD : Cache Miss, Verifies Credentials in DB
+UD -up-> CC : Stores Verified Credentials in Cache
 LH -down-> TS : Generates Token
 TS -down-> SD : Stores Session Data
 TS -up-> LH : Returns Token
@@ -48,6 +51,7 @@ note right of Auth
   - 使用Redis缓存会话数据
   - 优化数据库查询
   - 使用JWT进行轻量级权限验证
+  - 缓存用户凭证验证结果
 end note
 
 @enduml
