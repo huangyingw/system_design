@@ -11,6 +11,10 @@ database "Product Database" as ProductDB
 
 User -> ChatRoomService: Request product IDs
 ChatRoomService -> ProductDB: Fetch product IDs
+    alt Product IDs not found
+        ProductDB -> ChatRoomService: Return error (Product IDs not found)
+        ChatRoomService -> User: Return error (Product IDs not found)
+    else Product IDs found
 ProductDB -> ChatRoomService: Return product IDs
 ChatRoomService -> MetadataAnalysis: Analyze product IDs metadata
 loop Each Product ID
@@ -24,9 +28,15 @@ alt Cache hit
     ChatRoomService -> User: Display cached avatars
 else Cache miss
     SortingSystem -> AvatarLoading: Request avatar generation for sorted product IDs
-    AvatarLoading -> AvatarLoading: Generate avatars
+            alt Avatar generation failed
+                AvatarLoading -> SortingSystem: Return error (Avatar generation failed)
+                SortingSystem -> ChatRoomService: Return error (Avatar generation failed)
+                ChatRoomService -> User: Return error (Avatar generation failed)
+            else Avatar generation successful
     AvatarLoading -> Cache: Update cache with new avatars
     Cache -> ChatRoomService: Provide newly generated avatars
     ChatRoomService -> User: Display newly generated avatars
 end
+        end
+    end
 @enduml
