@@ -7,8 +7,11 @@ participant "Metadata Analysis" as MetadataAnalysis
 participant "Sorting System" as SortingSystem
 database "Cache" as Cache
 participant "Avatar Loading Module" as AvatarLoading
+database "Product Database" as ProductDB
 
 User -> ChatRoomService: Request product IDs
+ChatRoomService -> ProductDB: Fetch product IDs
+ProductDB -> ChatRoomService: Return product IDs
 ChatRoomService -> MetadataAnalysis: Analyze product IDs metadata
 loop Each Product ID
     MetadataAnalysis -> MetadataAnalysis: Determine overlaps and visibility
