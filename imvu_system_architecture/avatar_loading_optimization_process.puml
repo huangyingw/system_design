@@ -3,11 +3,11 @@ skinparam backgroundColor #D3D3D3
 
 actor User
 participant "Chat Room Service" as ChatRoomService
+database "Product Database" as ProductDB
 participant "Metadata Analysis" as MetadataAnalysis
 participant "Sorting System" as SortingSystem
 database "Cache" as Cache
 participant "Avatar Loading Module" as AvatarLoading
-database "Product Database" as ProductDB
 
 User -> ChatRoomService: Request product IDs
 ChatRoomService -> ProductDB: Fetch product IDs
