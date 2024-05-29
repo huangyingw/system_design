@@ -1,21 +1,30 @@
 @startuml
 skinparam backgroundColor #D3D3D3
 
-' Define database components in a more space-efficient layout
 package "Relational Database" as RDB {
     [User Basic Information]
     [Transaction Records]
     [Virtual Goods Catalog]
     [Social Relationship Network]
 }
-note right of RDB : Suitable for structured and\ntransactional data\nSupports complex relationship queries
+note right of RDB
+  Suitable for structured and
+  transactional data
+  Supports complex relationship queries
+end note
 
 package "NoSQL Database" as NoSQL {
     [User Behavior Data]
     [Social Interaction Content]
     [User Preferences and Settings]
 }
-note left of NoSQL : Flexible data models\nSuitable for personalized services\nand large data sets\nSuitable for User Preferences\nand Settings
+note left of NoSQL
+  Flexible data models
+  Suitable for personalized services
+  and large data sets
+  Suitable for User Preferences
+  and Settings
+end note
 
 package "Elasticsearch" as ES {
     [User Browsing History]
@@ -27,7 +36,12 @@ package "Elasticsearch" as ES {
     [Ratings and Reviews]
     [User Activity Logs and System Metrics]
 }
-note right of ES : Fast searching and real-time analysis\nSuitable for logs and large data sets\nIdeal for analyzing user data and behavior\nfor recommendations\nFast searching and real-time analysis\nSuitable for logs and large data sets\nIdeal for analyzing user data, behavior, and system metrics
+note right of ES
+  Fast searching and real-time analysis
+  Suitable for logs and large data sets
+  Ideal for analyzing user data and behavior
+  for recommendations
+end note
 
 package "Redis" as Redis {
     [User Session Data]
@@ -35,18 +49,25 @@ package "Redis" as Redis {
     [Real-time Leaderboards]
     [Counters and Rate Limiters]
 }
-note left of Redis : Fast access and caching\nSuitable for sessions, leaderboards,\nmessaging, and rate limiting
+note left of Redis
+  Fast access and caching
+  Suitable for sessions, leaderboards,
+  messaging, and rate limiting
+end note
 
 package "Apache Kafka" as Kafka {
     [Publish/Subscribe Messaging]
     [Task Queues]
 }
-note right of Kafka : High-throughput, distributed messaging\nSuitable for large-scale message processing\nand task queues
+note right of Kafka
+  High-throughput, distributed messaging
+  Suitable for large-scale message processing
+  and task queues
+end note
 
-' Define relationships in a more efficient manner
-RDB -[hidden]-> NoSQL
-NoSQL -[hidden]-> ES
-ES -[hidden]-> Redis
-Redis -[hidden]-> Kafka
+RDB --> NoSQL: Export relational data
+NoSQL --> ES: Index for fast search
+ES --> Redis: Cache frequently accessed data
+Redis --> Kafka: Stream updates
 
 @enduml
