@@ -1,33 +1,79 @@
 @startuml
 skinparam backgroundColor #F5F5F5
+skinparam packageStyle rectangle
 
-package "Producer Components" {
-    class Serializer << (P,blue) >>
-    class Partitioner << (P,blue) >>
-    class Interceptor << (P,blue) >>
-    class RecordAccumulator << (P,blue) >>
-    class Sender << (P,blue) >>
-    class Producer << (P,blue) >>
+package "Kafka System" {
     
-    Producer --> Serializer : uses
-    Producer --> Partitioner : uses
-    Producer --> Interceptor : uses
-    Producer --> RecordAccumulator : uses
-    Producer --> Sender : uses
+    package "Producer Components" {
+        class Producer << (P,blue) >> {
+            +void send(ProducerRecord record)
+        }
+        class Serializer << (P,blue) >> {
+            +byte[] serialize(String topic, T data)
+        }
+        class Partitioner << (P,blue) >> {
+            +int partition(String topic, Object key, byte[] keyBytes, Object value, byte[] valueBytes, Cluster cluster)
+        }
+        class Interceptor << (P,blue) >> {
+            +ProducerRecord onSend(ProducerRecord record)
+            +void onAcknowledgement(RecordMetadata metadata, Exception exception)
+        }
+        class RecordAccumulator << (P,blue) >> {
+            +void append(ProducerRecord record)
+            +List<ProducerBatch> drain(Cluster cluster)
+        }
+        class Sender << (P,blue) >> {
+            +void run()
+            +void sendProducerData()
+        }
+        
+        Producer --> Interceptor : uses
+        Interceptor --> Serializer : uses
+        Serializer --> Partitioner : uses
+        Partitioner --> RecordAccumulator : uses
+        RecordAccumulator --> Sender : uses
+    }
+
+    class Broker << (K,orchid) >> {
+        +void receive(ProducerRecord record)
+        +void deliver(ConsumerRecord record)
+    }
+
+    package "Consumer Components" {
+        class Consumer << (C,red) >> {
+            +void poll(Duration timeout)
+        }
+        class Deserializer << (C,red) >> {
+            +T deserialize(String topic, byte[] data)
+        }
+        class PartitionAssignor << (C,red) >> {
+            +Map<String, List<Partition>> assign(Cluster cluster, Map<String, List<Partition>> partitionsPerTopic)
+        }
+        class Interceptor << (C,red) >> {
+            +ConsumerRecord onConsume(ConsumerRecord record)
+        }
+        class FetchManager << (C,red) >> {
+            +void fetchRecords()
+            +List<ConsumerRecord> fetchedRecords()
+        }
+        class Coordinator << (C,red) >> {
+            +void joinGroup()
+            +void syncGroup()
+        }
+        
+        Consumer --> Coordinator : uses
+        Coordinator --> PartitionAssignor : uses
+        PartitionAssignor --> FetchManager : uses
+        FetchManager --> Deserializer : uses
+        Deserializer --> Interceptor : uses
+    }
+
+    Sender --> Broker : send
+    Broker --> FetchManager : fetch
 }
 
-package "Consumer Components" {
-    class Deserializer << (C,red) >>
-    class PartitionAssignor << (C,red) >>
-    class Interceptor << (C,red) >>
-    class FetchManager << (C,red) >>
-    class Coordinator << (C,red) >>
-    class Consumer << (C,red) >>
-    
-    Consumer --> Deserializer : uses
-    Consumer --> PartitionAssignor : uses
-    Consumer --> Interceptor : uses
-    Consumer --> FetchManager : uses
-    Consumer --> Coordinator : uses
-}
+note right of Producer : 生产者发送消息到Broker
+note right of Broker : Broker存储和转发消息
+note right of Consumer : 消费者从Broker获取消息
+
 @enduml
