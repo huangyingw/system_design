@@ -42,4 +42,7 @@ note right of LogManager : "Log Manager\nManages Logs"
 note right of NetworkProcessor : "Network Processor\nHandles Network Requests"
 note right of RequestHandler : "Request Handler\nProcesses Client Requests"
 
+' 示例场景
+note bottom of Broker3 : "实际应用场景：\n当Broker3发生故障时，Replication Manager会将其数据复制到其他Brokers，以确保高可用性。"
+
 @enduml
