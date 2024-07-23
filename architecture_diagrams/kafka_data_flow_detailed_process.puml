@@ -1,0 +1,14 @@
+@startuml
+skinparam backgroundColor #E8E8E8
+
+ProducerNode("Producer") --> KafkaNode("Broker1") : send
+KafkaNode("Broker1") --> KafkaNode("Broker2") : replicate
+KafkaNode("Broker1") --> KafkaNode("Broker3") : replicate
+KafkaNode("Broker1") --> ConsumerNode("Consumer1") : fetch
+KafkaNode("Broker2") --> ConsumerNode("Consumer2") : fetch
+
+note top of ProducerNode : 生产者发送消息到指定主题
+note top of KafkaNode : 消息被分区并复制到多个Broker
+note top of ConsumerNode : 消费者从Broker中获取消息
+
+@enduml

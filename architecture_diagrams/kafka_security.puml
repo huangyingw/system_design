@@ -1,0 +1,9 @@
+@startuml
+skinparam backgroundColor #FFF8DC
+
+KafkaNode("Broker") --> User("Client") : authenticate
+KafkaNode("Broker") --> Role("ACL") : authorize
+KafkaNode("Broker") --> "Data Encryption" : encrypt
+
+note top of KafkaNode : Kafka的安全机制包括认证、授权和加密
+@enduml

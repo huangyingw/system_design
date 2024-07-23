@@ -1,0 +1,33 @@
+@startuml
+skinparam backgroundColor #F5F5F5
+
+package "Producer Components" {
+    class "Serializer" << (P,blue) >>
+    class "Partitioner" << (P,blue) >>
+    class "Interceptor" << (P,blue) >>
+    class "RecordAccumulator" << (P,blue) >>
+    class "Sender" << (P,blue) >>
+    ProducerNode("Producer\n(物理)")
+    
+    "Producer\n(物理)" --> "Serializer" : uses
+    "Producer\n(物理)" --> "Partitioner" : uses
+    "Producer\n(物理)" --> "Interceptor" : uses
+    "Producer\n(物理)" --> "RecordAccumulator" : uses
+    "Producer\n(物理)" --> "Sender" : uses
+}
+
+package "Consumer Components" {
+    class "Deserializer" << (C,red) >>
+    class "Partition Assignor" << (C,red) >>
+    class "Interceptor" << (C,red) >>
+    class "Fetch Manager" << (C,red) >>
+    class "Coordinator" << (C,red) >>
+    ConsumerNode("Consumer\n(物理)")
+    
+    "Consumer\n(物理)" --> "Deserializer" : uses
+    "Consumer\n(物理)" --> "Partition Assignor" : uses
+    "Consumer\n(物理)" --> "Interceptor" : uses
+    "Consumer\n(物理)" --> "Fetch Manager" : uses
+    "Consumer\n(物理)" --> "Coordinator" : uses
+}
+@enduml

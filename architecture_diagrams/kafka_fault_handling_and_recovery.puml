@@ -1,0 +1,13 @@
+@startuml
+skinparam backgroundColor #FFFAFA
+
+KafkaNode("Broker1") --> ZookeeperNode("Zookeeper") : leader election
+KafkaNode("Broker2") --> ZookeeperNode("Zookeeper") : leader election
+KafkaNode("Broker3") --> ZookeeperNode("Zookeeper") : leader election
+
+KafkaNode("Broker1") -[#red]> KafkaNode("Broker4") : fail
+KafkaNode("Broker2") -[#blue]> KafkaNode("Broker4") : takeover
+KafkaNode("Broker3") -[#blue]> KafkaNode("Broker4") : takeover
+
+note top of KafkaNode : 通过Zookeeper进行领导者选举和故障恢复
+@enduml
