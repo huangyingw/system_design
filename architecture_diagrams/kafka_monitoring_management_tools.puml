@@ -1,9 +1,14 @@
 @startuml
 skinparam backgroundColor #F0F8FF
 
-KafkaNode("Broker") --> Tool("Kafka Manager") : manage
-KafkaNode("Broker") --> Tool("Kafka Monitor") : monitor
-KafkaNode("Broker") --> Tool("Prometheus") : collect metrics
+class Broker << (K,orchid) >>
+class KafkaManager << (M,orange) >>
+class KafkaMonitor << (M,orange) >>
+class Prometheus << (M,orange) >>
 
-note top of KafkaNode : 使用工具进行Kafka集群的管理和监控
+Broker --> KafkaManager : manage
+Broker --> KafkaMonitor : monitor
+Broker --> Prometheus : collect metrics
+
+note top of Broker : 使用工具进行Kafka集群的管理和监控
 @enduml
