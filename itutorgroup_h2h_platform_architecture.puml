@@ -1,0 +1,65 @@
+@startuml
+
+package "iTutorGroup H2H Platform" {
+    [Frontend]
+    [Backend]
+
+    package "AWS Infrastructure" {
+        [EC2]
+        [S3]
+        [Lambda]
+        [RDS]
+        [ElastiCache]
+        [CloudFront]
+    }
+
+    package "Communication Components" {
+        [Strophe]
+        [Vysper Server]
+        [WebRTC]
+        [Kurento server/client]
+        [Socket.io]
+    }
+
+    package "Development & Deployment" {
+        [Docker]
+        [Shell Scripts]
+        [Auto-deployment]
+        [Auto-provisioning]
+    }
+
+    package "User Interaction" {
+        [User Interface]
+        [AV Stream]
+        [Multi-user Chat]
+        [Websocket]
+        [Whiteboard]
+    }
+}
+
+[Frontend] --> [User Interface]
+[User Interface] --> [AV Stream]
+[User Interface] --> [Multi-user Chat]
+[User Interface] --> [Websocket]
+[User Interface] --> [Whiteboard]
+
+[Backend] --> [AV Stream]
+[Backend] --> [Multi-user Chat]
+[Backend] --> [Websocket]
+[Backend] --> [Whiteboard]
+
+[Frontend] --> [Backend]
+
+[AV Stream] --> [Strophe]
+[AV Stream] --> [Vysper Server]
+[AV Stream] --> [WebRTC]
+[AV Stream] --> [Kurento server/client]
+
+[Websocket] --> [Socket.io]
+
+[Backend] --> [AWS Infrastructure]
+[Backend] --> [Communication Components]
+
+[Backend] --> [Development & Deployment]
+
+@enduml
