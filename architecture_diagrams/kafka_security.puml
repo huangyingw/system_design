@@ -1,9 +1,17 @@
 @startuml
 skinparam backgroundColor #FFF8DC
 
-KafkaNode("Broker") --> User("Client") : authenticate
-KafkaNode("Broker") --> Role("ACL") : authorize
-KafkaNode("Broker") --> "Data Encryption" : encrypt
+package "Security Components" {
+    class Broker << (K,orchid) >>
+    class Client << (C,red) >>
+    class Authentication << (A,green) >>
+    class Authorization << (A,green) >>
+    class Encryption << (A,green) >>
+}
 
-note top of KafkaNode : Kafka的安全机制包括认证、授权和加密
+Broker --> Client : authenticate
+Broker --> Authorization : authorize
+Broker --> Encryption : encrypt
+
+note top of Broker : Kafka的安全机制包括认证、授权和加密
 @enduml
