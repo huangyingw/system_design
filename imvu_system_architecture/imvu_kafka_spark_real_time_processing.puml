@@ -52,4 +52,8 @@ Output --> [Elasticsearch] : Indexes data for search
 [Spark Streaming] ..> [Monitoring System] : Reports status
 [Spark Streaming] ..> [Logging System] : Logs activities
 
+' 说明注释
+note top of Receiver : "Receiver接收来自Kafka Topic的流数据，并传递给Transformation进行处理。"
+note top of Output : "Output将处理后的数据存储到不同的存储系统中，以便进一步分析和查询。"
+
 @enduml
