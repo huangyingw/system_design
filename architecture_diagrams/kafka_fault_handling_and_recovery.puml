@@ -1,13 +1,19 @@
 @startuml
 skinparam backgroundColor #FFFAFA
 
-KafkaNode("Broker1") --> ZookeeperNode("Zookeeper") : leader election
-KafkaNode("Broker2") --> ZookeeperNode("Zookeeper") : leader election
-KafkaNode("Broker3") --> ZookeeperNode("Zookeeper") : leader election
+class Broker1 << (K,orchid) >>
+class Broker2 << (K,orchid) >>
+class Broker3 << (K,orchid) >>
+class Broker4 << (K,orchid) >>
+class Zookeeper << (Z,yellow) >>
 
-KafkaNode("Broker1") -[#red]> KafkaNode("Broker4") : fail
-KafkaNode("Broker2") -[#blue]> KafkaNode("Broker4") : takeover
-KafkaNode("Broker3") -[#blue]> KafkaNode("Broker4") : takeover
+Broker1 --> Zookeeper : leader election
+Broker2 --> Zookeeper : leader election
+Broker3 --> Zookeeper : leader election
 
-note top of KafkaNode : 通过Zookeeper进行领导者选举和故障恢复
+Broker1 -[#red]> Broker4 : fail
+Broker2 -[#blue]> Broker4 : takeover
+Broker3 -[#blue]> Broker4 : takeover
+
+note top of Broker1 : 通过Zookeeper进行领导者选举和故障恢复
 @enduml
