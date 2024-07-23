@@ -1,0 +1,9 @@
+@startuml
+skinparam backgroundColor #F0F8FF
+
+KafkaNode("Broker") --> Tool("Kafka Manager") : manage
+KafkaNode("Broker") --> Tool("Kafka Monitor") : monitor
+KafkaNode("Broker") --> Tool("Prometheus") : collect metrics
+
+note top of KafkaNode : 使用工具进行Kafka集群的管理和监控
+@enduml
