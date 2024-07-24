@@ -1,18 +1,24 @@
 @startuml
-skinparam backgroundColor #EEEEE
+skinparam backgroundColor #FFFAFA
 skinparam packageStyle rectangle
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
 skinparam node {
     BackgroundColor lightblue
-    BorderColor Black
-    FontName Courier
+    BorderColor black
+    FontName Arial
+    FontSize 12
+    RoundCorner 20
+    Padding 10
 }
 
 ' Define Brokers and Zookeeper
+node "Zookeeper\n(物理)" as Zookeeper << (Z,yellow) >>
+
 node "Broker1\n(物理)" as Broker1 << (K,orchid) >>
 node "Broker2\n(物理)" as Broker2 << (K,orchid) >>
 node "Broker3\n(物理)" as Broker3 << (K,orchid) >>
 node "Broker4\n(物理)" as Broker4 << (K,orchid) >>
-node "Zookeeper\n(物理)" as Zookeeper << (Z,yellow) >>
 
 ' Define internal components
 node "Controller\n(Broker3)" as Controller << (C,lightblue) >>
@@ -20,6 +26,18 @@ node "Replication Manager\n(Broker3)" as ReplicationManager << (C,lightblue) >>
 node "Log Manager\n(Broker3)" as LogManager << (C,lightblue) >>
 node "Network Processor\n(Broker4)" as NetworkProcessor << (C,lightblue) >>
 node "Request Handler\n(Broker1)" as RequestHandler << (C,lightblue) >>
+
+' Arrange nodes for better layout
+Zookeeper -down-> Broker1
+Zookeeper -down-> Broker2
+Zookeeper -down-> Broker3
+Zookeeper -down-> Broker4
+
+Broker1 -down-> RequestHandler
+Broker3 -down-> Controller
+Broker3 -down-> ReplicationManager
+Broker3 -down-> LogManager
+Broker4 -down-> NetworkProcessor
 
 ' Connections
 Controller --> Zookeeper : "manages & coordinates"
@@ -43,6 +61,6 @@ note right of NetworkProcessor : "Network Processor\nHandles Network Requests"
 note right of RequestHandler : "Request Handler\nProcesses Client Requests"
 
 ' 示例场景
-note bottom of Broker3 : "实际应用场景：\n当Broker3发生故障时，Replication Manager会将其数据复制到其他Brokers，以确保高可用性。"
+note bottom of Broker3 : "Use case scenario:\nWhen Broker3 fails, the Replication Manager replicates its data to other brokers to ensure high availability."
 
 @enduml
