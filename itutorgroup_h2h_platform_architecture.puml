@@ -1,65 +1,76 @@
 @startuml
 
-package "iTutorGroup H2H Platform" {
-    [Frontend]
-    [Backend]
+skinparam packageStyle rect
 
-    package "AWS Infrastructure" {
-        [EC2]
-        [S3]
-        [Lambda]
-        [RDS]
-        [ElastiCache]
-        [CloudFront]
-    }
-
-    package "Communication Components" {
-        [Strophe]
-        [Vysper Server]
-        [WebRTC]
-        [Kurento server/client]
-        [Socket.io]
-    }
-
-    package "Development & Deployment" {
-        [Docker]
-        [Shell Scripts]
-        [Auto-deployment]
-        [Auto-provisioning]
-    }
-
-    package "User Interaction" {
-        [User Interface]
-        [AV Stream]
-        [Multi-user Chat]
-        [Websocket]
-        [Whiteboard]
-    }
+package "User Interaction" {
+    [User Interface]
+    [AV Stream]
+    [Multi-user Chat]
+    [Websocket]
+    [Whiteboard]
 }
 
-[Frontend] --> [User Interface]
-[User Interface] --> [AV Stream]
-[User Interface] --> [Multi-user Chat]
-[User Interface] --> [Websocket]
-[User Interface] --> [Whiteboard]
+package "Frontend" {
+    [Frontend Logic]
+}
 
-[Backend] --> [AV Stream]
-[Backend] --> [Multi-user Chat]
-[Backend] --> [Websocket]
-[Backend] --> [Whiteboard]
+package "Backend" {
+    [Backend Logic]
+}
 
-[Frontend] --> [Backend]
+package "Communication Components" {
+    [Strophe]
+    [Vysper Server]
+    [WebRTC]
+    [Kurento server/client]
+    [Socket.io]
+}
 
-[AV Stream] --> [Strophe]
-[AV Stream] --> [Vysper Server]
-[AV Stream] --> [WebRTC]
-[AV Stream] --> [Kurento server/client]
+package "AWS Infrastructure" {
+    [EC2]
+    [S3]
+    [Lambda]
+    [RDS]
+    [ElastiCache]
+    [CloudFront]
+}
 
-[Websocket] --> [Socket.io]
+package "Development & Deployment" {
+    [Docker]
+    [Shell Scripts]
+    [Auto-deployment]
+    [Auto-provisioning]
+}
 
-[Backend] --> [AWS Infrastructure]
-[Backend] --> [Communication Components]
+' Connections between User Interaction and Frontend
+[User Interface] --> [Frontend Logic]
+[Frontend Logic] --> [AV Stream]
+[Frontend Logic] --> [Multi-user Chat]
+[Frontend Logic] --> [Websocket]
+[Frontend Logic] --> [Whiteboard]
 
-[Backend] --> [Development & Deployment]
+' Connections between Frontend and Backend
+[Frontend Logic] --> [Backend Logic]
+
+' Connections between Backend and AWS Infrastructure
+[Backend Logic] --> [EC2]
+[Backend Logic] --> [S3]
+[Backend Logic] --> [Lambda]
+[Backend Logic] --> [RDS]
+[Backend Logic] --> [ElastiCache]
+[Backend Logic] --> [CloudFront]
+
+' Connections between Backend and Communication Components
+[Backend Logic] --> [Strophe]
+[Backend Logic] --> [Vysper Server]
+[Backend Logic] --> [WebRTC]
+[Backend Logic] --> [Kurento server/client]
+[Backend Logic] --> [Socket.io]
+
+' Connections between Backend and Development & Deployment
+[Backend Logic] --> [Docker]
+[Backend Logic] --> [Shell Scripts]
+[Backend Logic] --> [Auto-deployment]
+[Backend Logic] --> [Auto-provisioning]
 
 @enduml
