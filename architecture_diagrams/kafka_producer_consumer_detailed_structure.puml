@@ -1,10 +1,10 @@
 @startuml
 skinparam backgroundColor #F5F5F5
 skinparam packageStyle rectangle
-skinparam linetype ortho
 
 package "Kafka System" {
-
+    
+    ' Producer Components
     package "Producer Components" {
         class Producer << (P,blue) >> {
             Sends messages to the broker
@@ -32,6 +32,7 @@ package "Kafka System" {
         RecordAccumulator --> Sender : uses
     }
 
+    ' Consumer Components
     package "Consumer Components" {
         class Consumer << (C,red) >> {
             Pulls messages from the broker
@@ -59,14 +60,17 @@ package "Kafka System" {
         Deserializer --> ConsumerInterceptor : uses
     }
 
+    ' Broker
     class Broker << (K,orchid) >> {
         Receives and stores messages\nDelivers messages to consumers
     }
 
     Sender --> Broker : sends messages
-    FetchManager --> Broker : fetches messages
-
-    Broker -down-> FetchManager
+    Broker --> FetchManager : delivers messages
 }
+
+' Adjusting positions to align Producer and Consumer components horizontally
+Producer -down- Broker
+Consumer -down- Broker
 
 @enduml
