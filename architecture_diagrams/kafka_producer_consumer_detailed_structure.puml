@@ -1,22 +1,23 @@
 @startuml
 skinparam backgroundColor #F5F5F5
 skinparam packageStyle rectangle
+skinparam linetype ortho
 
 package "Kafka System" {
-    
+
     package "Producer Components" {
         class Producer << (P,blue) >> {
             +void send(ProducerRecord record)
+        }
+        class ProducerInterceptor << (P,blue) >> {
+            +ProducerRecord onSend(ProducerRecord record)
+            +void onAcknowledgement(RecordMetadata metadata, Exception exception)
         }
         class Serializer << (P,blue) >> {
             +byte[] serialize(String topic, T data)
         }
         class Partitioner << (P,blue) >> {
             +int partition(String topic, Object key, byte[] keyBytes, Object value, byte[] valueBytes, Cluster cluster)
-        }
-        class Interceptor << (P,blue) >> {
-            +ProducerRecord onSend(ProducerRecord record)
-            +void onAcknowledgement(RecordMetadata metadata, Exception exception)
         }
         class RecordAccumulator << (P,blue) >> {
             +void append(ProducerRecord record)
@@ -27,53 +28,124 @@ package "Kafka System" {
             +void sendProducerData()
         }
         
-        Producer --> Interceptor : uses
-        Interceptor --> Serializer : uses
+        Producer --> ProducerInterceptor : uses
+        ProducerInterceptor --> Serializer : uses
         Serializer --> Partitioner : uses
         Partitioner --> RecordAccumulator : uses
         RecordAccumulator --> Sender : uses
     }
 
-    class Broker << (K,orchid) >> {
-        +void receive(ProducerRecord record)
-        +void deliver(ConsumerRecord record)
+    package "Broker" {
+        class Broker << (K,orchid) >> {
+            +void receive(ProducerRecord record)
+            +void deliver(ConsumerRecord record)
+        }
+        
+        Sender --> Broker : sends messages
     }
 
     package "Consumer Components" {
         class Consumer << (C,red) >> {
             +void poll(Duration timeout)
         }
-        class Deserializer << (C,red) >> {
-            +T deserialize(String topic, byte[] data)
+        class Coordinator << (C,red) >> {
+            +void joinGroup()
+            +void syncGroup()
         }
         class PartitionAssignor << (C,red) >> {
             +Map<String, List<Partition>> assign(Cluster cluster, Map<String, List<Partition>> partitionsPerTopic)
-        }
-        class Interceptor << (C,red) >> {
-            +ConsumerRecord onConsume(ConsumerRecord record)
         }
         class FetchManager << (C,red) >> {
             +void fetchRecords()
             +List<ConsumerRecord> fetchedRecords()
         }
-        class Coordinator << (C,red) >> {
-            +void joinGroup()
-            +void syncGroup()
+        class Deserializer << (C,red) >> {
+            +T deserialize(String topic, byte[] data)
+        }
+        class ConsumerInterceptor << (C,red) >> {
+            +ConsumerRecord onConsume(ConsumerRecord record)
         }
         
         Consumer --> Coordinator : uses
         Coordinator --> PartitionAssignor : uses
         PartitionAssignor --> FetchManager : uses
         FetchManager --> Deserializer : uses
-        Deserializer --> Interceptor : uses
+        Deserializer --> ConsumerInterceptor : uses
+        Broker --> FetchManager : delivers messages
     }
-
-    Sender --> Broker : send
-    Broker --> FetchManager : fetch
 }
 
-note right of Producer : 生产者发送消息到Broker
-note right of Broker : Broker存储和转发消息
-note right of Consumer : 消费者从Broker获取消息
+' Descriptions of each component
+Producer -[hidden]-> ProducerInterceptor
+note right of ProducerInterceptor
+    拦截器
+    执行消息发送前后的操作
+end note
+
+ProducerInterceptor -[hidden]-> Serializer
+note right of Serializer
+    序列化器
+    将对象转换为字节数组
+end note
+
+Serializer -[hidden]-> Partitioner
+note right of Partitioner
+    分区器
+    决定消息分区
+end note
+
+Partitioner -[hidden]-> RecordAccumulator
+note right of RecordAccumulator
+    记录累加器
+    收集和批处理消息
+end note
+
+RecordAccumulator -[hidden]-> Sender
+note right of Sender
+    发送器
+    从累加器获取消息并发送到Broker
+end note
+
+Sender -[hidden]-> Broker
+note right of Broker
+    Broker
+    接收和存储消息
+end note
+
+Broker -[hidden]-> FetchManager
+note left of Consumer
+    消费者
+    负责拉取消息
+end note
+
+Consumer -[hidden]-> Coordinator
+note left of Coordinator
+    协调器
+    管理消费者组和分区再平衡
+end note
+
+Coordinator -[hidden]-> PartitionAssignor
+note left of PartitionAssignor
+    分区分配器
+    决定消费哪些分区
+end note
+
+PartitionAssignor -[hidden]-> FetchManager
+note left of FetchManager
+    获取管理器
+    负责从Broker拉取消息
+end note
+
+FetchManager -[hidden]-> Deserializer
+note left of Deserializer
+    反序列化器
+    将字节数组转换为对象
+end note
+
+Deserializer -[hidden]-> ConsumerInterceptor
+note left of ConsumerInterceptor
+    拦截器
+    执行消息接收前后的操作
+end note
 
 @enduml
