@@ -1,11 +1,24 @@
 @startuml
 skinparam backgroundColor #FFFAFA
 
-class Broker1 << (K,orchid) >>
-class Broker2 << (K,orchid) >>
-class Broker3 << (K,orchid) >>
-class Broker4 << (K,orchid) >>
-class Zookeeper << (Z,yellow) >>
+class Broker1 << (K,orchid) >> {
+    Fails
+    Leader election and failover via Zookeeper
+}
+class Broker2 << (K,orchid) >> {
+    Takes over
+    Leader election and failover via Zookeeper
+}
+class Broker3 << (K,orchid) >> {
+    Takes over
+    Leader election and failover via Zookeeper
+}
+class Broker4 << (K,orchid) >> {
+    Failover target
+}
+class Zookeeper << (Z,yellow) >> {
+    Manages leader election
+}
 
 Broker1 --> Zookeeper : leader election
 Broker2 --> Zookeeper : leader election
@@ -15,5 +28,4 @@ Broker1 -[#red]> Broker4 : fail
 Broker2 -[#blue]> Broker4 : takeover
 Broker3 -[#blue]> Broker4 : takeover
 
-note top of Broker1 : 通过Zookeeper进行领导者选举和故障恢复
 @enduml
