@@ -32,19 +32,25 @@ rectangle "Search Service" as Search {
     }
 }
 
-Client -down-> RH : Sends Search Request
-RH -down-> QP : Parses Query
-QP -down-> CQ : Queries Cache
-CQ -down-> SRC : Reads from Cache
-CQ -down-> IQ : Cache Miss, Queries Index
-IQ -down-> ES : Queries Elasticsearch
-ES -up-> IQ : Returns Search Results
-IQ -down-> RSF : Sorts & Filters Results
-RSF -down-> RC : Caches Results
-RC -down-> SRC : Stores in Cache
-SRC -up-> RC : Retrieves from Cache
-RC -up-> RH : Returns Results
-RH -up-> Client : Returns Search Results
+Client -> RH : Sends Search Request
+RH -> QP : Parses Query
+QP -> CQ : Queries Cache
+CQ -> SRC : Reads from Cache
+
+alt "Cache Hit"
+    SRC -> CQ : Returns Cached Results
+    CQ -> RH : Returns Cached Results
+    RH -> Client : Returns Search Results
+else "Cache Miss"
+    CQ -> IQ : Queries Index
+    IQ -> ES : Queries Elasticsearch
+    ES -> IQ : Returns Search Results
+    IQ -> RSF : Sorts & Filters Results
+    RSF -> RC : Caches Results
+    RC -> SRC : Stores in Cache
+    RC -> RH : Returns Results
+    RH -> Client : Returns Search Results
+end
 
 note right of Search
   **性能优化**:
