@@ -6,7 +6,6 @@ class Broker1 << (K,orchid) >> {
     Leader election and failover via Zookeeper
 }
 class Broker2 << (K,orchid) >> {
-    Takes over
     Wins the election
     Leader election and failover via Zookeeper
 }
@@ -15,7 +14,7 @@ class Broker3 << (K,orchid) >> {
     Leader election and failover via Zookeeper
 }
 class Broker4 << (K,orchid) >> {
-    Failover target
+    Standby for failover
 }
 class Zookeeper << (Z,yellow) >> {
     Manages leader election
