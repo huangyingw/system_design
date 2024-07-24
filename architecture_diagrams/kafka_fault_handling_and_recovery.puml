@@ -1,20 +1,31 @@
 @startuml
 skinparam backgroundColor #FFFAFA
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam class {
+    BackgroundColor white
+    BorderColor black
+    FontSize 14
+}
 
 class Broker1 << (K,orchid) >> {
-    Fails
-    Leader election and failover via Zookeeper
+    Role: Leader
+    Status: Fails
+    Action: Leader election and failover via Zookeeper
 }
 class Broker2 << (K,orchid) >> {
-    Wins the election
-    Leader election and failover via Zookeeper
+    Role: Leader
+    Status: Wins the election
+    Action: Leader election and failover via Zookeeper
 }
 class Broker3 << (K,orchid) >> {
-    Takes over
-    Leader election and failover via Zookeeper
+    Role: Follower
+    Status: Takes over
+    Action: Leader election and failover via Zookeeper
 }
 class Broker4 << (K,orchid) >> {
-    Standby for failover
+    Role: Standby
+    Status: Standby for failover
 }
 class Zookeeper << (Z,yellow) >> {
     Manages leader election
@@ -24,8 +35,8 @@ Broker1 --> Zookeeper : leader election
 Broker2 --> Zookeeper : leader election
 Broker3 --> Zookeeper : leader election
 
-Broker1 -[#red]> Broker4 : fail
-Broker2 -[#blue]> Broker4 : takeover
-Broker3 -[#blue]> Broker4 : takeover
+Broker1 -[#red]> Broker4 : fails
+Broker2 -[#blue]> Broker4 : wins election
+Broker3 -[#blue]> Broker4 : takes over
 
 @enduml
