@@ -10,12 +10,10 @@ package "Kafka System" {
             Sends messages to the broker
         }
         class ProducerInterceptor << (P,blue) >> {
-            Intercepts messages
-            Performs operations before and after sending messages
+            Intercepts messages\nPerforms operations before and after sending messages
         }
         class Serializer << (P,blue) >> {
-            Serializes objects
-            Converts objects to byte arrays
+            Serializes objects\nConverts objects to byte arrays
         }
         class Partitioner << (P,blue) >> {
             Determines message partition
@@ -24,8 +22,7 @@ package "Kafka System" {
             Collects and batches messages
         }
         class Sender << (P,blue) >> {
-            Fetches messages from the accumulator
-            Sends messages to the broker
+            Fetches messages from the accumulator\nSends messages to the broker
         }
 
         Producer --> ProducerInterceptor : uses
@@ -35,36 +32,24 @@ package "Kafka System" {
         RecordAccumulator --> Sender : uses
     }
 
-    package "Broker" {
-        class Broker << (K,orchid) >> {
-            Receives and stores messages
-        }
-        
-        Sender --> Broker : sends messages
-    }
-
     package "Consumer Components" {
         class Consumer << (C,red) >> {
             Pulls messages from the broker
         }
         class Coordinator << (C,red) >> {
-            Manages consumer groups
-            Handles partition rebalancing
+            Manages consumer groups\nHandles partition rebalancing
         }
         class PartitionAssignor << (C,red) >> {
-            Assigns partitions
-            Determines which partitions to consume
+            Assigns partitions\nDetermines which partitions to consume
         }
         class FetchManager << (C,red) >> {
             Fetches messages from the broker
         }
         class Deserializer << (C,red) >> {
-            Deserializes byte arrays
-            Converts byte arrays to objects
+            Deserializes byte arrays\nConverts byte arrays to objects
         }
         class ConsumerInterceptor << (C,red) >> {
-            Intercepts messages
-            Performs operations before and after consuming messages
+            Intercepts messages\nPerforms operations before and after consuming messages
         }
 
         Consumer --> Coordinator : uses
@@ -72,8 +57,16 @@ package "Kafka System" {
         PartitionAssignor --> FetchManager : uses
         FetchManager --> Deserializer : uses
         Deserializer --> ConsumerInterceptor : uses
-        Broker --> FetchManager : delivers messages
     }
+
+    class Broker << (K,orchid) >> {
+        Receives and stores messages\nDelivers messages to consumers
+    }
+
+    Sender --> Broker : sends messages
+    FetchManager --> Broker : fetches messages
+
+    Broker -down-> FetchManager
 }
 
 @enduml
