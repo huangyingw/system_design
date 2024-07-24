@@ -48,8 +48,10 @@ ConsumerNode("Consumer2\n(物理)")
 "Producer1\n(物理)" --> "Topic1\n(逻辑)" : writes to
 "Producer2\n(物理)" --> "Topic2\n(逻辑)" : writes to
 
+"Consumer1\n(物理)" --> "Topic1\n(逻辑)" : reads from
 "Consumer1\n(物理)" --> "Partition1_1\n(逻辑)" : reads from
 "Consumer1\n(物理)" --> "Partition1_2\n(逻辑)" : reads from
+"Consumer2\n(物理)" --> "Topic2\n(逻辑)" : reads from
 "Consumer2\n(物理)" --> "Partition2_1\n(逻辑)" : reads from
 "Consumer2\n(物理)" --> "Partition2_2\n(逻辑)" : reads from
 
