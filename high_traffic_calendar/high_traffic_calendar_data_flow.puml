@@ -13,30 +13,20 @@ rectangle "Web Server" {
   [Business Logic]
 }
 
-rectangle "Primary DB" {
-  [PostgreSQL/MySQL]
+rectangle "MongoDB Cluster" {
+  [Query Routers (mongos)]
+  [Shards]
 }
 
 rectangle "Cache" {
   [Redis]
 }
 
-rectangle "Search Engine" {
-  [Elasticsearch]
-}
-
-rectangle "Task Queue" {
-  [Celery]
-}
-
-User --> [API Gateway]: Request
-[API Gateway] --> [Web Server]: Forward Request
-[Web Server] --> [Primary DB]: Query
-[Web Server] --> [Cache]: Get/Set
-[Web Server] --> [Search Engine]: Search
-[Web Server] --> [Task Queue]: Send Task
-[Task Queue] --> [Worker]: Process Task
-[Worker] --> [Primary DB]: Query/Update
-[Worker] --> [Cache]: Update
+User --> "API Gateway": Request
+"API Gateway" --> "Web Server": Forward Request
+"Web Server" --> "Cache": Check Cache
+"Cache" --> "Web Server": Cache Hit
+"Web Server" --> "Query Routers (mongos)": Cache Miss
+"Query Routers (mongos)" --> "Shards": Access Data
 
 @enduml
