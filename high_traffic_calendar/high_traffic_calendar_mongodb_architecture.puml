@@ -1,0 +1,35 @@
+@startuml
+
+package "MongoDB Cluster" {
+
+  package "Config Servers" {
+    [Config Server 1]
+    [Config Server 2]
+    [Config Server 3]
+  }
+  
+  package "Query Routers" {
+    [mongos 1]
+    [mongos 2]
+  }
+  
+  package "Shards" {
+    package "Shard 1" {
+      [Primary Node 1]
+      [Secondary Node 1]
+      [Secondary Node 2]
+    }
+    package "Shard 2" {
+      [Primary Node 2]
+      [Secondary Node 3]
+      [Secondary Node 4]
+    }
+    package "Shard 3" {
+      [Primary Node 3]
+      [Secondary Node 5]
+      [Secondary Node 6]
+    }
+  }
+}
+
+@enduml

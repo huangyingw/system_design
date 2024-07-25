@@ -1,0 +1,40 @@
+@startuml
+
+entity "Users" as U {
+  *_id: ObjectId (PK)
+  --
+  username: String
+  email: String
+  password: String
+}
+
+entity "Events" as E {
+  *_id: ObjectId (PK)
+  --
+  owner_id: ObjectId (FK to Users)
+  event_name: String
+  start_time: Date
+  end_time: Date
+  recurrence_rule: String
+  participants: Array<Participant>
+}
+
+entity "Participant" as P {
+  *user_id: ObjectId (FK to Users)
+  --
+  status: String
+}
+
+entity "Reminders" as R {
+  *_id: ObjectId (PK)
+  --
+  event_id: ObjectId (FK to Events)
+  user_id: ObjectId (FK to Users)
+  reminder_time: Date
+}
+
+U ||--o{ E : creates
+E ||--o{ P : includes
+E ||--o{ R : has
+
+@enduml
