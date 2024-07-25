@@ -1,0 +1,47 @@
+@startuml
+
+skinparam backgroundColor #D3D3D3
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #222
+  ArrowColor #222
+  FontName "Arial"
+  FontSize 14
+}
+
+title Twitter Social Interaction
+
+rectangle "Client" as Client
+
+rectangle "Interaction Service" as IS {
+  rectangle "Like Handler" as LH
+  rectangle "Comment Handler" as CH
+  rectangle "Retweet Handler" as RH
+  rectangle "Direct Message Handler" as DMH
+  rectangle "Follow Handler" as FH
+}
+
+rectangle "Data Persistence Layer" as DPS {
+  rectangle "Interaction Data (DB)" as ID
+  rectangle "User Data (DB)" as UD
+}
+
+Client -down-> LH : Like Tweet
+LH -down-> ID : Stores Like Data
+Client -down-> CH : Comment on Tweet
+CH -down-> ID : Stores Comment Data
+Client -down-> RH : Retweet
+RH -down-> ID : Stores Retweet Data
+Client -down-> DMH : Send Direct Message
+DMH -down-> ID : Stores Message Data
+Client -down-> FH : Follow User
+FH -down-> UD : Updates Follow Data
+
+note right of IS
+  **Performance Optimization**:
+  - Use Redis for real-time interaction data caching
+  - Asynchronous processing of interactions
+  - Optimize database schema for fast reads and writes
+end note
+
+@enduml

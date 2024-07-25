@@ -1,0 +1,51 @@
+@startuml
+
+skinparam backgroundColor #D3D3D3
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #222
+  ArrowColor #222
+  FontName "Arial"
+  FontSize 14
+}
+
+title Twitter Content Publishing and Management
+
+rectangle "Client" as Client
+
+rectangle "Content Service" as CS {
+  rectangle "Tweet Creation" as TC
+  rectangle "Tweet Editing" as TE
+  rectangle "Tweet Deletion" as TD
+  rectangle "Media Upload" as MU
+}
+
+rectangle "Moderation Service" as MS {
+  rectangle "Content Moderation" as CM
+  rectangle "Report Handling" as RH
+}
+
+rectangle "Data Persistence Layer" as DPS {
+  rectangle "Tweet Data (DB)" as TD
+  rectangle "Media Data (DB)" as MD
+}
+
+Client -down-> TC : Create Tweet
+TC -down-> TD : Stores Tweet Data
+Client -down-> TE : Edit Tweet
+TE -down-> TD : Updates Tweet Data
+Client -down-> TD : Delete Tweet
+TD -down-> TD : Removes Tweet Data
+Client -down-> MU : Upload Media
+MU -down-> MD : Stores Media Data
+TD -down-> CM : Moderates Content
+CM -down-> RH : Handles Reports
+
+note right of CS
+  **Performance Optimization**:
+  - Use caching for frequently accessed data
+  - Optimize database queries and indexing
+  - Utilize CDN for media content delivery
+end note
+
+@enduml

@@ -1,0 +1,31 @@
+@startuml
+
+package "Web Services" {
+  [API Gateway]
+  [Web Server: Django/Flask/FastAPI]
+  [Task Queue: Celery]
+}
+
+package "Databases" {
+  [Primary DB: PostgreSQL/MySQL]
+  [Cache: Redis]
+  [Search Engine: Elasticsearch]
+}
+
+package "Load Balancer" {
+  [Nginx/HAProxy]
+}
+
+package "Workers" {
+  [Worker: Celery]
+}
+
+API Gateway --> Web Server: Request
+Web Server --> Primary DB: Query
+Web Server --> Cache: Get/Set
+Web Server --> Search Engine: Search
+Task Queue --> Worker: Send Tasks
+Worker --> Primary DB: Query
+Worker --> Cache: Get/Set
+
+@enduml
