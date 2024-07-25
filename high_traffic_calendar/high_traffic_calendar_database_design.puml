@@ -1,45 +1,41 @@
 @startuml
 
-entity "Users" {
-  user_id: INT (PK)
+entity "Users" as U {
+  *user_id: INT (PK)
+  --
   username: VARCHAR
   email: VARCHAR
   password: VARCHAR
 }
 
-entity "Calendars" {
-  calendar_id: INT (PK)
-  calendar_name: VARCHAR
+entity "Events" as E {
+  *event_id: INT (PK)
+  --
   owner_id: INT (FK)
-  description: TEXT
-}
-
-entity "Events" {
-  event_id: INT (PK)
-  calendar_id: INT (FK)
   event_name: VARCHAR
   start_time: DATETIME
   end_time: DATETIME
   recurrence_rule: VARCHAR
 }
 
-entity "Participants" {
-  participant_id: INT (PK)
+entity "Participants" as P {
+  *participant_id: INT (PK)
+  --
   event_id: INT (FK)
   user_id: INT (FK)
   status: VARCHAR
 }
 
-entity "Reminders" {
-  reminder_id: INT (PK)
+entity "Reminders" as R {
+  *reminder_id: INT (PK)
+  --
   event_id: INT (FK)
   user_id: INT (FK)
   reminder_time: DATETIME
 }
 
-Users ||--o{ Calendars : owns
-Calendars ||--o{ Events : includes
-Events ||--o{ Participants : has
-Events ||--o{ Reminders : has
+U ||--o{ E : creates
+E ||--o{ P : has
+E ||--o{ R : has
 
 @enduml
