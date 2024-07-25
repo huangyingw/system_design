@@ -20,12 +20,15 @@ package "Workers" {
   [Worker: Celery]
 }
 
-API Gateway --> Web Server: Request
-Web Server --> Primary DB: Query
-Web Server --> Cache: Get/Set
-Web Server --> Search Engine: Search
-Task Queue --> Worker: Send Tasks
-Worker --> Primary DB: Query
-Worker --> Cache: Get/Set
+actor User
+
+User --> "API Gateway": Request
+"API Gateway" --> "Web Server": Request
+"Web Server" --> "Primary DB": Query
+"Web Server" --> "Cache": Get/Set
+"Web Server" --> "Search Engine": Search
+"Task Queue" --> "Worker": Send Tasks
+"Worker" --> "Primary DB": Query
+"Worker" --> "Cache": Get/Set
 
 @enduml
