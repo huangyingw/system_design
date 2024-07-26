@@ -38,11 +38,11 @@ entity "Reminders" as R {
 
 note right of E
   Indexes:
-  - owner_id: 1
+  - owner_id: 1, start_time: 1, end_time: 1
   - start_time: 1, end_time: 1
   - event_name: "text", description: "text"
   Sharding Key:
-  - owner_id: 1
+  - owner_id: 1, start_time: 1, end_time: 1
 end note
 
 note right of R
