@@ -36,6 +36,14 @@ entity "Reminders" as R {
   reminder_time: Date
 }
 
+entity "Redis Cache" as C {
+  --
+  user_calendar_{user_id}_{date_range}: List of Events
+  event_detail_{event_id}: Event Details
+  event_participants_{event_id}: List of Participants
+  upcoming_reminders_{user_id}: List of Reminders
+}
+
 note right of E
   Indexes:
   - owner_id: 1, start_time: 1, end_time: 1
@@ -56,5 +64,9 @@ note right of R
 U ||--o{ E : creates
 E ||--o{ P : includes
 E ||--o{ R : has
+U ||--o{ C : caches
+E ||--o{ C : caches
+P ||--o{ C : caches
+R ||--o{ C : caches
 
 @enduml
