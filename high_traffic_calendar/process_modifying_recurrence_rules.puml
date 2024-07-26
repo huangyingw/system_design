@@ -1,0 +1,39 @@
+@startuml
+
+actor User
+
+rectangle "Web Server" {
+  [API Gateway]
+  [Business Logic]
+}
+
+rectangle "Databases" {
+  [Primary DB: MongoDB]
+  [Cache: Redis]
+}
+
+User --> "API Gateway": Modify Recurrence Rule Request
+"API Gateway" --> "Business Logic": Forward Request
+"Business Logic" --> "Primary DB: MongoDB": Find all related events by recurrence_id
+"Primary DB: MongoDB" --> "Business Logic": Return related events
+
+alt
+if (Events Found) then
+    "Business Logic" --> "Primary DB: MongoDB": Update events with new rules
+    "Business Logic" --> "Primary DB: MongoDB": Delete future events not matching new rules
+    "Primary DB: MongoDB" --> "Business Logic": Acknowledge updates
+
+    "Business Logic" --> "Primary DB: MongoDB": Read updated events
+    "Primary DB: MongoDB" --> "Business Logic": Return updated events
+
+    "Business Logic" --> "Cache: Redis": Update cache with new events
+    "Cache: Redis" --> "Business Logic": Acknowledge cache update
+else (No Events Found)
+        "Business Logic" --> "API Gateway": Return error or empty response
+    endif
+end
+
+"Business Logic" --> "API Gateway": Return response
+"API Gateway" --> User: Return result
+
+@enduml
