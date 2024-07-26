@@ -16,7 +16,7 @@ entity "Events" as E {
   description: String
   start_time: Date
   end_time: Date
-  recurrence_rule: String
+  recurrence_id: ObjectId (FK to Events, Nullable)
   participants: Array<Participant>
 }
 
