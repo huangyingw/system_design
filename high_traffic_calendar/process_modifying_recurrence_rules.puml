@@ -1,39 +1,31 @@
 @startuml
 
 actor User
+participant "API Gateway"
+participant "Business Logic"
+participant "Primary DB: MongoDB"
+participant "Cache: Redis"
 
-rectangle "Web Server" {
-  [API Gateway]
-  [Business Logic]
-}
+User -> "API Gateway": Modify Recurrence Rule Request
+"API Gateway" -> "Business Logic": Forward Request
+"Business Logic" -> "Primary DB: MongoDB": Find all related events by recurrence_id
+"Primary DB: MongoDB" -> "Business Logic": Return related events
 
-rectangle "Databases" {
-  [Primary DB: MongoDB]
-  [Cache: Redis]
-}
+alt Events Found
+    "Business Logic" -> "Primary DB: MongoDB": Update events with new rules
+    "Business Logic" -> "Primary DB: MongoDB": Delete future events not matching new rules
+    "Primary DB: MongoDB" -> "Business Logic": Acknowledge updates
 
-User --> "API Gateway": Modify Recurrence Rule Request
-"API Gateway" --> "Business Logic": Forward Request
-"Business Logic" --> "Primary DB: MongoDB": Find all related events by recurrence_id
-"Primary DB: MongoDB" --> "Business Logic": Return related events
+    "Business Logic" -> "Primary DB: MongoDB": Read updated events
+    "Primary DB: MongoDB" -> "Business Logic": Return updated events
 
-alt
-if (Events Found) then
-    "Business Logic" --> "Primary DB: MongoDB": Update events with new rules
-    "Business Logic" --> "Primary DB: MongoDB": Delete future events not matching new rules
-    "Primary DB: MongoDB" --> "Business Logic": Acknowledge updates
-
-    "Business Logic" --> "Primary DB: MongoDB": Read updated events
-    "Primary DB: MongoDB" --> "Business Logic": Return updated events
-
-    "Business Logic" --> "Cache: Redis": Update cache with new events
-    "Cache: Redis" --> "Business Logic": Acknowledge cache update
-else (No Events Found)
-        "Business Logic" --> "API Gateway": Return error or empty response
-    endif
+    "Business Logic" -> "Cache: Redis": Update cache with new events
+    "Cache: Redis" -> "Business Logic": Acknowledge cache update
+else No Events Found
+    "Business Logic" -> "API Gateway": Return error or empty response
 end
 
-"Business Logic" --> "API Gateway": Return response
-"API Gateway" --> User: Return result
+"Business Logic" -> "API Gateway": Return response
+"API Gateway" -> User: Return result
 
 @enduml
