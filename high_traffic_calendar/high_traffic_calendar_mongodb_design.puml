@@ -18,15 +18,13 @@ entity "Events" as E {
   end_time: Date
   recurrence_rule: String
   participants: Array<Participant>
-  -- Indexes
-  -- owner_id: 1
-  -- start_time: 1, end_time: 1
-  -- event_name: "text", description: "text"
 }
 
-entity "Participant" as P {
-  *user_id: ObjectId (FK to Users)
+entity "Participants" as P {
+  *participant_id: ObjectId (PK)
   --
+  event_id: ObjectId (FK to Events)
+  user_id: ObjectId (FK to Users)
   status: String
 }
 
@@ -36,10 +34,24 @@ entity "Reminders" as R {
   event_id: ObjectId (FK to Events)
   user_id: ObjectId (FK to Users)
   reminder_time: Date
-  -- Indexes
-  -- user_id: 1
-  -- event_id: 1
 }
+
+note right of E
+  Indexes:
+  - owner_id: 1
+  - start_time: 1, end_time: 1
+  - event_name: "text", description: "text"
+  Sharding Key:
+  - owner_id: 1
+end note
+
+note right of R
+    Indexes:
+    - user_id: 1
+    - event_id: 1
+    Sharding Key:
+    - user_id: 1
+  end note
 
 U ||--o{ E : creates
 E ||--o{ P : includes
