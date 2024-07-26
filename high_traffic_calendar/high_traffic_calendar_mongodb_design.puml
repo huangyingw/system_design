@@ -13,10 +13,15 @@ entity "Events" as E {
   --
   owner_id: ObjectId (FK to Users)
   event_name: String
+  description: String
   start_time: Date
   end_time: Date
   recurrence_rule: String
   participants: Array<Participant>
+  -- Indexes
+  -- owner_id: 1
+  -- start_time: 1, end_time: 1
+  -- event_name: "text", description: "text"
 }
 
 entity "Participant" as P {
@@ -31,6 +36,9 @@ entity "Reminders" as R {
   event_id: ObjectId (FK to Events)
   user_id: ObjectId (FK to Users)
   reminder_time: Date
+  -- Indexes
+  -- user_id: 1
+  -- event_id: 1
 }
 
 U ||--o{ E : creates
