@@ -15,7 +15,6 @@ rectangle "Web Server" {
 
 rectangle "MongoDB Cluster" {
   [Query Routers (mongos)]
-  [Shards]
   [Primary Node]
   [Secondary Node]
 }
@@ -26,9 +25,10 @@ rectangle "Cache" {
 
 User --> "API Gateway": Request
 "API Gateway" --> "Web Server": Forward Request
-"Web Server" --> "Cache": Check Cache
+"Web Server" --> "Cache": Check Cache (for Get Events)
 "Cache" --> "Web Server": Cache Hit
-"Web Server" --> "Query Routers (mongos)": Cache Miss
+"Web Server" --> "Query Routers (mongos)": Cache Miss (Read Request)
+"Web Server" --> "Query Routers (mongos)": Write Request
 "Query Routers (mongos)" --> "Secondary Node": Read Request
 "Query Routers (mongos)" --> "Primary Node": Write Request
 "Primary Node" --> "Secondary Node": Replicate Data
