@@ -47,13 +47,16 @@ actor User
 rectangle "Web Server" {
   [API Gateway]
   [Business Logic]
-  [Cache: Redis]
+}
+
+rectangle "Cache" {
+  [Redis]
 }
 
 User --> "API Gateway": Request
 "API Gateway" --> "Business Logic": Forward Request
-"Business Logic" --> "Cache: Redis": Check Cache (Read)
-"Cache: Redis" --> "Business Logic": Cache Hit
+"Business Logic" --> "Redis": Check Cache (Read)
+"Redis" --> "Business Logic": Cache Hit
 "Business Logic" --> "Query Routers (mongos)": Cache Miss (Read Request)
 "Business Logic" --> "Query Routers (mongos)": Write Request
 "Query Routers (mongos)" --> "Secondary Node 1": Read Request
@@ -65,6 +68,6 @@ User --> "API Gateway": Request
 "Primary Node 1" --> "Secondary Node 1": Replicate Data
 "Primary Node 2" --> "Secondary Node 3": Replicate Data
 "Primary Node 3" --> "Secondary Node 5": Replicate Data
-"Business Logic" --> "Cache: Redis": Update Cache (Write)
+"Query Routers (mongos)" --> "Redis": Update Cache (Write)
 
 @enduml
