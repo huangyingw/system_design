@@ -56,18 +56,20 @@ rectangle "Cache" {
 User --> "API Gateway": Request
 "API Gateway" --> "Business Logic": Forward Request
 "Business Logic" --> "Redis": Check Cache (Read)
-"Redis" --> "Business Logic": Cache Hit
-"Business Logic" --> "Query Routers (mongos)": Cache Miss (Read Request)
-"Business Logic" --> "Query Routers (mongos)": Write Request
+alt Cache Hit
+    "Redis" --> "Business Logic": Return Cached Data
+else Cache Miss
+    "Business Logic" --> "Query Routers (mongos)": Read Request
 "Query Routers (mongos)" --> "Secondary Node 1": Read Request
 "Query Routers (mongos)" --> "Secondary Node 2": Read Request
 "Query Routers (mongos)" --> "Secondary Node 3": Read Request
-"Query Routers (mongos)" --> "Primary Node 1": Write Request
-"Query Routers (mongos)" --> "Primary Node 2": Write Request
-"Query Routers (mongos)" --> "Primary Node 3": Write Request
-"Primary Node 1" --> "Secondary Node 1": Replicate Data
-"Primary Node 2" --> "Secondary Node 3": Replicate Data
-"Primary Node 3" --> "Secondary Node 5": Replicate Data
-"Query Routers (mongos)" --> "Redis": Update Cache (Write)
+    "Secondary Node 1" --> "Query Routers (mongos)": Return Data
+    "Secondary Node 2" --> "Query Routers (mongos)": Return Data
+    "Secondary Node 3" --> "Query Routers (mongos)": Return Data
+    "Query Routers (mongos)" --> "Business Logic": Return Data
+    "Business Logic" --> "Redis": Update Cache
+end
+"Business Logic" --> "API Gateway": Return Data
+"API Gateway" --> User: Return Result
 
 @enduml
