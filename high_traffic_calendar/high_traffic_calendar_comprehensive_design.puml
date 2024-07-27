@@ -1,16 +1,13 @@
 @startuml
-
 package "Web Services" {
   [API Gateway]
   [Web Server: Django/Flask/FastAPI]
   [Task Queue: Celery]
 }
-
 package "Databases" {
   [Primary DB: MongoDB]
   [Cache: Redis]
 }
-
 package "MongoDB Cluster" {
   package "Config Servers" {
     [Config Server 1]
@@ -41,35 +38,32 @@ package "MongoDB Cluster" {
     }
   }
 }
-
 actor User
-
 rectangle "Web Server" {
   [API Gateway]
   [Business Logic]
 }
-
 rectangle "Cache" {
   [Redis]
 }
-
 User --> "API Gateway": Request
 "API Gateway" --> "Business Logic": Forward Request
 "Business Logic" --> "Redis": Check Cache (Read)
-alt Cache Hit
-    "Redis" --> "Business Logic": Return Cached Data
-else Cache Miss
-    "Business Logic" --> "Query Routers (mongos)": Read Request
+note right
+  If Cache Hit:
+    Redis returns cached data
+  If Cache Miss:
+    Query MongoDB
+end note
+"Business Logic" --> "Query Routers (mongos)": Read Request (If Cache Miss)
 "Query Routers (mongos)" --> "Secondary Node 1": Read Request
 "Query Routers (mongos)" --> "Secondary Node 2": Read Request
 "Query Routers (mongos)" --> "Secondary Node 3": Read Request
-    "Secondary Node 1" --> "Query Routers (mongos)": Return Data
-    "Secondary Node 2" --> "Query Routers (mongos)": Return Data
-    "Secondary Node 3" --> "Query Routers (mongos)": Return Data
-    "Query Routers (mongos)" --> "Business Logic": Return Data
-    "Business Logic" --> "Redis": Update Cache
-end
+"Secondary Node 1" --> "Query Routers (mongos)": Return Data
+"Secondary Node 2" --> "Query Routers (mongos)": Return Data
+"Secondary Node 3" --> "Query Routers (mongos)": Return Data
+"Query Routers (mongos)" --> "Business Logic": Return Data
+"Business Logic" --> "Redis": Update Cache (If Cache Miss)
 "Business Logic" --> "API Gateway": Return Data
 "API Gateway" --> User: Return Result
-
 @enduml
