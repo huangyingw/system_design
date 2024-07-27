@@ -1,63 +1,31 @@
 @startuml
-
 actor User
-
 rectangle "API Gateway" {
   [Create Event]
   [Update Event]
   [Delete Event]
   [Get Events]
 }
-
 rectangle "Web Server" {
   [Business Logic]
 }
-
 rectangle "Task Queue" {
   [Celery]
 }
-
 rectangle "Workers" {
-  [Send Notification]
-  [Process Recurring Events]
-  [Data Analysis & Report Generation]
-  [Cache Update]
-  [Search Index Update]
+  [Send Notification\nWhen an event is about to start,\nsend a notification to the user.]
+  
+  [Process Recurring Events\nHandle periodic events, e.g.,\nweekly or monthly recurring events.]
+  
+  [Data Analysis & Report Generation\nAnalyze large datasets and\ngenerate reports or statistics.]
+  
+  [Cache Update\nUpdate cache when the database\ndata changes.]
+  
+  [Search Index Update\nUpdate Elasticsearch index when\nevent data changes.]
 }
-
 User --> "API Gateway": Request
 "API Gateway" --> "Web Server": Forward Request
-
-alt Create/Update/Delete Event
-  "Web Server" --> "Task Queue: Celery": Add Task
-end
-
+"Web Server" --> "Task Queue: Celery": Add Task
 "Task Queue: Celery" --> "Workers": Assign Task
 "Workers" --> "Task Queue: Celery": Task Completed
-
-note right of "Send Notification"
-  When an event is about to start,
-  send a notification to the user.
-end note
-
-note right of "Process Recurring Events"
-  Handle periodic events, e.g.,
-  weekly or monthly recurring events.
-end note
-
-note right of "Data Analysis & Report Generation"
-  Analyze large datasets and
-  generate reports or statistics.
-end note
-
-note right of "Cache Update"
-  Update cache when the database
-  data changes.
-end note
-
-note right of "Search Index Update"
-  Update Elasticsearch index when
-  event data changes.
-end note
-
 @enduml
