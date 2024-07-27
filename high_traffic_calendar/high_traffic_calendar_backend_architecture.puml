@@ -25,19 +25,13 @@ actor User
 User --> "API Gateway": Request
 "API Gateway" --> "Web Server": Request
 "Web Server" --> "Cache": Check Cache
-note right of "Cache"
-  if Cache Miss:
-    return Cache Miss
-end note
-"Cache" --> "Web Server": Cache Miss
-"Web Server" --> "Primary DB": Query
+"Cache" --> "Web Server": Cache Hit 
+"Cache" -> "Web Server": Cache Miss 
+
+"Web Server" --> "Primary DB": Query : If Cache Miss
 "Primary DB" --> "Web Server": Return Data
-"Web Server" --> "Cache": Update Cache
-note right of "Cache"
-  if Cache Hit:
-    return Cached Data
-end note
-"Cache" --> "Web Server": Cache Hit
+"Web Server" --> "Cache": Update Cache : If Cache Miss
+
 "Web Server" --> "Search Engine": Search
 "Task Queue" --> "Worker": Send Tasks
 "Worker" --> "Primary DB": Query
