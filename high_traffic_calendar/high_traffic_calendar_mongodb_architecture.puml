@@ -43,27 +43,22 @@ rectangle "Web Server" {
 User --> "API Gateway": Request
 "API Gateway" --> "Business Logic": Forward Request
 "Business Logic" --> "Cache: Redis": Check Cache
-note right of "Cache: Redis"
-  if Cache Miss:
-    return Cache Miss
-end note
-"Cache: Redis" --> "Business Logic": Cache Miss
-"Business Logic" --> "Query Routers (mongos)": Cache Miss (Read Request)
+"Cache: Redis" --> "Business Logic": Cache Hit
+"Cache: Redis" -> "Business Logic": Cache Miss
+
+"Business Logic" --> "Query Routers (mongos)": Read Request : If Cache Miss
+"Query Routers (mongos)" --> "Secondary Node 1": Read Data
+"Query Routers (mongos)" --> "Secondary Node 2": Read Data
+"Query Routers (mongos)" --> "Secondary Node 3": Read Data
+"Business Logic" --> "Cache: Redis": Update Cache : If Cache Miss
+
 "Business Logic" --> "Query Routers (mongos)": Write Request
-"Query Routers (mongos)" --> "Secondary Node 1": Read Request
-"Query Routers (mongos)" --> "Secondary Node 2": Read Request
-"Query Routers (mongos)" --> "Secondary Node 3": Read Request
 "Query Routers (mongos)" --> "Primary Node 1": Write Request
 "Query Routers (mongos)" --> "Primary Node 2": Write Request
 "Query Routers (mongos)" --> "Primary Node 3": Write Request
 "Primary Node 1" --> "Secondary Node 1": Replicate Data
 "Primary Node 2" --> "Secondary Node 3": Replicate Data
 "Primary Node 3" --> "Secondary Node 5": Replicate Data
-"Business Logic" --> "Cache: Redis": Update Cache
-note right of "Cache: Redis"
-  if Cache Hit:
-    return Cached Data
-end note
-"Cache: Redis" --> "Business Logic": Cache Hit
+"Business Logic" --> "Cache: Redis": Invalidate Cache
 
 @enduml
