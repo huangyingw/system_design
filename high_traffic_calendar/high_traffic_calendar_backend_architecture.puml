@@ -26,14 +26,18 @@ User --> "API Gateway": Request
 "API Gateway" --> "Web Server": Request
 "Web Server" --> "Cache": Check Cache
 note right of "Cache"
-  If Cache Miss:
-    1. Web Server queries Primary DB
-    2. Primary DB returns data
-    3. Web Server updates Cache
-  If Cache Hit:
-    Cache returns data directly
+  if Cache Miss:
+    return Cache Miss
 end note
-"Web Server" <-- "Primary DB": Return Data (if Cache Miss)
+"Cache" --> "Web Server": Cache Miss
+"Web Server" --> "Primary DB": Query
+"Primary DB" --> "Web Server": Return Data
+"Web Server" --> "Cache": Update Cache
+note right of "Cache"
+  if Cache Hit:
+    return Cached Data
+end note
+"Cache" --> "Web Server": Cache Hit
 "Web Server" --> "Search Engine": Search
 "Task Queue" --> "Worker": Send Tasks
 "Worker" --> "Primary DB": Query
