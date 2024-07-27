@@ -19,8 +19,8 @@ alt Events Found
     "Business Logic" -> "Primary DB: MongoDB": Read updated events
     "Primary DB: MongoDB" -> "Business Logic": Return updated events
 
-    "Business Logic" -> "Cache: Redis": Update cache with new events
-    "Cache: Redis" -> "Business Logic": Acknowledge cache update
+    "Business Logic" -> "Cache: Redis": Invalidate cache
+    "Cache: Redis" -> "Business Logic": Acknowledge cache invalidation
 else No Events Found
     "Business Logic" -> "API Gateway": Return error or empty response
 end
