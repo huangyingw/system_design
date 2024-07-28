@@ -1,0 +1,58 @@
+@startuml
+actor User
+
+rectangle "API Gateway" {
+  [Create Event]
+  [Update Event]
+  [Delete Event]
+  [Get Events]
+}
+
+rectangle "Web Server" {
+  [Read Handler]
+  [Write Handler]
+}
+
+rectangle "Kafka" {
+  queue "Write Events"
+  queue "Cache Invalidation"
+}
+
+rectangle "Cache" {
+  [Redis]
+}
+
+rectangle "MongoDB Cluster" {
+  [Query Routers (mongos)]
+  [Primary Node]
+  [Secondary Node 1]
+  [Secondary Node 2]
+}
+
+rectangle "Prefetch Service" {
+  [Data Analyzer]
+  [Prefetch Worker]
+}
+
+User --> "API Gateway": Request
+"API Gateway" --> "Web Server": Forward Request
+
+"Web Server" --> "Cache": Check Cache (for Get Events)
+"Cache" --> "Web Server": Cache Hit/Miss
+
+"Read Handler" --> "Query Routers (mongos)": Read Request
+"Query Routers (mongos)" --> "Secondary Node 1": Distribute Read
+"Query Routers (mongos)" --> "Secondary Node 2": Distribute Read
+
+"Write Handler" --> "Kafka": Publish Write Event
+"Kafka" --> "Primary Node": Consume Write Event
+"Primary Node" --> "Secondary Node 1": Replicate Data
+"Primary Node" --> "Secondary Node 2": Replicate Data
+
+"Write Handler" --> "Kafka": Publish Cache Invalidation
+"Kafka" --> "Cache": Consume and Invalidate
+
+"Prefetch Service" --> "MongoDB Cluster": Analyze Data Patterns
+"Prefetch Service" --> "Cache": Prefetch Likely Needed Data
+
+@enduml
