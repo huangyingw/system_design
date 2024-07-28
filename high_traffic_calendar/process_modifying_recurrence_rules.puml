@@ -3,30 +3,53 @@
 actor User
 participant "API Gateway"
 participant "Business Logic"
-participant "Primary DB: MongoDB"
-participant "Cache: Redis"
+participant "Kafka"
+participant "Worker"
+database "MongoDB"
+database "Redis Cache"
+database "Elasticsearch"
 
 User -> "API Gateway": Modify Recurrence Rule Request
 "API Gateway" -> "Business Logic": Forward Request
-"Business Logic" -> "Primary DB: MongoDB": Find all related events by recurrence_id
-"Primary DB: MongoDB" -> "Business Logic": Return related events
+"Business Logic" -> "Kafka": Publish Modification Request
+
+"Kafka" -> Worker: Consume Modification Request
+Worker -> MongoDB: Find all related events by recurrence_id
+MongoDB -> Worker: Return related events
 
 alt Events Found
-    "Business Logic" -> "Primary DB: MongoDB": Update events with new rules
-    "Business Logic" -> "Primary DB: MongoDB": Delete future events not matching new rules
-    "Primary DB: MongoDB" -> "Business Logic": Acknowledge updates
+    Worker -> MongoDB: Update events with new rules
+    Worker -> MongoDB: Delete future events not matching new rules
+    MongoDB -> Worker: Acknowledge updates
 
-    "Business Logic" -> "Primary DB: MongoDB": Read updated events
-    "Primary DB: MongoDB" -> "Business Logic": Return updated events
+    Worker -> MongoDB: Read updated events
+    MongoDB -> Worker: Return updated events
 
-    "Business Logic" -> "Cache: Redis": Invalidate Cache
-    "Cache: Redis" -> "Business Logic": Acknowledge Cache Invalidation
-    "Business Logic" -> "Cache: Redis": Update Cache with New Data
+    Worker -> "Kafka": Publish Cache Invalidation
+    "Kafka" -> "Redis Cache": Consume and Invalidate Cache
+    "Redis Cache" -> Worker: Acknowledge Cache Invalidation
+
+    Worker -> "Kafka": Publish Search Index Update
+    "Kafka" -> Elasticsearch: Consume and Update Index
+    Elasticsearch -> Worker: Acknowledge Index Update
+
+    Worker -> "Kafka": Publish Operation Result
 else No Events Found
-    "Business Logic" -> "API Gateway": Return error or empty response
+    Worker -> "Kafka": Publish Error or Empty Response
 end
 
+"Kafka" -> "Business Logic": Consume Operation Result
 "Business Logic" -> "API Gateway": Return response
 "API Gateway" -> User: Return result
+
+note right of "Kafka"
+  Enables asynchronous processing
+  and decouples components
+end note
+
+note right of Worker
+  Handles complex operations
+  asynchronously
+end note
 
 @enduml
