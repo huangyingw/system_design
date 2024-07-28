@@ -4,9 +4,9 @@ skinparam backgroundColor #D3D3D3
 skinparam defaultFontName "Arial"
 skinparam defaultFontSize 16
 skinparam note {
-    BackgroundColor #FFFFFF
-    BorderColor #000000
-    FontSize 16
+    BackgroundColor #FFFACD
+    BorderColor #DAA520
+    FontSize 14
     FontName "Arial"
 }
 
@@ -18,6 +18,7 @@ rectangle "Recommendation Service" as RS {
     rectangle "Recommendation Engine" as RE
     rectangle "Result Caching" as RC
     rectangle "Push Notification Service" as PNS
+    rectangle "Real-time Recommendation Engine" as RRE
 }
 
 rectangle "Data Persistence Layer" as DPS {
@@ -32,12 +33,20 @@ RE -up-> RC : Caches Recommendations
 RC -down-> RCache : Stores Recommendations in Cache
 PNS -down-> RCache : Fetches Recommendations from Cache
 PNS -right-> Client : Pushes Recommendations
+RRE -[hidden]right-> RE
+RRE -down-> UID : Analyzes Real-time Data
+RRE -up-> RC : Updates Recommendations
 
 note right of RS
   **性能优化**:
   - 使用缓存减少推荐计算
   - 优化推荐算法
   - 增加推荐引擎计算资源
+end note
+
+note right of RRE
+  基于用户实时行为进行推荐，
+  提高推荐的时效性和准确性
 end note
 
 @enduml
