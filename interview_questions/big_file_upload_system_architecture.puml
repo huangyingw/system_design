@@ -1,8 +1,6 @@
 @startuml
 skinparam backgroundColor #D3D3D3
-
 !define RECTANGLE class
-
 RECTANGLE Client
 RECTANGLE FileChunker
 RECTANGLE LoadBalancer
@@ -12,10 +10,15 @@ RECTANGLE Database
 RECTANGLE ResumableUploadManager
 RECTANGLE SecurityService
 RECTANGLE DataValidationService
-
+RECTANGLE CacheService
+RECTANGLE MessageQueue
+RECTANGLE DeduplicationService
+RECTANGLE MetadataService
+RECTANGLE MonitoringService
 Client -down-> FileChunker : Split large file
 FileChunker -down-> LoadBalancer : Upload file chunks
-LoadBalancer -down-> UploadService : Route file chunks
+LoadBalancer -down-> MessageQueue : Enqueue file chunks
+MessageQueue -down-> UploadService : Dequeue and process chunks
 UploadService -down-> HDFSStorageService : Store file chunks
 HDFSStorageService -right-> Database : Log chunk location & status
 Database -up-> UploadService : Map chunks to original file
@@ -23,5 +26,11 @@ Client -right-> ResumableUploadManager : Manage file chunks
 ResumableUploadManager -down-> UploadService : Manage upload status
 UploadService -down-> SecurityService : Security checks
 UploadService -down-> DataValidationService : Validate file integrity
-
+UploadService -left-> CacheService : Cache frequently accessed data
+UploadService -right-> DeduplicationService : Check for duplicate files
+UploadService -right-> MetadataService : Manage file metadata
+MonitoringService -up-> UploadService : Monitor system performance
+MonitoringService -up-> HDFSStorageService : Monitor storage
+MonitoringService -up-> Database : Monitor database
+MonitoringService -up-> MessageQueue : Monitor queue
 @enduml
