@@ -1,94 +1,116 @@
 @startuml
+skinparam backgroundColor #F0F8FF
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 16
+skinparam rectangle {
+    BackgroundColor #FFFFFF
+    BorderColor #4682B4
+    RoundCorner 20
+}
+skinparam note {
+    BackgroundColor #E6E6FA
+    BorderColor #483D8B
+    FontSize 14
+}
 
-skinparam backgroundColor #F5F5F5
+title <font size=24>Performance Bottlenecks and Optimizations in Twitter System Architecture</font>
 
-title Performance Bottlenecks and Optimizations in Twitter System Architecture
+' Front-end Components
+rectangle "Front-end" {
+    rectangle "Load Balancer" as LB #E0FFFF
+    rectangle "Web Server" as WS #E0FFFF
+}
 
-' Load Balancer & Web Server Performance Bottlenecks
-rectangle "Load Balancer" as LB
-rectangle "Web Server" as WS
+' Back-end Components
+rectangle "Back-end" {
+    rectangle "Application Server" as AS #FFE4E1
+    rectangle "Async Processing Queue\n(Kafka/RabbitMQ)" as APQ #FFE4E1
+    rectangle "Search Service" as SSrv #FFE4E1
+    rectangle "Notification Service" as NSrv #FFE4E1
+    rectangle "Timeline Update Service" as TUS #FFE4E1
+}
 
+' Data Storage
+rectangle "Data Layer" {
+    rectangle "Tweet & Comment Data" as TCD #F0FFF0
+    rectangle "Distributed Transaction Management" as DTM #F0FFF0
+}
+
+' Global Deployment
+rectangle "Infrastructure" {
+    rectangle "Global Deployment" as GD #FFF5EE
+}
+
+' Notes
 note right of LB
-  **负载均衡器性能瓶颈**:
+  <font size=16>**负载均衡器性能瓶颈**:</font>
   - 原因：处理能力不足
   - 解决方法：使用高性能负载均衡器，增加实例
 end note
 
 note right of WS
-  **Web服务器性能瓶颈**:
+  <font size=16>**Web服务器性能瓶颈**:</font>
   - 原因：处理能力不足
   - 解决方法：增加Web服务器实例
 end note
 
-' Application Server Performance Bottlenecks
-rectangle "Application Server" as AS
-
 note right of AS
-  **应用服务器性能瓶颈**:
+  <font size=16>**应用服务器性能瓶颈**:</font>
   - 原因：高并发处理
   - 解决方法：优化代码，增加服务器实例
 end note
 
-' Async Processing Queue Performance Bottlenecks
-rectangle "Async Processing Queue (Kafka/RabbitMQ)" as APQ
-
 note right of APQ
-  **异步处理队列性能瓶颈**:
+  <font size=16>**异步处理队列性能瓶颈**:</font>
   - 原因：容量和处理速度不足
   - 解决方法：使用高性能消息队列，增加分区和消费者
 end note
 
-' Search & Notification Services Performance Bottlenecks
-rectangle "Search Service" as SSrv
-rectangle "Notification Service" as NSrv
-
 note right of SSrv
-  **搜索服务性能瓶颈**:
+  <font size=16>**搜索服务性能瓶颈**:</font>
   - 原因：数据库查询效率低
   - 解决方法：优化查询，使用索引，分布式搜索引擎
 end note
 
 note right of NSrv
-  **通知服务性能瓶颈**:
-  - 原因：数据库查询效率低
-  - 解决方法：优化查询，使用索引，分布式搜索引擎
+  <font size=16>**通知服务性能瓶颈**:</font>
+  - 原因：推送延迟高
+  - 解决方法：优化推送算法，使用实时推送服务
 end note
 
-' Timeline Update Service Performance Bottlenecks
-rectangle "Timeline Update Service" as TUS
-
 note right of TUS
-  **时间线更新服务性能瓶颈**:
+  <font size=16>**时间线更新服务性能瓶颈**:</font>
   - 原因：实时数据读取和写入
   - 解决方法：优化算法，使用缓存，数据库分片和复制
 end note
 
-' Databases Performance Bottlenecks
-rectangle "Tweet & Comment Data" as TCD
-
 note right of TCD
-  **数据库性能瓶颈**:
+  <font size=16>**数据库性能瓶颈**:</font>
   - 原因：高并发读写
   - 解决方法：分片，读写分离，优化索引
 end note
 
-' Distributed Transaction Management Performance Bottlenecks
-rectangle "Distributed Transaction Management" as DTM
-
 note right of DTM
-  **分布式事务管理性能瓶颈**:
+  <font size=16>**分布式事务管理性能瓶颈**:</font>
   - 原因：跨服务操作协调
   - 解决方法：减少分布式事务，采用最终一致性
 end note
 
-' Layout adjustments
-LB -[hidden]-> WS
-LB -down-> AS
-AS -down-> APQ
-APQ -down-> SSrv
-SSrv -down-> NSrv
-NSrv -down-> TUS
-TUS -down-> TCD
-TCD -down-> DTM
+note right of GD
+  <font size=16>**全球化部署优化**:</font>
+  - 原因：跨地区访问延迟高
+  - 解决方法：多地区部署，就近访问
+end note
+
+' Layout
+LB -[hidden]down-> WS
+WS -[hidden]down-> AS
+AS -[hidden]down-> APQ
+APQ -[hidden]down-> SSrv
+SSrv -[hidden]down-> NSrv
+NSrv -[hidden]down-> TUS
+TUS -[hidden]down-> TCD
+TCD -[hidden]down-> DTM
+DTM -[hidden]down-> GD
 
 @enduml
