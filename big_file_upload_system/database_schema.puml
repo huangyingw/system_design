@@ -2,75 +2,79 @@
 !define table(x) class x << (T,#FFAAAA) >>
 !define primary_key(x) <u>x</u>
 !define foreign_key(x) #x
-!define index(x) <i>x</i>
 
 table(Users) {
-    primary_key(user_id): INT
-                          username: VARCHAR(50)
-                          email: VARCHAR(100)
-                                 created_at: TIMESTAMP
-                                             index(email)
+  primary_key(user_id): INT
+  username: VARCHAR(50)
+  email: VARCHAR(100)
+  created_at: TIMESTAMP
+  --
+  <i>index on (email)</i>
 }
 
 table(Files) {
-    primary_key(file_id): INT
-                          foreign_key(user_id): INT
-                                                filename: VARCHAR(255)
-                                                total_size: BIGINT
-                                                            created_at: TIMESTAMP
-                                                            updated_at: TIMESTAMP
-                                                            status: ENUM('uploading', 'completed', 'failed')
-                                                            md5_hash: VARCHAR(32)
-                                                                      index(user_id)
-                                                                      index(md5_hash)
+  primary_key(file_id): INT
+  foreign_key(user_id): INT
+  filename: VARCHAR(255)
+  total_size: BIGINT
+  created_at: TIMESTAMP
+  updated_at: TIMESTAMP
+  status: ENUM('uploading', 'completed', 'failed')
+  md5_hash: VARCHAR(32)
+  --
+  <i>index on (user_id)</i>
+  <i>index on (md5_hash)</i>
 }
 
 table(FileChunks) {
-    primary_key(chunk_id): INT
-                           foreign_key(file_id): INT
-                                                 chunk_index: INT
-                                                 chunk_size: INT
-                                                 storage_path: VARCHAR(255)
-                                                 status: ENUM('uploading', 'completed', 'failed')
-                                                         index(file_id, chunk_index)
+  primary_key(chunk_id): INT
+  foreign_key(file_id): INT
+  chunk_index: INT
+  chunk_size: INT
+  storage_path: VARCHAR(255)
+  status: ENUM('uploading', 'completed', 'failed')
+  --
+  <i>index on (file_id, chunk_index)</i>
 }
 
 table(UploadSessions) {
-    primary_key(session_id): VARCHAR(50)
-                             foreign_key(file_id): INT
-                                                   foreign_key(user_id): INT
-                                                                         started_at: TIMESTAMP
-                                                                         last_activity: TIMESTAMP
-                                                                         status: ENUM('active', 'completed', 'expired')
-                                                                         index(user_id, status)
+  primary_key(session_id): VARCHAR(50)
+  foreign_key(file_id): INT
+  foreign_key(user_id): INT
+  started_at: TIMESTAMP
+  last_activity: TIMESTAMP
+  status: ENUM('active', 'completed', 'expired')
+  --
+  <i>index on (user_id, status)</i>
 }
 
 table(DownloadSessions) {
-    primary_key(session_id): VARCHAR(50)
-                             foreign_key(file_id): INT
-                                                   foreign_key(user_id): INT
-                                                                         started_at: TIMESTAMP
-                                                                         last_activity: TIMESTAMP
-                                                                         status: ENUM('active', 'completed', 'expired')
-                                                                         bytes_downloaded: BIGINT
-                                                                                           index(user_id, status)
+  primary_key(session_id): VARCHAR(50)
+  foreign_key(file_id): INT
+  foreign_key(user_id): INT
+  started_at: TIMESTAMP
+  last_activity: TIMESTAMP
+  status: ENUM('active', 'completed', 'expired')
+  bytes_downloaded: BIGINT
+  --
+  <i>index on (user_id, status)</i>
 }
 
 Users ||--o{ Files
-    Files ||--o{ FileChunks
-        Users ||--o{ UploadSessions
-            Users ||--o{ DownloadSessions
-                Files ||--o{ UploadSessions
-                    Files ||--o{ DownloadSessions
+Files ||--o{ FileChunks
+Users ||--o{ UploadSessions
+Users ||--o{ DownloadSessions
+Files ||--o{ UploadSessions
+Files ||--o{ DownloadSessions
 
-                        note bottom of FileChunks
-                            Consider partitioning this table
-                            based on file_id or chunk_index
-                            end note
+note bottom of FileChunks
+  Consider partitioning this table
+  based on file_id or chunk_index
+end note
 
-                            note bottom of Files
-                            Consider storing file metadata in
-                            NoSQL database for better scalability
-                            end note
+note bottom of Files
+  Consider storing file metadata in 
+  NoSQL database for better scalability
+end note
 
-                            @enduml
+@enduml
