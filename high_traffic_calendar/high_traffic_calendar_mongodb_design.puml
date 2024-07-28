@@ -44,6 +44,8 @@ entity "Redis Cache" as C {
   event_detail_{event_id}: Event Details
   event_participants_{event_id}: List of Participants
   upcoming_reminders_{user_id}: List of Reminders
+  frequently_accessed_events: List of Event IDs
+  user_preferences_{user_id}: User Preferences
 }
 
 note right of E
