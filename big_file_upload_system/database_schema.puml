@@ -1,8 +1,9 @@
 @startuml
 !define table(x) class x << (T,#FFAAAA) >>
+!define nosql(x) class x << (N,#AAFFAA) >>
 !define primary_key(x) <u>x</u>
 !define foreign_key(x) #x
-
+' Relational Database Tables
 table(Users) {
   primary_key(user_id): INT
   username: VARCHAR(50)
@@ -11,35 +12,9 @@ table(Users) {
   --
   <i>index on (email)</i>
 }
-
-table(Files) {
-  primary_key(file_id): INT
-  foreign_key(user_id): INT
-  filename: VARCHAR(255)
-  total_size: BIGINT
-  created_at: TIMESTAMP
-  updated_at: TIMESTAMP
-  status: ENUM('uploading', 'completed', 'failed')
-  md5_hash: VARCHAR(32)
-  --
-  <i>index on (user_id)</i>
-  <i>index on (md5_hash)</i>
-}
-
-table(FileChunks) {
-  primary_key(chunk_id): INT
-  foreign_key(file_id): INT
-  chunk_index: INT
-  chunk_size: INT
-  storage_path: VARCHAR(255)
-  status: ENUM('uploading', 'completed', 'failed')
-  --
-  <i>index on (file_id, chunk_index)</i>
-}
-
 table(UploadSessions) {
   primary_key(session_id): VARCHAR(50)
-  foreign_key(file_id): INT
+  foreign_key(file_id): STRING
   foreign_key(user_id): INT
   started_at: TIMESTAMP
   last_activity: TIMESTAMP
@@ -47,10 +22,9 @@ table(UploadSessions) {
   --
   <i>index on (user_id, status)</i>
 }
-
 table(DownloadSessions) {
   primary_key(session_id): VARCHAR(50)
-  foreign_key(file_id): INT
+  foreign_key(file_id): STRING
   foreign_key(user_id): INT
   started_at: TIMESTAMP
   last_activity: TIMESTAMP
@@ -59,22 +33,52 @@ table(DownloadSessions) {
   --
   <i>index on (user_id, status)</i>
 }
-
-Users ||--o{ Files
-Files ||--o{ FileChunks
+' NoSQL Stores
+nosql(NoSQL_File_Metadata_Store) {
+  file_id: STRING (Partition Key)
+  user_id: INT (Sort Key)
+  filename: STRING
+  total_size: BIGINT
+  created_at: TIMESTAMP
+  updated_at: TIMESTAMP
+  status: STRING
+  md5_hash: STRING
+  --
+  Global Secondary Index:
+  GSI1PK: user_id
+  GSI1SK: created_at
+}
+nosql(NoSQL_File_Chunks_Store) {
+  file_id: STRING (Partition Key)
+  chunk_index: INT (Sort Key)
+  chunk_size: INT
+  storage_path: STRING
+  status: STRING
+  --
+  Global Secondary Index:
+  GSI1PK: storage_path
+  GSI1SK: status
+}
 Users ||--o{ UploadSessions
 Users ||--o{ DownloadSessions
-Files ||--o{ UploadSessions
-Files ||--o{ DownloadSessions
-
-note bottom of FileChunks
-  Consider partitioning this table
-  based on file_id or chunk_index
+NoSQL_File_Metadata_Store }o--|| Users
+NoSQL_File_Chunks_Store }o--|| NoSQL_File_Metadata_Store
+UploadSessions }o--|| NoSQL_File_Metadata_Store
+DownloadSessions }o--|| NoSQL_File_Metadata_Store
+note right of NoSQL_File_Metadata_Store
+  Sharding strategy:
+  - Partition Key: file_id
+  - Sort Key: user_id
+  This allows efficient queries 
+  for both specific files and 
+  all files for a specific user
 end note
-
-note bottom of Files
-  Consider storing file metadata in 
-  NoSQL database for better scalability
+note right of NoSQL_File_Chunks_Store
+  Sharding strategy:
+  - Partition Key: file_id
+  - Sort Key: chunk_index
+  This allows efficient retrieval
+  of all chunks for a specific file,
+  as well as specific chunks
 end note
-
 @enduml
