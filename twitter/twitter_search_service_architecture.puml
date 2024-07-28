@@ -1,15 +1,13 @@
 @startuml
-
 skinparam backgroundColor #D3D3D3
 skinparam defaultFontName "Arial"
 skinparam defaultFontSize 16
 skinparam note {
-  BackgroundColor #FFFFFF
-  BorderColor #000000
-  FontSize 16
+  BackgroundColor #FFFACD
+  BorderColor #DAA520
+  FontSize 14
   FontName "Arial"
 }
-
 title Twitter Search Service Architecture
 
 rectangle "Client" as Client
@@ -17,40 +15,37 @@ rectangle "Client" as Client
 rectangle "Search Service" as Search {
     rectangle "Request Handler" as RH
     rectangle "Query Parser" as QP
+    rectangle "Spell Check & Auto-complete" as SCAC
     rectangle "Cache Query" as CQ
-    rectangle "Index Query" as IQ {
-        rectangle "Search Index" as Index {
-            rectangle "Elasticsearch" as ES
-        }
-    }
+    rectangle "Index Query" as IQ
     rectangle "Result Handler" as RHdl {
         rectangle "Result Sorting & Filtering" as RSF
         rectangle "Result Caching" as RC
     }
-    rectangle "Cache (Redis Cluster)" as Cache {
-        rectangle "Search Result Cache" as SRC
-    }
 }
 
-Client -> RH : Sends Search Request
-RH -> QP : Parses Query
-QP -> CQ : Queries Cache
-CQ -> SRC : Reads from Cache
+rectangle "Cache (Redis Cluster)" as Cache {
+    rectangle "Search Result Cache" as SRC
+}
 
-alt "Cache Hit"
-    SRC -> CQ : Returns Cached Results
-    CQ -> RH : Returns Cached Results
-    RH -> Client : Returns Search Results
-else "Cache Miss"
-    CQ -> IQ : Queries Index
-    IQ -> ES : Queries Elasticsearch
-    ES -> IQ : Returns Search Results
-    IQ -> RSF : Sorts & Filters Results
-    RSF -> RC : Caches Results
-    RC -> SRC : Stores in Cache
-    RC -> RH : Returns Results
-    RH -> Client : Returns Search Results
-end
+rectangle "Search Index" as Index {
+    rectangle "Elasticsearch" as ES
+}
+
+Client -down-> RH : Sends Search Request
+RH -down-> QP : Parses Query
+QP -down-> SCAC : Checks Spelling & Suggests
+SCAC -down-> CQ : Queries Cache
+CQ -right-> SRC : Reads from Cache
+SRC -left-> CQ : Returns Results (Hit/Miss)
+CQ -down-> IQ : Queries Index (if Cache Miss)
+IQ -right-> ES : Queries Elasticsearch
+ES -left-> IQ : Returns Search Results
+IQ -up-> RSF : Sorts & Filters Results
+RSF -right-> RC : Caches Results
+RC -up-> SRC : Stores in Cache
+RHdl -up-> RH : Returns Results
+RH -up-> Client : Returns Search Results
 
 note right of Search
   **性能优化**:
@@ -59,4 +54,8 @@ note right of Search
   - 查询解析和结果排序优化
 end note
 
+note right of SCAC
+  提供拼写纠正和自动补全功能，
+  改善用户搜索体验
+end note
 @enduml
