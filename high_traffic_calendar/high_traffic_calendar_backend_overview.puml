@@ -1,63 +1,62 @@
 @startuml
-
 actor User
 
-rectangle "API Gateway" {
-  [Create Event]
-  [Update Event]
-  [Delete Event]
-  [Get Events]
+package "Front End" {
+  rectangle "Load Balancer" {
+    [Nginx/HAProxy]
+  }
+  rectangle "API Gateway" {
+    [Create Event]
+    [Update Event]
+    [Delete Event]
+    [Get Events]
+  }
 }
 
-rectangle "Web Server" {
-  [Business Logic]
+package "Back End" {
+  rectangle "Web Server" {
+    [Business Logic]
+  }
+  
+  queue "Message Queue" {
+    [Kafka]
+  }
+  
+  rectangle "Workers" {
+    [Send Notification]
+    [Process Recurring Events]
+    [Data Analysis & Reporting]
+    [Cache Update]
+    [Search Index Update]
+  }
+  
+  rectangle "Worker Nodes" {
+    [Kafka Consumer]
+  }
 }
 
-queue "Message Queue" {
-  [Kafka]
+package "Data Storage" {
+  database "Databases" {
+    [Primary DB: MongoDB]
+    [Cache: Redis]
+    [Search Engine: Elasticsearch]
+  }
 }
 
-rectangle "Workers" {
-  [Send Notification]
-  [Process Recurring Events]
-  [Data Analysis & Reporting]
-  [Cache Update]
-  [Search Index Update]
-}
-
-database "Databases" {
-  [Primary DB: MongoDB]
-  [Cache: Redis]
-  [Search Engine: Elasticsearch]
-}
-
-rectangle "Load Balancer" {
-  [Nginx/HAProxy]
-}
-
-rectangle "Worker Nodes" {
-  [Kafka Consumer]
-}
-
-User --> [Load Balancer]
-[Load Balancer] --> "API Gateway"
+User --> "Load Balancer"
+"Load Balancer" --> "API Gateway"
 "API Gateway" --> "Web Server"
 
 "Web Server" --> [Kafka]
 [Kafka] --> "Workers"
 "Workers" --> [Kafka]: Results
 
-"Web Server" --> [Cache: Redis]: Check
-[Cache: Redis] --> "Web Server": Hit/Miss
-
-"Web Server" --> [Primary DB: MongoDB]: Query if cache miss
-[Primary DB: MongoDB] --> "Web Server": Data
-"Web Server" --> [Cache: Redis]: Update if cache miss
-
+"Web Server" <--> [Cache: Redis]: Check/Update
+"Web Server" <--> [Primary DB: MongoDB]: Query/Update
 "Web Server" --> [Search Engine: Elasticsearch]: Search
 
 [Kafka] --> "Worker Nodes"
-"Worker Nodes" --> [Primary DB: MongoDB]: Query/Update
+"Worker Nodes" <--> [Primary DB: MongoDB]: Query/Update
 "Worker Nodes" --> [Cache: Redis]: Invalidate/Update
 "Worker Nodes" --> [Search Engine: Elasticsearch]: Update Index
 
@@ -77,5 +76,4 @@ note right of [Primary DB: MongoDB]
   Flexible, scalable
   document-based storage
 end note
-
 @enduml
