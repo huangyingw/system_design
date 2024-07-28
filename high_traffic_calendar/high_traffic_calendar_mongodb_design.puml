@@ -60,7 +60,7 @@ note right of R
     - user_id: 1
     - event_id: 1
     Sharding Key:
-    - user_id: 1
+  - hash(user_id)
   end note
 
 U ||--o{ E : creates
