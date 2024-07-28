@@ -16,9 +16,9 @@ entity "Events" as E {
   description: String
   start_time: Date
   end_time: Date
-  recurrence_id: ObjectId (FK to Events, points to the first event in the series)
+  recurrence_id: ObjectId (FK to Events)
   recurrence_rule: String
-  status: String // active or expired
+  status: String
   participants: Array<Participant>
 }
 
@@ -56,12 +56,16 @@ note right of E
 end note
 
 note right of R
-    Indexes:
-    - user_id: 1
-    - event_id: 1
-    Sharding Key:
+  Indexes:
+  - user_id: 1
+  - event_id: 1
+  Sharding Key:
   - hash(user_id)
-  end note
+end note
+
+note "Kafka Topics:\n- event_updates\n- cache_invalidations\n- reminder_notifications" as KT
+
+note "Elasticsearch Index:\n- events_index" as ESI
 
 U ||--o{ E : creates
 E ||--o{ P : includes
