@@ -3,82 +3,109 @@
 !define nosql(x) class x << (N,#AAFFAA) >>
 !define primary_key(x) <u>x</u>
 !define foreign_key(x) #x
+
+' Global settings
+skinparam classFontSize 14
+skinparam classFontName Helvetica
+skinparam noteFontSize 12
+skinparam noteFontName Helvetica
+skinparam linetype ortho
+skinparam padding 8
+skinparam roundcorner 10
+
+' Layout
+top to bottom direction
+hide circle
+
 ' Relational Database Tables
-table(Users) {
-  primary_key(user_id): INT
-  username: VARCHAR(50)
-  email: VARCHAR(100)
-  created_at: TIMESTAMP
-  --
-  <i>index on (email)</i>
+package "Relational Database" {
+    table(Users) {
+        primary_key(user_id): INT
+        username: VARCHAR(50)
+        email: VARCHAR(100)
+        created_at: TIMESTAMP
+        --
+        <i>index on (email)</i>
+    }
+
+    table(UploadSessions) {
+        primary_key(session_id): VARCHAR(50)
+        foreign_key(file_id): STRING
+        foreign_key(user_id): INT
+        started_at: TIMESTAMP
+        last_activity: TIMESTAMP
+        status: ENUM('active', 'completed', 'expired')
+        --
+        <i>index on (user_id, status)</i>
+    }
+
+    table(DownloadSessions) {
+        primary_key(session_id): VARCHAR(50)
+        foreign_key(file_id): STRING
+        foreign_key(user_id): INT
+        started_at: TIMESTAMP
+        last_activity: TIMESTAMP
+        status: ENUM('active', 'completed', 'expired')
+        bytes_downloaded: BIGINT
+        --
+        <i>index on (user_id, status)</i>
+    }
 }
-table(UploadSessions) {
-  primary_key(session_id): VARCHAR(50)
-  foreign_key(file_id): STRING
-  foreign_key(user_id): INT
-  started_at: TIMESTAMP
-  last_activity: TIMESTAMP
-  status: ENUM('active', 'completed', 'expired')
-  --
-  <i>index on (user_id, status)</i>
-}
-table(DownloadSessions) {
-  primary_key(session_id): VARCHAR(50)
-  foreign_key(file_id): STRING
-  foreign_key(user_id): INT
-  started_at: TIMESTAMP
-  last_activity: TIMESTAMP
-  status: ENUM('active', 'completed', 'expired')
-  bytes_downloaded: BIGINT
-  --
-  <i>index on (user_id, status)</i>
-}
+
 ' NoSQL Stores
-nosql(NoSQL_File_Metadata_Store) {
-  file_id: STRING (Partition Key)
-  user_id: INT (Sort Key)
-  filename: STRING
-  total_size: BIGINT
-  created_at: TIMESTAMP
-  updated_at: TIMESTAMP
-  status: STRING
-  md5_hash: STRING
-  --
-  Global Secondary Index:
-  GSI1PK: user_id
-  GSI1SK: created_at
+package "NoSQL Database" {
+    nosql(NoSQL_File_Metadata_Store) {
+        file_id: STRING (Partition Key)
+        user_id: INT (Sort Key)
+        filename: STRING
+        total_size: BIGINT
+        created_at: TIMESTAMP
+        updated_at: TIMESTAMP
+        status: STRING
+        md5_hash: STRING
+        --
+        Global Secondary Index:
+        GSI1PK: user_id
+        GSI1SK: created_at
+    }
+
+    nosql(NoSQL_File_Chunks_Store) {
+        file_id: STRING (Partition Key)
+        chunk_index: INT (Sort Key)
+        chunk_size: INT
+        storage_path: STRING
+        status: STRING
+        --
+        Global Secondary Index:
+        GSI1PK: storage_path
+        GSI1SK: status
+    }
 }
-nosql(NoSQL_File_Chunks_Store) {
-  file_id: STRING (Partition Key)
-  chunk_index: INT (Sort Key)
-  chunk_size: INT
-  storage_path: STRING
-  status: STRING
-  --
-  Global Secondary Index:
-  GSI1PK: storage_path
-  GSI1SK: status
-}
+
+' Relationships
 Users ||--o{ UploadSessions
 Users ||--o{ DownloadSessions
 NoSQL_File_Metadata_Store }o--|| Users
 NoSQL_File_Chunks_Store }o--|| NoSQL_File_Metadata_Store
 UploadSessions }o--|| NoSQL_File_Metadata_Store
 DownloadSessions }o--|| NoSQL_File_Metadata_Store
+
 note right of NoSQL_File_Metadata_Store
-  Sharding strategy:
-  - Partition Key: file_id
-  - Sort Key: user_id
-  This allows efficient queries 
-  for both specific files and 
-  all files for a specific user
+    Sharding strategy:
+    - Partition Key: file_id
+    - Sort Key: user_id
+    This allows efficient queries 
+    for both specific files and 
+    all files for a specific user
 end note
+
 note right of NoSQL_File_Chunks_Store
-  Sharding strategy:
-  - Partition Key: file_id
-  - Sort Key: chunk_index
-  This allows efficient retrieval
-  of all chunks for a specific file,
-  as well as specific chunks
+    Sharding strategy:
+    - Partition Key: file_id
+    - Sort Key: chunk_index
+    This allows efficient retrieval
+    of all chunks for a specific file,
+    as well as specific chunks
 end note
+
 @enduml
