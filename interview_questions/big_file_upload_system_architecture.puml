@@ -5,32 +5,52 @@ RECTANGLE Client
 RECTANGLE FileChunker
 RECTANGLE LoadBalancer
 RECTANGLE UploadService
-RECTANGLE HDFSStorageService
+RECTANGLE DownloadService
+RECTANGLE DistributedStorageService
+RECTANGLE ObjectStorage
 RECTANGLE Database
 RECTANGLE ResumableUploadManager
-RECTANGLE SecurityService
-RECTANGLE DataValidationService
+RECTANGLE ResumableDownloadManager
 RECTANGLE CacheService
 RECTANGLE MessageQueue
-RECTANGLE DeduplicationService
-RECTANGLE MetadataService
-RECTANGLE MonitoringService
+RECTANGLE MetadataStore
+RECTANGLE CDN
+
 Client -down-> FileChunker : Split large file
-FileChunker -down-> LoadBalancer : Upload file chunks
+FileChunker -down-> LoadBalancer : Upload/Download file chunks
 LoadBalancer -down-> MessageQueue : Enqueue file chunks
-MessageQueue -down-> UploadService : Dequeue and process chunks
-UploadService -down-> HDFSStorageService : Store file chunks
-HDFSStorageService -right-> Database : Log chunk location & status
+MessageQueue -down-> UploadService : Dequeue and process upload chunks
+MessageQueue -down-> DownloadService : Dequeue and process download requests
+UploadService -down-> DistributedStorageService : Store file chunks
+DownloadService -up-> DistributedStorageService : Retrieve file chunks
+DistributedStorageService -right-> ObjectStorage : Store/Retrieve hot data
+DistributedStorageService -right-> Database : Log chunk location & status
 Database -up-> UploadService : Map chunks to original file
-Client -right-> ResumableUploadManager : Manage file chunks
+Database -up-> DownloadService : Retrieve file metadata
+Client -right-> ResumableUploadManager : Manage file upload chunks
+Client -right-> ResumableDownloadManager : Manage file download chunks
 ResumableUploadManager -down-> UploadService : Manage upload status
-UploadService -down-> SecurityService : Security checks
-UploadService -down-> DataValidationService : Validate file integrity
+ResumableDownloadManager -down-> DownloadService : Manage download status
 UploadService -left-> CacheService : Cache frequently accessed data
-UploadService -right-> DeduplicationService : Check for duplicate files
-UploadService -right-> MetadataService : Manage file metadata
-MonitoringService -up-> UploadService : Monitor system performance
-MonitoringService -up-> HDFSStorageService : Monitor storage
-MonitoringService -up-> Database : Monitor database
-MonitoringService -up-> MessageQueue : Monitor queue
+DownloadService -left-> CacheService : Retrieve cached data
+UploadService -right-> MetadataStore : Store file metadata
+DownloadService -right-> MetadataStore : Retrieve file metadata
+DownloadService -down-> CDN : Serve popular files
+
+note right of DistributedStorageService
+  Implements data sharding and replication
+end note
+
+note right of Database
+  Implements database sharding
+end note
+
+note right of LoadBalancer
+  Implements rate limiting
+end note
+
+note right of MetadataStore
+  Fast NoSQL storage for file metadata
+end note
+
 @enduml
