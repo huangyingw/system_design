@@ -1,52 +1,74 @@
 @startuml
+!define RECTANGLE class
 
-title Detailed Fetch New Tweets Process
+skinparam backgroundColor #FEFEFE
+skinparam handwritten false
+skinparam shadowing false
 
 skinparam rectangle {
     BackgroundColor #E3F2FD
-    BorderColor black
-    FontName "Arial"
+    BorderColor #2196F3
+    BorderThickness 2
+    FontName Arial
     FontSize 14
+    FontColor #000000
+    RoundCorner 10
 }
 
 skinparam note {
-    BackgroundColor #FFFACD
-    BorderColor #DAA520
+    BackgroundColor #FFF9C4
+    BorderColor #FBC02D
     FontSize 12
+    FontColor #000000
 }
 
-rectangle "Client" as Client
+skinparam arrow {
+    Color #2196F3
+    Thickness 1.5
+}
 
-rectangle "Core Services" as Core {
-    rectangle "Load Balancer & Web Server" as LBWS {
-        rectangle "Load Balancer" as LB
-        rectangle "Web Server" as WS
+skinparam title {
+    FontSize 24
+    FontColor #000000
+    FontStyle bold
+}
+
+title Detailed Fetch New Tweets Process
+
+together {
+RECTANGLE "Client" as Client #B3E5FC
+}
+
+package "Core Services" as Core {
+    package "Load Balancer & Web Server" as LBWS {
+        RECTANGLE "Load Balancer" as LB
+        RECTANGLE "Web Server" as WS
     }
-    rectangle "Application & Monitoring Services" as AMS {
-        rectangle "Application Server" as AS
+    package "Application & Monitoring Services" as AMS {
+        RECTANGLE "Application Server" as AS
     }
 }
 
-rectangle "Timeline Update Service" as TUS {
-    rectangle "Request Handler" as RH
-    rectangle "Async Queue (Kafka/RabbitMQ)" as AQ
+package "Timeline Update Service" as TUS {
+    RECTANGLE "Request Handler" as RH
+    RECTANGLE "Async Queue\n(Kafka/RabbitMQ)" as AQ
 }
 
-rectangle "Timeline Workers" as TW {
-    rectangle "Fetch New Tweets" as FNT
-    rectangle "Cache Query" as CQ
-    rectangle "Database Query" as DBQ
-    rectangle "De-duplicate & Sort" as DDS
-    rectangle "Cache Update" as CU
-    rectangle "Parallel Processing" as PP
+package "Timeline Workers" as TW {
+    RECTANGLE "Fetch New Tweets" as FNT
+    RECTANGLE "Cache Query" as CQ
+    RECTANGLE "Database Query" as DBQ
+    RECTANGLE "De-duplicate & Sort" as DDS
+    RECTANGLE "Cache Update" as CU
+    RECTANGLE "Parallel Processing" as PP
 }
 
-rectangle "Data Persistence Layer" as DPS {
-    rectangle "Caching (Redis Cluster)" as Cache {
-        rectangle "Tweet Cache" as TC
+package "Data Persistence Layer" as DPS {
+    package "Caching (Redis Cluster)" as Cache {
+        RECTANGLE "Tweet Cache" as TC
     }
-    rectangle "Databases (Sharded & Read-Replica)" as DB {
-        rectangle "Tweet Data" as TD
+    package "Databases (Sharded & Read-Replica)" as DB {
+        RECTANGLE "Tweet Data" as TD
     }
 }
 
@@ -65,11 +87,11 @@ CU -right-> TC : Stores Tweets in Cache
 PP -[hidden]right-> FNT
 
 note right of FNT
-  **性能优化**:
-  - 优先查询缓存，减少数据库访问
-  - 数据库查询优化（索引、缓存）
-  - 多线程并行处理
-  - 利用缓存加快读取速度
+  <b>性能优化</b>:
+  • 优先查询缓存，减少数据库访问
+  • 数据库查询优化（索引、缓存）
+  • 多线程并行处理
+  • 利用缓存加快读取速度
 end note
 
 note right of PP
