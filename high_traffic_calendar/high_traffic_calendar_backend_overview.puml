@@ -1,35 +1,5 @@
 @startuml
-!define RECTANGLE_COLOR #FEFECE
-!define ARROW_COLOR #A80036
-!define ACTOR_COLOR #A9DCDF
-
-skinparam actor {
-  BackgroundColor ACTOR_COLOR
-  BorderColor #666666
-}
-
-skinparam rectangle {
-  BackgroundColor RECTANGLE_COLOR
-  BorderColor #666666
-  ArrowColor ARROW_COLOR
-}
-
-skinparam package {
-  BackgroundColor RECTANGLE_COLOR
-  BorderColor #666666
-}
-
-skinparam arrow {
-  Color ARROW_COLOR
-}
-
-left to right direction
-
 actor User
-
-rectangle "Load Balancer" {
-  [Nginx/HAProxy]
-}
 
 rectangle "API Gateway" {
   [Create Event]
@@ -43,72 +13,53 @@ rectangle "Web Server" {
 }
 
 rectangle "Message Queue" {
-  [Kafka Topic]
+  [Kafka]
 }
 
 rectangle "Workers" {
-  [Send Notification]
-  [Process Recurring Events]
-  [Data Analysis & Report Generation]
-  [Cache Update]
-  [Search Index Update]
+  [Send Notification\nWhen an event is about to start,\nsend a notification to the user.]
+  
+  [Process Recurring Events\nHandle periodic events, e.g.,\nweekly or monthly recurring events.]
+  
+  [Data Analysis & Report Generation\nAnalyze large datasets and\ngenerate reports or statistics.]
+  
+  [Cache Update\nUpdate cache when the database\ndata changes.]
+  
+  [Search Index Update\nUpdate Elasticsearch index when\nevent data changes.]
 }
 
 package "Databases" {
-  database "Primary DB" {
-    [PostgreSQL/MySQL]
-  }
-  database "Cache" {
-    [Redis]
-  }
-  database "Search Engine" {
-    [Elasticsearch]
-}
+  [Primary DB: MongoDB]
+  [Cache: Redis]
+  [Search Engine: Elasticsearch]
 }
 
-User --> "Load Balancer": Request
-"Load Balancer" --> "API Gateway": Forward
-"API Gateway" --> "Web Server": Process
+package "Load Balancer" {
+  [Nginx/HAProxy]
+}
 
-' Write Requests
-"Web Server" --> "Message Queue": Produce
-"Workers" <-- "Message Queue": Consume
-"Workers" --> "Primary DB": Write
-"Primary DB" --> "Workers": Acknowledge
+package "Worker Nodes" {
+  [Worker: Kafka Consumer]
+}
 
-' Read Requests
-"Web Server" --> "Cache": Check
-"Cache" --> "Web Server": Hit/Miss
-"Web Server" --> "Primary DB": Query if Miss
-"Primary DB" --> "Web Server": Return Data
-"Web Server" --> "Cache": Update if Miss
-"Web Server" --> "Search Engine": Search
-"Workers" --> "Primary DB": Query
-"Workers" --> "Cache": Invalidate
+User --> "API Gateway": Request
+"API Gateway" --> "Web Server": Forward Request
+"Web Server" --> "Message Queue: Kafka": Publish Message
+"Message Queue: Kafka" --> "Workers": Consume Message
+"Workers" --> "Message Queue: Kafka": Publish Result
 
-note right of [Send Notification]
-  When an event is about to start,
-  send a notification to the user.
-end note
+"Web Server" --> "Cache: Redis": Check Cache
+"Cache: Redis" --> "Web Server": Cache Hit
+"Cache: Redis" -> "Web Server": Cache Miss
 
-note right of [Process Recurring Events]
-  Handle periodic events, e.g.,
-  weekly or monthly recurring events.
-end note
+"Web Server" --> "Primary DB: MongoDB": Query : If Cache Miss
+"Primary DB: MongoDB" --> "Web Server": Return Data
+"Web Server" --> "Cache: Redis": Update Cache : If Cache Miss
 
-note right of [Data Analysis & Report Generation]
-  Analyze large datasets and
-  generate reports or statistics.
-end note
-
-note right of [Cache Update]
-  Update cache when the
-  database data changes.
-end note
-
-note right of [Search Index Update]
-  Update Elasticsearch index
-  when event data changes.
-end note
+"Web Server" --> "Search Engine: Elasticsearch": Search
+"Message Queue: Kafka" --> "Worker Nodes: Kafka Consumer": Send Tasks
+"Worker Nodes: Kafka Consumer" --> "Primary DB: MongoDB": Query/Update
+"Worker Nodes: Kafka Consumer" --> "Cache: Redis": Invalidate/Update Cache
+"Worker Nodes: Kafka Consumer" --> "Search Engine: Elasticsearch": Update Index
 
 @enduml
