@@ -9,7 +9,17 @@ skinparam class {
   BorderColor #333333
   ArrowColor #333333
   FontName "Arial"
-  FontSize 12
+  FontSize 20  ' 增加默认字体大小
+  AttributeFontSize 20  ' 设置属性字体大小
+}
+
+skinparam title {
+  FontSize 20
+  FontStyle bold
+}
+
+skinparam legend {
+  FontSize 20
 }
 
 !define MAIN_ENTITY #E2F0D9
