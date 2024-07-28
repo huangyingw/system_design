@@ -1,0 +1,63 @@
+@startuml
+actor User
+
+rectangle "API Gateway" {
+  [Create Event]
+  [Update Event]
+  [Delete Event]
+  [Get Events]
+}
+
+rectangle "Web Server" {
+  [Business Logic]
+}
+
+rectangle "Task Queue" {
+  [Celery]
+}
+
+rectangle "Workers" {
+  [Send Notification\nWhen an event is about to start,\nsend a notification to the user.]
+  
+  [Process Recurring Events\nHandle periodic events, e.g.,\nweekly or monthly recurring events.]
+  
+  [Data Analysis & Report Generation\nAnalyze large datasets and\ngenerate reports or statistics.]
+  
+  [Cache Update\nUpdate cache when the database\ndata changes.]
+  
+  [Search Index Update\nUpdate Elasticsearch index when\nevent data changes.]
+}
+
+package "Databases" {
+  [Primary DB: PostgreSQL/MySQL]
+  [Cache: Redis]
+  [Search Engine: Elasticsearch]
+}
+
+package "Load Balancer" {
+  [Nginx/HAProxy]
+}
+
+package "Workers" {
+  [Worker: Celery]
+}
+
+User --> "API Gateway": Request
+"API Gateway" --> "Web Server": Forward Request
+"Web Server" --> "Task Queue: Celery": Add Task
+"Task Queue: Celery" --> "Workers": Assign Task
+"Workers" --> "Task Queue: Celery": Task Completed
+
+"Web Server" --> "Cache": Check Cache
+"Cache" --> "Web Server": Cache Hit
+"Cache" -> "Web Server": Cache Miss
+
+"Web Server" --> "Primary DB": Query : If Cache Miss
+"Primary DB" --> "Web Server": Return Data
+"Web Server" --> "Cache": Update Cache : If Cache Miss
+
+"Web Server" --> "Search Engine": Search
+"Task Queue" --> "Worker": Send Tasks
+"Worker" --> "Primary DB": Query
+"Worker" --> "Cache": Invalidate Cache
+@enduml
