@@ -1,4 +1,5 @@
 @startuml
+
 actor User
 
 rectangle "API Gateway" {
@@ -12,54 +13,69 @@ rectangle "Web Server" {
   [Business Logic]
 }
 
-rectangle "Message Queue" {
+queue "Message Queue" {
   [Kafka]
 }
 
 rectangle "Workers" {
-  [Send Notification\nWhen an event is about to start,\nsend a notification to the user.]
-  
-  [Process Recurring Events\nHandle periodic events, e.g.,\nweekly or monthly recurring events.]
-  
-  [Data Analysis & Report Generation\nAnalyze large datasets and\ngenerate reports or statistics.]
-  
-  [Cache Update\nUpdate cache when the database\ndata changes.]
-  
-  [Search Index Update\nUpdate Elasticsearch index when\nevent data changes.]
+  [Send Notification]
+  [Process Recurring Events]
+  [Data Analysis & Reporting]
+  [Cache Update]
+  [Search Index Update]
 }
 
-package "Databases" {
+database "Databases" {
   [Primary DB: MongoDB]
   [Cache: Redis]
   [Search Engine: Elasticsearch]
 }
 
-package "Load Balancer" {
+rectangle "Load Balancer" {
   [Nginx/HAProxy]
 }
 
-package "Worker Nodes" {
-  [Worker: Kafka Consumer]
+rectangle "Worker Nodes" {
+  [Kafka Consumer]
 }
 
-User --> "API Gateway": Request
-"API Gateway" --> "Web Server": Forward Request
-"Web Server" --> "Message Queue: Kafka": Publish Message
-"Message Queue: Kafka" --> "Workers": Consume Message
-"Workers" --> "Message Queue: Kafka": Publish Result
+User --> [Load Balancer]
+[Load Balancer] --> "API Gateway"
+"API Gateway" --> "Web Server"
 
-"Web Server" --> "Cache: Redis": Check Cache
-"Cache: Redis" --> "Web Server": Cache Hit
-"Cache: Redis" -> "Web Server": Cache Miss
+"Web Server" --> [Kafka]
+[Kafka] --> "Workers"
+"Workers" --> [Kafka]: Results
 
-"Web Server" --> "Primary DB: MongoDB": Query : If Cache Miss
-"Primary DB: MongoDB" --> "Web Server": Return Data
-"Web Server" --> "Cache: Redis": Update Cache : If Cache Miss
+"Web Server" --> [Cache: Redis]: Check
+[Cache: Redis] --> "Web Server": Hit/Miss
 
-"Web Server" --> "Search Engine: Elasticsearch": Search
-"Message Queue: Kafka" --> "Worker Nodes: Kafka Consumer": Send Tasks
-"Worker Nodes: Kafka Consumer" --> "Primary DB: MongoDB": Query/Update
-"Worker Nodes: Kafka Consumer" --> "Cache: Redis": Invalidate/Update Cache
-"Worker Nodes: Kafka Consumer" --> "Search Engine: Elasticsearch": Update Index
+"Web Server" --> [Primary DB: MongoDB]: Query if cache miss
+[Primary DB: MongoDB] --> "Web Server": Data
+"Web Server" --> [Cache: Redis]: Update if cache miss
+
+"Web Server" --> [Search Engine: Elasticsearch]: Search
+
+[Kafka] --> "Worker Nodes"
+"Worker Nodes" --> [Primary DB: MongoDB]: Query/Update
+"Worker Nodes" --> [Cache: Redis]: Invalidate/Update
+"Worker Nodes" --> [Search Engine: Elasticsearch]: Update Index
+
+note right of "Web Server"
+  Handles core business logic,
+  interacts with database and cache,
+  publishes messages to Kafka
+end note
+
+note right of [Kafka]
+  Enables loose coupling 
+  and high-throughput 
+  event streaming
+end note
+
+note right of [Primary DB: MongoDB]
+  Flexible, scalable
+  document-based storage
+end note
 
 @enduml
