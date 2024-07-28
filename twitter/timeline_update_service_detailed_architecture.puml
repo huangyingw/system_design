@@ -4,9 +4,9 @@ skinparam backgroundColor #D3D3D3
 skinparam defaultFontName "Arial"
 skinparam defaultFontSize 16
 skinparam note {
-  BackgroundColor #FFFFFF
-  BorderColor #000000
-  FontSize 16
+  BackgroundColor #FFFACD
+  BorderColor #DAA520
+  FontSize 14
   FontName "Arial"
 }
 
@@ -33,6 +33,7 @@ rectangle "Timeline Update Service" as TUS {
         rectangle "Fetch New Tweets" as FNT
         rectangle "Update Timeline" as UT
         rectangle "Notify Users" as NU
+        rectangle "Preload Content" as PC
     }
 }
 
@@ -55,7 +56,7 @@ AQ -down-> TW : Processes Tasks
 FNT -down-> TD : Fetches New Tweets
 FNT -down-> TC : Updates Timeline Cache
 UT -down-> UTDB : Updates User Timelines
-NU -down-> SNS : Notifies Users
+NU -down-> Client : Notifies Users
 Cache -down-> EC : Uses Edge Caching for Speed
 
 note right of TUS
@@ -65,6 +66,11 @@ note right of TUS
   - 利用Redis缓存时间线数据
   - 使用CDN缓存静态资源
   - 数据库分片和读写分离
+end note
+
+note right of PC
+  预加载可能会被查看的内容，
+  减少用户等待时间
 end note
 
 @enduml
