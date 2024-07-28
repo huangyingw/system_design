@@ -4,9 +4,9 @@ skinparam backgroundColor #D3D3D3
 skinparam defaultFontName "Arial"
 skinparam defaultFontSize 16
 skinparam note {
-  BackgroundColor #FFFFFF
-  BorderColor #000000
-  FontSize 16
+  BackgroundColor #FFFACD
+  BorderColor #DAA520
+  FontSize 14
   FontName "Arial"
 }
 
@@ -43,6 +43,7 @@ rectangle "Supporting Services" as SS {
     rectangle "Search Service" as SSrv
     rectangle "Notification Service" as NSrv
     rectangle "Timeline Update Service" as TUS
+    rectangle "Content Delivery Network" as CDN
 }
 
 rectangle "Data Persistence Layer" as DPS {
@@ -73,8 +74,8 @@ Cache -down-> TUS : Returns Cached Data
 TUS -up-> AMS : Returns Timeline Data
 AMS -up-> LBWS : Sends Back Data
 LBWS -up-> Client : Returns Data/Updates Timeline
+CDN -[hidden]right-> SSrv
 
-' Performance Optimization Notes
 note right of LB
   **负载均衡优化**:
   - 高性能负载均衡器
@@ -102,6 +103,11 @@ end note
 note right of AMS
   **自动扩展**:
   - 配置自动扩展策略
+end note
+
+note right of CDN
+  使用CDN加速静态内容和媒体文件的传输，
+  提高全球用户的访问速度
 end note
 
 @enduml
