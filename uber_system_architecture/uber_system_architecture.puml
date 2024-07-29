@@ -1,34 +1,92 @@
 @startuml
-skinparam backgroundColor #D3D3D3
-!define Rectangle class
+!define Component component
+!define Database database
+!define Queue queue
+
+skinparam backgroundColor #E6E6FA
+skinparam packageStyle rectangle
+skinparam componentStyle uml2
+
+allowmixing
 
 package "Uber System" {
+    Component "Load Balancer" as LB
 
-    Rectangle "User App\n(Passenger Interface)" as UserApp
-    Rectangle "Driver App\n(Driver Interface)" as DriverApp
-    Rectangle "Backend Server\n(APIs & Core Logic)" as Backend
-    Rectangle "Geolocation Service\n(Location & Routing)" as Geolocation
-    Rectangle "Trip Matcher\n(Algorithm for Matching)" as Matcher
-    Rectangle "GPS Service\n(Real-time Location Tracking)" as GPSService
-    Rectangle "Location Data Processor\n(Handling Location Updates)" as LocationProcessor
-
-    UserApp -down-> Backend : Sends requests
-    DriverApp -down-> Backend : Updates status/accepts rides
-    Backend -right-> Geolocation : Requests location/routing
-    Backend -down-> Matcher : Matches drivers with riders
-    DriverApp -right-> GPSService : Sends real-time location
-    GPSService -down-> LocationProcessor : Transmits location data
-    LocationProcessor -down-> Backend : Updates driver location
-
-    package "Data Storage Layer" {
-        Rectangle "Database\n(User & Trip Data)" as Database
-        Rectangle "Redis Service\n(Real-time Data Cache)" as RedisService
+    package "Application Layer" {
+        Component "User App\n(Passenger Interface)" as UserApp
+        Component "Driver App\n(Driver Interface)" as DriverApp
     }
 
-    Backend -down-> "Data Storage Layer" : Queries/Updates data
-    Geolocation -down-> "Data Storage Layer"
-    Matcher -down-> "Data Storage Layer"
-    LocationProcessor -left-> "Data Storage Layer"
+    package "API Gateway" as APIGateway {
+        Component "Rate Limiter" as RateLimiter
+        Component "Authentication" as Auth
+    }
+
+    package "Microservices" {
+        Component "User Service" as UserService
+        Component "Driver Service" as DriverService
+        Component "Trip Service" as TripService
+        Component "Payment Service" as PaymentService
+        Component "Notification Service" as NotificationService
+    }
+
+    Component "Geolocation Service\n(Location & Routing)" as Geolocation
+    Component "Trip Matcher\n(Algorithm for Matching)" as Matcher
+    Component "Real-time Location Tracker" as LocationTracker
+
+    package "Data Storage Layer" {
+        Database "User DB" as UserDB
+        Database "Driver DB" as DriverDB
+        Database "Trip DB" as TripDB
+        Database "Payment DB" as PaymentDB
+        Queue "Message Queue" as MQ
+        Component "Redis Cache" as Redis
+    }
+
+    LB -down-> APIGateway
+    APIGateway -down-> Microservices
+    Microservices -down-> "Data Storage Layer"
+    Microservices --> Geolocation
+    Microservices --> Matcher
+    Microservices --> LocationTracker
+    LocationTracker --> Redis : Update real-time locations
+    Matcher --> Redis : Access real-time data
+    UserApp -up-> LB
+    DriverApp -up-> LB
 }
+
+note right of UserDB
+  PK: user_id
+  Indexes: email, phone
+  Sort: registration_date
+endnote
+
+note right of DriverDB
+  PK: driver_id
+  Indexes: email, phone, current_location
+  Sort: rating
+endnote
+
+note right of TripDB
+  PK: trip_id
+  FK: user_id, driver_id
+  Indexes: start_time, end_time, status
+  Sort: start_time DESC
+endnote
+
+note right of PaymentDB
+  PK: payment_id
+  FK: user_id, trip_id
+  Indexes: payment_date, status
+  Sort: payment_date DESC
+endnote
+
+note right of Redis
+  Sharding keys: user_id, driver_id, geohash
+endnote
+
+note bottom of MQ
+  Topics: notifications, trip_updates, payment_events
+endnote
 
 @enduml
