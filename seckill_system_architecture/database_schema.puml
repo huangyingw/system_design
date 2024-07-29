@@ -20,19 +20,9 @@ TABLE(users, "Users") {
     updated_at: TIMESTAMP
 }
 
-TABLE(products, "Products") {
-    PK(product_id): BIGINT
-    name: VARCHAR(100)
-    description: TEXT
-    price: DECIMAL(10,2)
-    stock_quantity: INT
-    created_at: TIMESTAMP
-    updated_at: TIMESTAMP
-}
-
 TABLE(flash_sale_events, "Flash Sale Events") {
     PK(event_id): BIGINT
-    FK(product_id): BIGINT
+    product_id: STRING
     start_time: TIMESTAMP
     end_time: TIMESTAMP
     sale_price: DECIMAL(10,2)
@@ -40,44 +30,5 @@ TABLE(flash_sale_events, "Flash Sale Events") {
     created_at: TIMESTAMP
     updated_at: TIMESTAMP
 }
-
-TABLE(orders, "Orders") {
-    PK(order_id): BIGINT
-    FK(user_id): BIGINT
-    FK(product_id): BIGINT
-    quantity: INT
-    total_price: DECIMAL(10,2)
-    status: ENUM
-    created_at: TIMESTAMP
-    updated_at: TIMESTAMP
-}
-
-TABLE(inventory_logs, "Inventory Logs") {
-    PK(log_id): BIGINT
-    FK(product_id): BIGINT
-    quantity_change: INT
-    operation_type: ENUM
-    FK(related_order_id): BIGINT
-    created_at: TIMESTAMP
-}
-
-TABLE(preorder_inventory, "Pre-order Inventory") {
-    PK(preorder_id): BIGINT
-    FK(product_id): BIGINT
-    FK(user_id): BIGINT
-    quantity: INT
-    expiration_time: TIMESTAMP
-    status: ENUM
-    created_at: TIMESTAMP
-    updated_at: TIMESTAMP
-}
-
-users "1" -- "0..*" orders
-products "1" -- "0..*" orders
-products "1" -- "0..*" flash_sale_events
-products "1" -- "0..*" inventory_logs
-orders "1" -- "0..*" inventory_logs
-products "1" -- "0..*" preorder_inventory
-users "1" -- "0..*" preorder_inventory
 
 @enduml
