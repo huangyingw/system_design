@@ -5,9 +5,48 @@
 ' Enable mixing of elements
 allowmixing
 
-skinparam backgroundColor #D3D3D3
+' Increase image resolution
+scale 2
+
+' Global style settings
+skinparam backgroundColor #FFFFFF
 skinparam packageStyle rectangle
 skinparam linetype ortho
+
+' Font settings
+skinparam defaultFontName Arial
+skinparam defaultFontSize 16
+skinparam defaultFontColor #000000
+skinparam noteFontSize 14
+skinparam arrowColor #454545
+
+' Make fonts bold
+skinparam defaultFontStyle bold
+
+' Component colors
+skinparam rectangle {
+    BackgroundColor #E0E0E0
+    BorderColor #454545
+    FontColor #000000
+}
+
+skinparam database {
+    BackgroundColor #D0D0D0
+    BorderColor #454545
+    FontColor #000000
+}
+
+skinparam note {
+    BackgroundColor #FFFACD
+    BorderColor #454545
+    FontColor #000000
+}
+
+skinparam package {
+    BackgroundColor #F0F0F0
+    BorderColor #454545
+    FontColor #000000
+}
 
 package "Uber System" {
     RECTANGLE "Backend Server\n(APIs & Core Logic)" as Backend
@@ -17,93 +56,55 @@ package "Uber System" {
             DATABASE "Orders Primary DB" as OrdersPrimary
             DATABASE "Orders Read Replica 1" as OrdersReplica1
             DATABASE "Orders Read Replica 2" as OrdersReplica2
-            note bottom of OrdersPrimary
-                PK: order_id
-                FK: user_id, driver_id
-                Indexes: status, created_at
-                Sort: created_at DESC
-                Sharding Key: order_id (hash)
-                Partitioning: Range by created_at
-            end note
         }
         
         package "User Database Cluster" {
             DATABASE "Users Primary DB" as UsersPrimary
             DATABASE "Users Read Replica 1" as UsersReplica1
             DATABASE "Users Read Replica 2" as UsersReplica2
-            note bottom of UsersPrimary
-                PK: user_id
-                Indexes: email, phone, created_at
-                Sort: created_at DESC
-                Sharding Key: user_id (hash)
-                Partitioning: List by user_type
-            end note
         }
         
         package "Driver Location Database" {
             DATABASE "Location Primary DB" as LocationPrimary
             DATABASE "Location Read Replica 1" as LocationReplica1
-            note bottom of LocationPrimary
-                PK: driver_id
-                Indexes: geohash, last_updated
-                Sort: last_updated DESC
-                Sharding Key: geohash
-                Partitioning: List by city
-            end note
         }
         
         package "Trip Records Database Cluster" {
             DATABASE "Trip Primary DB" as TripPrimary
             DATABASE "Trip Read Replica 1" as TripReplica1
             DATABASE "Trip Read Replica 2" as TripReplica2
-            note bottom of TripPrimary
-                PK: trip_id
-                FK: user_id, driver_id
-                Indexes: status, start_time
-                Sort: start_time DESC
-                Sharding Key: trip_id (hash)
-                Partitioning: Range by start_time
-            end note
         }
         
         RECTANGLE "Redis Cluster\n(Real-time Data Cache)" as RedisCluster
-        note right of RedisCluster
-            Caches: User sessions, Driver locations,
-            Active trips, Surge pricing
-            Sharding Key: Key prefix
-        end note
     }
     
     Backend -down-> "Data Storage Layer" : Queries/Updates
 }
 
-' Performance optimization notes
 note right of Backend
-    Performance Optimizations:
-    1. Use read replicas for read-heavy operations
-    2. Implement caching with Redis for frequently accessed data
-    3. Use database indexing for faster queries
-    4. Implement database sharding for horizontal scaling
-    5. Use asynchronous processing for non-critical operations
+    <b>Performance Optimizations:</b>
+    • Read replicas for read-heavy ops
+    • Redis caching for frequent data
+    • Database indexing
+    • Database sharding
+    • Asynchronous processing
 end note
 
-' Bottleneck identification
 note left of "Data Storage Layer"
-    Potential Bottlenecks:
-    1. Database write operations during peak hours
-    2. Real-time location updates for large number of drivers
-    3. Complex join queries across multiple databases
-    4. High-volume data ingestion for trip records
+    <b>Potential Bottlenecks:</b>
+    • Peak hour write operations
+    • Real-time location updates
+    • Complex cross-database queries
+    • High-volume data ingestion
 end note
 
-' Scalability notes
 note bottom of "Data Storage Layer"
-    Scalability Strategies:
-    1. Horizontal scaling of database clusters
-    2. Implement database caching layer
-    3. Use message queues for asynchronous processing
-    4. Implement microservices architecture for better scalability
-    5. Use content delivery networks (CDNs) for static content
+    <b>Scalability Strategies:</b>
+    • Horizontal database scaling
+    • Caching layer implementation
+    • Message queues for async processing
+    • Microservices architecture
+    • CDNs for static content
 end note
 
 @enduml
