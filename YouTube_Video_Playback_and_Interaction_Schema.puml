@@ -1,0 +1,89 @@
+@startuml YouTube Video Playback
+
+skinparam backgroundColor #2E3440
+skinparam defaultFontColor #ECEFF4
+skinparam class {
+  BackgroundColor #3B4252
+  ArrowColor #88C0D0
+  BorderColor #81A1C1
+  FontColor #E5E9F0
+}
+skinparam packageBackgroundColor #2E3440
+skinparam packageBorderColor #5E81AC
+skinparam stereotypeCBackgroundColor #EBCB8B
+skinparam stereotypeCBorderColor #D08770
+
+left to right direction
+skinparam nodesep 60
+skinparam ranksep 60
+
+package "Video Playback" {
+  class VideoPlaybackSession <<NoSQL>> {
+    +id : string <<PK>>
+    +user_id : string <<Shard-Key>>
+    +video_id : string <<Shard-Key>>
+    +start_time : timestamp
+    +end_time : timestamp
+    +last_position : int
+    +quality : string
+  }
+
+  class VideoView <<NoSQL>> {
+    +video_id : string <<Composite Shard-Key>>
+    +user_id : string
+    +view_date : timestamp <<Composite Shard-Key>>
+  }
+}
+
+package "User Interaction" {
+  class Comment <<NoSQL>> {
+    +id : string <<PK>>
+    +video_id : string <<Shard-Key>>
+    +user_id : string
+    +text : text
+    +created_at : timestamp
+  }
+
+  class VideoRating <<NoSQL>> {
+    +video_id : string <<Composite Shard-Key>>
+    +user_id : string <<Composite Shard-Key>>
+    +rating : int
+    +created_at : timestamp
+  }
+}
+
+package "Caching" {
+  class VideoCache <<Redis>> {
+    +video_id : string <<FK>>
+    +metadata : string
+    +popular_resolutions : list
+  }
+
+  class UserRecommendationCache <<Redis>> {
+    +user_id : string <<FK>>
+    +recommended_video_ids : list
+  }
+}
+
+VideoPlaybackSession "1" -- "1" VideoView : Generates >
+VideoPlaybackSession "1" -- "0..N" Comment : May generate >
+VideoPlaybackSession "1" -- "0..1" VideoRating : May generate >
+VideoPlaybackSession ..> VideoCache : Uses >
+VideoPlaybackSession ..> UserRecommendationCache : Updates >
+
+note right of VideoPlaybackSession
+  Tracks individual video playback sessions,
+  including quality changes and pauses
+end note
+
+note right of VideoCache
+  Stores frequently accessed video metadata
+  and popular resolution options
+end note
+
+note right of UserRecommendationCache
+  Caches personalized video recommendations
+  based on user's viewing history
+end note
+
+@enduml

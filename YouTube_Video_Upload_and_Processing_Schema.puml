@@ -1,0 +1,86 @@
+@startuml YouTube Video Upload and Storage
+
+skinparam backgroundColor #2E3440
+skinparam defaultFontColor #ECEFF4
+skinparam class {
+  BackgroundColor #3B4252
+  ArrowColor #88C0D0
+  BorderColor #81A1C1
+  FontColor #E5E9F0
+}
+skinparam packageBackgroundColor #2E3440
+skinparam packageBorderColor #5E81AC
+skinparam stereotypeCBackgroundColor #EBCB8B
+skinparam stereotypeCBorderColor #D08770
+
+left to right direction
+skinparam nodesep 60
+skinparam ranksep 60
+
+package "User Management" {
+  class User {
+    +id : int <<PK>>
+    +username : varchar
+    +email : varchar
+    +created_at : datetime
+  }
+}
+
+package "Video Upload and Processing" {
+  class Video <<NoSQL>> {
+    +id : string <<PK>>
+    +user_id : string <<Shard-Key>>
+    +title : string
+    +description : text
+    +upload_date : timestamp
+    +original_video_path : string
+    +status : string
+  }
+
+  class VideoVersion <<NoSQL>> {
+    +id : string <<PK>>
+    +video_id : string <<Shard-Key>>
+    +resolution : string
+    +format : string
+    +file_path : string
+    +size : int
+  }
+
+  class TranscodingJob {
+    +id : string <<PK>>
+    +video_id : string
+    +status : string
+    +created_at : timestamp
+    +completed_at : timestamp
+  }
+}
+
+package "Metadata" {
+  class Tag {
+    +id : int <<PK>>
+    +name : varchar
+  }
+
+  class VideoTag {
+    +video_id : string <<FK>>
+    +tag_id : int <<FK>>
+  }
+}
+
+User "1" -- "N" Video : Uploads >
+Video "1" -- "N" VideoVersion : Has >
+Video "1" -- "N" TranscodingJob : Generates >
+Video "1" -- "N" VideoTag : Tagged with >
+Tag "1" -- "N" VideoTag : Describes >
+
+note right of Video
+  After upload, multiple VideoVersions 
+  are created through TranscodingJobs
+end note
+
+note right of VideoVersion
+  Stores different resolutions and formats
+  of the original video
+end note
+
+@enduml
