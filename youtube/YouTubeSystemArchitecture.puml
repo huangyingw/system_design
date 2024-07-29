@@ -1,99 +1,105 @@
-@startuml
+@startuml YouTube System Architecture
 !define AWSPUML https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v14.0/dist
 !includeurl AWSPUML/AWSCommon.puml
 
-skinparam BackgroundColor #2C2C2C
+' Color scheme
+skinparam BackgroundColor #1A1A1A
+skinparam componentStyle uml2
 skinparam component {
-  BackgroundColor #555
-  BorderColor #FFD700
-  FontColor #FFD700
+  BackgroundColor #2C2C2C
+  BorderColor #4CAF50
+  FontColor #FFFFFF
 }
 skinparam package {
-  BackgroundColor Transparent
-  BorderColor #FFD700
-  FontColor #FFF
+  BackgroundColor transparent
+  BorderColor #4CAF50
+  FontColor #4CAF50
 }
 skinparam actor {
-  BackgroundColor #555
-  BorderColor #FFD700
-  FontColor #FFD700
+  BackgroundColor #2C2C2C
+  BorderColor #4CAF50
+  FontColor #FFFFFF
 }
-skinparam Arrow {
-  FontColor #FFD700
+skinparam arrow {
+  Color #4CAF50
+  FontColor #FFFFFF
 }
 skinparam note {
-  BackgroundColor #555
-  BorderColor #FFD700
-  FontColor #FFD700
+  BackgroundColor #2C2C2C
+  BorderColor #FFA500
+  FontColor #FFFFFF
 }
 
+' Layout
+left to right direction
+
+' Actors and main components
 actor "User\n(Browser)" as User
 
-package "Backend Layer" {
-  component "[Auto Scaling]\nLoadBalancer" as LoadBalancer
-  component "[Auto Scaling]\nWeb Server" as AutoScalingWeb
-  component "[Auto Scaling]\nApplication Server" as AutoScalingApp
+package "Frontend" {
+  [CDN] as CDN
+  [Edge Cache] as EdgeCache
 }
 
-User -> LoadBalancer : 1. Action (Upload/Access)
-LoadBalancer -> AutoScalingWeb : 2. Distribute Request
-AutoScalingWeb -> AutoScalingApp : 3. Process Request (Upload/Business Logic)
+package "Backend Layer" {
+  [Load Balancer] as LoadBalancer
+  [Web Server] as WebServer
+  [Application Server] as AppServer
+}
 
 package "Processing Layer" {
-  component "[Asynchronous]\nMessage Queue\nService" as MQS
-  component "[GPU-based]\nVideo Processing Server" as GPUVPS
-  component "[Enhanced]\nTranscodingServer" as TranscodingServer
+  [Message Queue] as MQS
+  [Video Processing] as VideoProcessing
+  [Transcoding Server] as TranscodingServer
 }
-
-AutoScalingApp -> MQS : 4. Enqueue Video for Processing (Upload Scenario)
-MQS -> GPUVPS : 5. Dequeue Video for Processing
-GPUVPS -> TranscodingServer : 6. Request Transcoding
 
 package "Data Layer" {
-  component "[Enhanced]\nCache" as Cache
-  component "[Scalable]\nVideoStorage" as VideoStorage
-  component "[Optimized]\nNoSQL Database" as NoSQLDB
-  component "[Optimized]\nRDBMS" as RDBMS
+  [Cache] as Cache
+  [Video Storage] as VideoStorage
+  [NoSQL DB] as NoSQL
+  [RDBMS] as RDBMS
 }
 
-TranscodingServer -> VideoStorage : 7. Store Transcoded Videos (Various Resolutions)
-AutoScalingApp -down-> Cache : 8. Check Cache (Read Scenario)
-Cache -down-> VideoStorage : 9. Fetch Video if not in Cache
-Cache -down-> RDBMS : 10. Fetch Data if not in Cache
-Cache -down-> NoSQLDB : Fetch and Cache Data
-RDBMS -down-> AutoScalingApp : Return Data
+' Connections
+User --> CDN : 1. Request Content
+CDN --> EdgeCache : 2. Check Edge Cache
+CDN --> LoadBalancer : 3. Route Request
+LoadBalancer --> WebServer : 4. Distribute
+WebServer --> AppServer : 5. Process
+AppServer --> MQS : 6. Enqueue (Upload)
+MQS --> VideoProcessing : 7. Process Video
+VideoProcessing --> TranscodingServer : 8. Transcode
+TranscodingServer --> VideoStorage : 9. Store
+AppServer --> Cache : 10. Check Cache
+Cache --> VideoStorage : 11. Fetch if not cached
+Cache --> RDBMS : 12. Fetch Data
+Cache --> NoSQL : 13. Fetch Data
+VideoStorage --> CDN : 14. Distribute Content
 
-package "Content Delivery Network" {
-component CDN
-  component "[Enhanced]\nEdge Cache" as EdgeCache
-}
+' Notes
+note right of CDN
+  Global Content Delivery Network
+  for fast video streaming
+end note
 
-VideoStorage -right-> CDN : Upload Videos to CDN
-CDN -down-> User : Deliver Video Content
-CDN -down-> EdgeCache : Cache Popular Content at Edge
+note right of LoadBalancer
+  Auto-scaling based on traffic
+  Intelligent request routing
+end note
 
-note "Auto Scaling Load Balancer:\n- Dynamic scaling based on performance metrics\n- Intelligent routing for optimal request distribution" as NoteLoadBalancer
-NoteLoadBalancer .. LoadBalancer
+note right of VideoProcessing
+  GPU-accelerated for
+  efficient processing
+end note
 
-note "Auto Scaling Web & App Server:\n- Elastic scaling based on traffic\n- Flexible resource pools for peak times" as NoteAutoScalingServers
-NoteAutoScalingServers .. AutoScalingWeb
-NoteAutoScalingServers .. AutoScalingApp
+note right of Cache
+  Multi-level caching strategy
+  Intelligent invalidation
+end note
 
-note "Asynchronous Message Queue Service:\n- Asynchronous communication for reduced processing time\n- High-density task management via message queues" as NoteMQS
-NoteMQS .. MQS
-
-note "GPU-based Video Processing Server:\n- GPU acceleration for enhanced video processing\n- Parallel processing for large-scale video tasks" as NoteGPUVPS
-NoteGPUVPS .. GPUVPS
-
-note "Enhanced Cache:\n- Multi-level caching strategy\n- Intelligent cache invalidation for data accuracy" as NoteCache
-NoteCache .. Cache
-
-note "Scalable Video Storage & Optimized Databases:\n- Distributed storage for horizontal scalability\n- Database optimization with read-write separation and efficient indexing" as NoteStorageDB
-NoteStorageDB .. VideoStorage
-NoteStorageDB .. NoSQLDB
-NoteStorageDB .. RDBMS
-
-note "Enhanced Edge Cache in CDN:\n- Advanced caching algorithms for prioritizing popular content\n- Dynamic cache adjustment based on access patterns" as NoteEdgeCache
-NoteEdgeCache .. EdgeCache
+note right of VideoStorage
+  Distributed storage system
+  for high availability
+end note
 
 @enduml
