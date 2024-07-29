@@ -1,89 +1,69 @@
-@startuml YouTube Video Playback
+@startuml YouTube_Video_Playback_Architecture
 
-skinparam backgroundColor #2E3440
-skinparam defaultFontColor #ECEFF4
-skinparam class {
-  BackgroundColor #3B4252
-  ArrowColor #88C0D0
-  BorderColor #81A1C1
-  FontColor #E5E9F0
-}
-skinparam packageBackgroundColor #2E3440
-skinparam packageBorderColor #5E81AC
-skinparam stereotypeCBackgroundColor #EBCB8B
-skinparam stereotypeCBorderColor #D08770
+' 设置整体主题
+!theme minty
+skinparam backgroundColor #FAFAFA
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam padding 5
+skinparam roundCorner 10
 
-left to right direction
-skinparam nodesep 60
-skinparam ranksep 60
-
-package "Video Playback" {
-  class VideoPlaybackSession <<NoSQL>> {
-    +id : string <<PK>>
-    +user_id : string <<Shard-Key>>
-    +video_id : string <<Shard-Key>>
-    +start_time : timestamp
-    +end_time : timestamp
-    +last_position : int
-    +quality : string
-  }
-
-  class VideoView <<NoSQL>> {
-    +video_id : string <<Composite Shard-Key>>
-    +user_id : string
-    +view_date : timestamp <<Composite Shard-Key>>
-  }
+' 定制组件样式
+skinparam component {
+  BackgroundColor #E1F5FE
+  BorderColor #0288D1
+  FontColor #01579B
 }
 
-package "User Interaction" {
-  class Comment <<NoSQL>> {
-    +id : string <<PK>>
-    +video_id : string <<Shard-Key>>
-    +user_id : string
-    +text : text
-    +created_at : timestamp
-  }
-
-  class VideoRating <<NoSQL>> {
-    +video_id : string <<Composite Shard-Key>>
-    +user_id : string <<Composite Shard-Key>>
-    +rating : int
-    +created_at : timestamp
-  }
+' 定制接口样式
+skinparam interface {
+  BackgroundColor #E8F5E9
+  BorderColor #4CAF50
+  FontColor #1B5E20
 }
 
-package "Caching" {
-  class VideoCache <<Redis>> {
-    +video_id : string <<FK>>
-    +metadata : string
-    +popular_resolutions : list
-  }
-
-  class UserRecommendationCache <<Redis>> {
-    +user_id : string <<FK>>
-    +recommended_video_ids : list
-  }
+' 定制箭头样式
+skinparam arrow {
+  Color #546E7A
+  FontColor #37474F
+  Thickness 1.5
 }
 
-VideoPlaybackSession "1" -- "1" VideoView : Generates >
-VideoPlaybackSession "1" -- "0..N" Comment : May generate >
-VideoPlaybackSession "1" -- "0..1" VideoRating : May generate >
-VideoPlaybackSession ..> VideoCache : Uses >
-VideoPlaybackSession ..> UserRecommendationCache : Updates >
+' 定制注释样式
+skinparam note {
+  BackgroundColor #FFF3E0
+  BorderColor #FF9800
+  FontColor #E65100
+}
 
-note right of VideoPlaybackSession
-  Tracks individual video playback sessions,
-  including quality changes and pauses
+' 定义主要组件
+actor "User" as user #E1BEE7
+component "Video Player" as videoplayer
+component "CDN" as cdn
+database "Video Storage" as videostorage
+component "Streaming Server" as streamingserver
+database "User Preferences DB" as userprefsdb
+component "Analytics Service" as analyticsservice
+
+' 定义交互流程
+user -down-> videoplayer : 1. Request video
+videoplayer -right-> cdn : 2. Request content
+cdn -down-> videostorage : 3. Fetch if not cached
+cdn -left-> videoplayer : 4. Deliver content
+videoplayer -down-> streamingserver : 5. Request stream
+streamingserver -left-> userprefsdb : 6. Check user preferences
+streamingserver -up-> videoplayer : 7. Adaptive streaming
+videoplayer -right-> analyticsservice : 8. Send playback data
+
+' 添加注释
+note right of cdn
+  Caches popular content
+  for faster delivery
 end note
 
-note right of VideoCache
-  Stores frequently accessed video metadata
-  and popular resolution options
-end note
-
-note right of UserRecommendationCache
-  Caches personalized video recommendations
-  based on user's viewing history
+note bottom of streamingserver
+  Provides adaptive bitrate streaming
+  based on user's connection
 end note
 
 @enduml
