@@ -1,43 +1,50 @@
 @startuml YouTube_Video_Playback_Architecture
 
 ' 设置整体主题
-!theme minty
-skinparam backgroundColor #FAFAFA
+skinparam backgroundColor #1E1E1E
 skinparam defaultFontName Arial
 skinparam defaultFontSize 12
+skinparam defaultFontColor #FFFFFF
 skinparam padding 5
 skinparam roundCorner 10
 
 ' 定制组件样式
 skinparam component {
-  BackgroundColor #E1F5FE
-  BorderColor #0288D1
-  FontColor #01579B
+  BackgroundColor #2C2C2C
+  BorderColor #4EC9B0
+  FontColor #FFFFFF
+}
+
+' 定制数据库样式
+skinparam database {
+  BackgroundColor #2C2C2C
+  BorderColor #FF6B6B
+  FontColor #FFFFFF
 }
 
 ' 定制接口样式
 skinparam interface {
-  BackgroundColor #E8F5E9
-  BorderColor #4CAF50
-  FontColor #1B5E20
+  BackgroundColor #2C2C2C
+  BorderColor #4EC9B0
+  FontColor #FFFFFF
 }
 
 ' 定制箭头样式
 skinparam arrow {
-  Color #546E7A
-  FontColor #37474F
+  Color #DCDCAA
+  FontColor #FFFFFF
   Thickness 1.5
 }
 
 ' 定制注释样式
 skinparam note {
-  BackgroundColor #FFF3E0
-  BorderColor #FF9800
-  FontColor #E65100
+  BackgroundColor #252526
+  BorderColor #CE9178
+  FontColor #FFFFFF
 }
 
 ' 定义主要组件
-actor "User" as user #E1BEE7
+actor "User" as user #9CDCFE
 component "Video Player" as videoplayer
 component "CDN" as cdn
 database "Video Storage" as videostorage
