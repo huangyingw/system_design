@@ -1,86 +1,80 @@
-@startuml YouTube Video Upload and Storage
+@startuml YouTube_Video_Upload_Architecture
 
-skinparam backgroundColor #2E3440
-skinparam defaultFontColor #ECEFF4
-skinparam class {
-  BackgroundColor #3B4252
-  ArrowColor #88C0D0
-  BorderColor #81A1C1
-  FontColor #E5E9F0
-}
-skinparam packageBackgroundColor #2E3440
-skinparam packageBorderColor #5E81AC
-skinparam stereotypeCBackgroundColor #EBCB8B
-skinparam stereotypeCBorderColor #D08770
+' 设置整体主题
+skinparam backgroundColor #1E1E1E
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam defaultFontColor #FFFFFF
+skinparam padding 5
+skinparam roundCorner 10
 
-left to right direction
-skinparam nodesep 60
-skinparam ranksep 60
-
-package "User Management" {
-  class User {
-    +id : int <<PK>>
-    +username : varchar
-    +email : varchar
-    +created_at : datetime
-  }
+' 定制组件样式
+skinparam component {
+  BackgroundColor #2C2C2C
+  BorderColor #4EC9B0
+  FontColor #FFFFFF
 }
 
-package "Video Upload and Processing" {
-  class Video <<NoSQL>> {
-    +id : string <<PK>>
-    +user_id : string <<Shard-Key>>
-    +title : string
-    +description : text
-    +upload_date : timestamp
-    +original_video_path : string
-    +status : string
-  }
-
-  class VideoVersion <<NoSQL>> {
-    +id : string <<PK>>
-    +video_id : string <<Shard-Key>>
-    +resolution : string
-    +format : string
-    +file_path : string
-    +size : int
-  }
-
-  class TranscodingJob {
-    +id : string <<PK>>
-    +video_id : string
-    +status : string
-    +created_at : timestamp
-    +completed_at : timestamp
-  }
+' 定制数据库样式
+skinparam database {
+  BackgroundColor #2C2C2C
+  BorderColor #FF6B6B
+  FontColor #FFFFFF
 }
 
-package "Metadata" {
-  class Tag {
-    +id : int <<PK>>
-    +name : varchar
-  }
-
-  class VideoTag {
-    +video_id : string <<FK>>
-    +tag_id : int <<FK>>
-  }
+' 定制队列样式
+skinparam queue {
+  BackgroundColor #2C2C2C
+  BorderColor #DCDCAA
+  FontColor #FFFFFF
 }
 
-User "1" -- "N" Video : Uploads >
-Video "1" -- "N" VideoVersion : Has >
-Video "1" -- "N" TranscodingJob : Generates >
-Video "1" -- "N" VideoTag : Tagged with >
-Tag "1" -- "N" VideoTag : Describes >
+' 定制接口样式
+skinparam interface {
+  BackgroundColor #2C2C2C
+  BorderColor #4EC9B0
+  FontColor #FFFFFF
+}
 
-note right of Video
-  After upload, multiple VideoVersions 
-  are created through TranscodingJobs
-end note
+' 定制箭头样式
+skinparam arrow {
+  Color #DCDCAA
+  FontColor #FFFFFF
+  Thickness 1.5
+}
 
-note right of VideoVersion
-  Stores different resolutions and formats
-  of the original video
+' 定制注释样式
+skinparam note {
+  BackgroundColor #252526
+  BorderColor #CE9178
+  FontColor #FFFFFF
+}
+
+' 定义主要组件
+actor "User" as user #9CDCFE
+component "Web Server" as webserver
+component "Upload Service" as uploadservice
+queue "Upload Queue" as uploadqueue
+component "Transcoding Service" as transcodingservice
+database "Original Video Storage" as originalstorage
+database "Transcoded Video Storage" as transcodedStorage
+database "Metadata DB" as metadatadb
+
+' 定义交互流程
+user -down-> webserver : 1. Upload video
+webserver -right-> uploadservice : 2. Process upload
+uploadservice -down-> originalstorage : 3. Store original
+uploadservice -right-> uploadqueue : 4. Queue for transcoding
+uploadservice -down-> metadatadb : 5. Store metadata
+uploadqueue -down-> transcodingservice : 6. Fetch job
+transcodingservice -left-> originalstorage : 7. Fetch original
+transcodingservice -right-> transcodedStorage : 8. Store transcoded versions
+transcodingservice -down-> metadatadb : 9. Update metadata
+
+' 添加注释
+note right of transcodingservice
+  Generates multiple versions
+  (different resolutions and formats)
 end note
 
 @enduml
