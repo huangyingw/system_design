@@ -3,6 +3,7 @@
 !define NOSQL(name,desc) class name as "desc" << (N,#AAFFAA) >>
 !define PK(x) <b><color:red>PK: </color></b>x
 !define FK(x) <color:green>FK: </color>x
+!define SK(x) <b><color:blue>Shard Key: </color></b>x
 hide methods
 hide stereotypes
 
@@ -39,6 +40,7 @@ package "Relational Database" {
 package "NoSQL Database" {
     NOSQL(products, "Products") {
         + _id: STRING (product_id)
+        SK(product_id)
         name: STRING
         description: STRING
         price: DECIMAL
@@ -49,7 +51,7 @@ package "NoSQL Database" {
 
     NOSQL(orders, "Orders") {
         + _id: STRING (order_id)
-        user_id: STRING
+        SK(user_id + created_at)
         product_id: STRING
         quantity: INT
         total_price: DECIMAL
@@ -60,7 +62,7 @@ package "NoSQL Database" {
 
     NOSQL(user_activity, "User Activity") {
         + _id: AUTO-GENERATED
-        user_id: STRING
+        SK(user_id + timestamp)
         activity_type: STRING
         details: OBJECT
         timestamp: TIMESTAMP
@@ -68,7 +70,7 @@ package "NoSQL Database" {
 
     NOSQL(system_logs, "System Logs") {
         + _id: AUTO-GENERATED
-        component: STRING
+        SK(component + timestamp)
         log_level: STRING
         message: STRING
         timestamp: TIMESTAMP
