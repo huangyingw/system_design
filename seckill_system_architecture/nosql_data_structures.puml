@@ -1,0 +1,85 @@
+@startuml
+!define RECTANGLE class
+
+skinparam class {
+    BackgroundColor #ECECEC
+    ArrowColor #2688d4
+    BorderColor #2688d4
+}
+
+skinparam linetype ortho
+
+title NoSQL Data Structures
+
+package "Cache" {
+    RECTANGLE "Product Cache" as ProductCache {
+        + key: product:{product_id}
+        --
+        product_id: bigint
+        name: string
+        price: decimal
+        stock_quantity: int
+        description: string
+    }
+
+    RECTANGLE "Flash Sale Cache" as FlashSaleCache {
+        + key: flash_sale:{event_id}
+        --
+        event_id: bigint
+        product_id: bigint
+        start_time: timestamp
+        end_time: timestamp
+        sale_price: decimal
+        quantity_limit: int
+        remaining_quantity: int
+    }
+
+    RECTANGLE "User Session Cache" as UserSessionCache {
+        + key: session:{session_id}
+        --
+        user_id: bigint
+        username: string
+        email: string
+        last_activity: timestamp
+    }
+}
+
+package "Message Queue" {
+    RECTANGLE "Order Processing Queue" as OrderProcessingQueue {
+        + message
+        --
+        order_id: bigint
+        user_id: bigint
+        product_id: bigint
+        quantity: int
+        total_price: decimal
+        timestamp: timestamp
+    }
+}
+
+package "Document Store" {
+    RECTANGLE "User Activity" as UserActivity {
+        + _id: auto-generated
+        --
+        user_id: bigint
+        activity_type: string
+        details: object
+        timestamp: timestamp
+    }
+
+    RECTANGLE "System Logs" as SystemLogs {
+        + _id: auto-generated
+        --
+        component: string
+        log_level: string
+        message: string
+        timestamp: timestamp
+    }
+}
+
+ProductCache -[hidden]down- FlashSaleCache
+FlashSaleCache -[hidden]down- UserSessionCache
+OrderProcessingQueue -[hidden]down- UserActivity
+UserActivity -[hidden]down- SystemLogs
+
+@enduml
