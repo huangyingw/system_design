@@ -7,67 +7,67 @@ skinparam shadowing true
 
 !define RECTANGLE class
 
-title 高并发秒杀系统架构设计
+title High-Concurrency Flash Sale System Architecture
 
-' 前端层
-RECTANGLE "Web前端" as WebFrontend #LightBlue
-RECTANGLE "移动端APP" as MobileApp #LightBlue
+' Frontend Layer
+RECTANGLE "Web Frontend" as WebFrontend #LightBlue
+RECTANGLE "Mobile App" as MobileApp #LightBlue
 
-' 网络层
+' Network Layer
 RECTANGLE CDN #LightGreen
 RECTANGLE ReverseProxy #LightGreen
-RECTANGLE LoadBalancer <<动态负载均衡>> #LightGreen
+RECTANGLE LoadBalancer <<Dynamic Load Distribution>> #LightGreen
 
-' 应用层
+' Application Layer
 RECTANGLE Controller #Orange
-RECTANGLE SecurityLayer <<安全防护>> #Red
+RECTANGLE SecurityLayer <<Security Protection>> #Red
 RECTANGLE BusinessLogicLayer #Yellow
-RECTANGLE "库存管理" as InventoryManagement #Yellow
-RECTANGLE "分布式锁" as DistributedLock #Yellow
-RECTANGLE CacheLayer <<高性能缓存>> #Cyan
-RECTANGLE "多级缓存" as MultiLevelCache #Cyan
-RECTANGLE MessageQueue <<异步&可扩展>> #Purple
-RECTANGLE AsyncProcessor <<高速订单处理>> #Purple
+RECTANGLE "Inventory Management" as InventoryManagement #Yellow
+RECTANGLE "Distributed Lock" as DistributedLock #Yellow
+RECTANGLE CacheLayer <<High-Performance Cache>> #Cyan
+RECTANGLE "Multi-level Cache" as MultiLevelCache #Cyan
+RECTANGLE MessageQueue <<Asynchronous & Scalable>> #Purple
+RECTANGLE AsyncProcessor <<High-Speed Order Processing>> #Purple
 
-' 数据层
-RECTANGLE DataAccessLayer <<高效数据处理>> #Pink
-RECTANGLE DatabaseSharding <<水平扩展>> #Pink
-RECTANGLE DatabaseOptimization <<索引&查询优化>> #Pink
+' Data Layer
+RECTANGLE DataAccessLayer <<Efficient Data Handling>> #Pink
+RECTANGLE DatabaseSharding <<Horizontal Scaling>> #Pink
+RECTANGLE DatabaseOptimization <<Indexing & Query Optimization>> #Pink
 
-' 系统支撑
-RECTANGLE RateLimiting <<流量控制>> #Gray
-RECTANGLE TCCTransactionManagement <<分布式事务控制>> #Gray
-RECTANGLE CacheWarmup <<预加载热点数据>> #Gray
-RECTANGLE MonitoringSystem <<性能监控&告警>> #Gray
-RECTANGLE "服务发现" as ServiceDiscovery #Gray
-RECTANGLE "配置中心" as ConfigCenter #Gray
-RECTANGLE "容灾备份" as DisasterRecovery #Gray
+' System Support
+RECTANGLE RateLimiting <<Traffic Control>> #Gray
+RECTANGLE TCCTransactionManagement <<Distributed Transaction Control>> #Gray
+RECTANGLE CacheWarmup <<Pre-load Hot Data>> #Gray
+RECTANGLE MonitoringSystem <<Performance Monitoring & Alerting>> #Gray
+RECTANGLE "Service Discovery" as ServiceDiscovery #Gray
+RECTANGLE "Configuration Center" as ConfigCenter #Gray
+RECTANGLE "Disaster Recovery" as DisasterRecovery #Gray
 
-' 连接关系
+' Connections
 WebFrontend -down-> CDN
 MobileApp -down-> CDN
 CDN -down-> ReverseProxy
 ReverseProxy -right-> LoadBalancer
 LoadBalancer -down-> Controller
-Controller -down-> SecurityLayer : 安全检查
-SecurityLayer -down-> BusinessLogicLayer : 验证通过
-BusinessLogicLayer -right-> InventoryManager : 库存管理
-BusinessLogicLayer -left-> DistributedLock : 并发控制
-BusinessLogicLayer -down-> CacheLayer : 查询/更新缓存
-CacheLayer -right-> MultiLevelCache : 本地+分布式缓存
-CacheLayer -left-> CacheWarmup : 初始化热点数据
-BusinessLogicLayer -right-> DataAccessLayer : 数据库操作
-DataAccessLayer -right-> TCCTransactionManagement : 管理分布式事务
-BusinessLogicLayer -up-> MessageQueue : 发送订单消息
-MessageQueue -down-> AsyncProcessor : 异步处理
-AsyncProcessor -down-> DataAccessLayer : 处理订单
-DataAccessLayer -down-> DatabaseSharding : 访问数据库
-DatabaseSharding -right-> DatabaseOptimization : 索引优化
-Controller -left-> RateLimiting : 限制请求频率
-ReverseProxy -down-> LoadBalancer : 动态调整
-BusinessLogicLayer -up-> MonitoringSystem : 监控运营
-Controller -up-> ServiceDiscovery : 服务注册与发现
-BusinessLogicLayer -up-> ConfigCenter : 集中配置管理
-DataAccessLayer -left-> DisasterRecovery : 数据备份与恢复
+Controller -down-> SecurityLayer : Security Check
+SecurityLayer -down-> BusinessLogicLayer : Verification Passed
+BusinessLogicLayer -right-> InventoryManagement : Inventory Control
+BusinessLogicLayer -left-> DistributedLock : Concurrency Control
+BusinessLogicLayer -down-> CacheLayer : Query/Update Cache
+CacheLayer -right-> MultiLevelCache : Local + Distributed Cache
+CacheLayer -left-> CacheWarmup : Initialize Hot Data
+BusinessLogicLayer -right-> DataAccessLayer : Database Operations
+DataAccessLayer -right-> TCCTransactionManagement : Manage Distributed Transactions
+BusinessLogicLayer -up-> MessageQueue : Send Order Message
+MessageQueue -down-> AsyncProcessor : Asynchronous Processing
+AsyncProcessor -down-> DataAccessLayer : Process Orders
+DataAccessLayer -down-> DatabaseSharding : Access Database
+DatabaseSharding -right-> DatabaseOptimization : Index Optimization
+Controller -left-> RateLimiting : Limit Request Frequency
+ReverseProxy -down-> LoadBalancer : Dynamic Adjustment
+BusinessLogicLayer -up-> MonitoringSystem : Monitor Operations
+Controller -up-> ServiceDiscovery : Service Registration & Discovery
+BusinessLogicLayer -up-> ConfigCenter : Centralized Configuration Management
+DataAccessLayer -left-> DisasterRecovery : Data Backup & Recovery
 
 @enduml
