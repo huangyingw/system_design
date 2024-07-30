@@ -1,5 +1,4 @@
 @startuml Telegram_File_Transfer_And_Storage
-!define RECTANGLE class
 
 skinparam backgroundColor #FEFEFE
 skinparam handwritten false
@@ -8,22 +7,22 @@ skinparam packageStyle rectangle
 skinparam defaultFontName Arial
 skinparam defaultFontSize 14
 
-RECTANGLE "Client" {
+rectangle "Client" {
     [File Uploader]
     [File Downloader]
 }
 
-RECTANGLE "Load Balancer" {
+rectangle "Load Balancer" {
     [File Transfer Load Balancer]
 }
 
-RECTANGLE "File Transfer Service" {
+rectangle "File Transfer Service" {
     [Chunk Manager]
     [Metadata Handler]
     [Encryption Service]
 }
 
-RECTANGLE "Storage" {
+rectangle "Storage" {
     database "Metadata DB" {
         [File Metadata]
     }
@@ -32,7 +31,7 @@ RECTANGLE "Storage" {
     }
 }
 
-RECTANGLE "CDN" {
+rectangle "CDN" {
     [Edge Servers]
 }
 
