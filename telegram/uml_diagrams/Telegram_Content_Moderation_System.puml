@@ -29,7 +29,7 @@ RECTANGLE "Manual Review Queue" {
     [Human Moderator Interface]
 }
 
-database "Content Database" {
+RECTANGLE "Content Database" {
     [Flagged Content]
     [Moderation Decisions]
 }
