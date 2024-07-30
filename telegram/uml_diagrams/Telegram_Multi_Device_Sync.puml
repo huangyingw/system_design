@@ -1,49 +1,69 @@
-@startuml Telegram_Multi_Device_Sync
-!define RECTANGLE class
+@startuml Telegram_Multi_Device_Sync_Optimized
+!define RECTANGLE component
+!define DATABASE database
+!define QUEUE queue
 
-skinparam backgroundColor #FEFEFE
+skinparam backgroundColor #F0F0F0
 skinparam handwritten false
 skinparam monochrome true
 skinparam packageStyle rectangle
 skinparam defaultFontName Arial
-skinparam defaultFontSize 14
+skinparam defaultFontSize 12
 
 RECTANGLE "User Devices" {
-    [Mobile Device]
+    [Mobile App]
     [Desktop Client]
     [Web Client]
 }
 
-RECTANGLE "Sync Service" {
+RECTANGLE "API Gateway" {
+    [Load Balancer]
+    [Rate Limiter]
+    [Auth Service]
+}
+
+RECTANGLE "Sync Service Cluster" {
     [Device Manager]
     [Message Synchronizer]
     [State Reconciliation]
 }
 
-RECTANGLE "Message Store" {
-    [Encrypted Messages]
-    [Message Metadata]
+DATABASE "Message Store" {
+    [Cassandra Cluster]
+    note right: Sharding Key: user_id
 }
 
-RECTANGLE "Device Registry" {
-    [Device List]
-    [Device Keys]
+DATABASE "Device Registry" {
+    [Redis Cluster]
+    note right: Key: user_id:device_id
 }
 
 RECTANGLE "Key Management Service" {
     [Key Distribution]
     [Key Rotation]
+    [HSM]
+}
+
+QUEUE "Message Queue" {
+    [Kafka Cluster]
 }
 
 RECTANGLE "Push Notification Service" {
     [Notification Dispatcher]
 }
 
-"User Devices" <--> "Sync Service" : Bi-directional sync
-"Sync Service" <--> "Message Store" : Fetch/Store messages
-"Sync Service" <--> "Device Registry" : Manage devices
-"Sync Service" <--> "Key Management Service" : Handle encryption keys
-"Push Notification Service" --> "User Devices" : Notify changes
-"Key Management Service" --> "User Devices" : Distribute keys
+RECTANGLE "Caching Layer" {
+    [Redis Cache]
+}
+
+"User Devices" <--> "API Gateway" : HTTPS
+"API Gateway" <--> "Sync Service Cluster" : Internal API
+"Sync Service Cluster" <--> "Message Store" : Read/Write
+"Sync Service Cluster" <--> "Device Registry" : Manage Devices
+"Sync Service Cluster" <--> "Key Management Service" : Encryption Keys
+"Sync Service Cluster" --> "Message Queue" : Publish Changes
+"Message Queue" --> "Push Notification Service" : Consume Events
+"Push Notification Service" --> "User Devices" : Send Notifications
+"Sync Service Cluster" <--> "Caching Layer" : Cache Data
 
 @enduml
