@@ -21,13 +21,13 @@ RECTANGLE "Group/Channel Service" {
     [Content Distributor]
 }
 
-database "Group/Channel DB" {
+RECTANGLE "Group/Channel DB" {
     [Metadata]
     [Member List]
     [Permissions]
 }
 
-queue "Message Queue" {
+RECTANGLE "Message Queue" {
     [Group Messages]
     [Channel Posts]
 }
