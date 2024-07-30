@@ -20,12 +20,12 @@ RECTANGLE "Sync Service" {
     [State Reconciliation]
 }
 
-database "Message Store" {
+RECTANGLE "Message Store" {
     [Encrypted Messages]
     [Message Metadata]
 }
 
-database "Device Registry" {
+RECTANGLE "Device Registry" {
     [Device List]
     [Device Keys]
 }
