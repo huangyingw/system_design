@@ -77,6 +77,39 @@ QUEUE "File Processing Queue" {
 
 DATABASE "Caching Layer" {
     [Redis Cluster]
+    note right of [Redis Cluster]
+        Redis 键设计:
+        
+        1. 文件元数据缓存:
+           Key: file:{file_id}:meta
+           Value: Hash(filename, size, type, upload_time)
+        
+        2. 文件块信息缓存:
+           Key: file:{file_id}:chunks
+           Value: Set(chunk_id1, chunk_id2, ...)
+        
+        3. 块元数据缓存:
+           Key: chunk:{chunk_id}:meta
+           Value: Hash(size, checksum, storage_location)
+        
+        4. 用户最近访问文件列表:
+           Key: user:{user_id}:recent_files
+           Value: SortedSet(file_id, timestamp)
+        
+        5. 文件访问计数:
+           Key: file:{file_id}:access_count
+           Value: String(count)
+        
+        6. 文件上传状态:
+           Key: file:{file_id}:upload_status
+           Value: Hash(total_chunks, uploaded_chunks, status)
+        
+        过期策略:
+        - 文件元数据和块信息: LRU, 1小时
+        - 用户最近访问文件列表: 7天
+        - 文件访问计数: 30天
+        - 文件上传状态: 上传完成后15分钟
+    end note
 }
 
 RECTANGLE "File Processing Workers" {
