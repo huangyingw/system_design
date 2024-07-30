@@ -1,76 +1,71 @@
 @startuml
-title System Architecture with Message Notifications
+title Telegram-like System Architecture with Read/Write Splitting and Sharding
 
-' 设置浅灰色背景
 skinparam backgroundColor #D3D3D3
-
-' 关闭阴影
 skinparam Shadowing false
-
-' 设置矩形样式
 skinparam rectangle {
   BackgroundColor #4F6377
   BorderColor #AAB3C2
   FontColor #F1F1F1
   BorderThickness 2
 }
-
-' 设置软件包样式
 skinparam package {
   BackgroundColor #677B94
   BorderColor #AAB3C2
   FontColor #F1F1F1
   RoundCorner 25
 }
-
-' 设置云样式
 skinparam cloud {
   BackgroundColor #5D8299
   BorderColor #AAB3C2
   FontColor #F1F1F1
   RoundCorner 30
 }
-
-' 设置数据库样式
 skinparam database {
   BackgroundColor #708AA6
   BorderColor #AAB3C2
-  FontColor #FFCC00 // 明亮的字体颜色
+  FontColor #FFCC00
   RoundCorner 20
 }
 
-' 定义元素
+left to right direction
+
 package "Client Side" {
-  [Telegram User's Client] -down-> [Other Telegram Users]
+  [Sender's Client]
+  [Receiver's Client]
 }
 
 rectangle "Telegram Service" {
-  [Load Balancer] 
+  [Load Balancer]
   [Service Instance]
 }
 
-database "Centralized Database System" {
-  [Database Master]
-  [Database Read Replica] 
-  [Cache Level 1] 
-  [Cache Level 2] 
-  [Database Slave]
+rectangle "Authorization Service" {
+  [Authorization & Permissions]
 }
 
 rectangle "Message System" {
   [Kafka (Message Queue)]
   [Kafka (Pub/Sub Model)]
-  [Worker]
+  [Message Worker]
 }
 
 rectangle "Notification Service" {
-  [Notification Handling]
-  [Message Notification Center]
-  [Message Notification Service]
+  [Notification Handler]
+  [Push Notification Service]
 }
 
-rectangle "Authorization Service" {
-  [Authorization & Permissions]
+database "Database System" {
+  package "MongoDB Cluster" {
+    [Config Servers]
+    package "Shard" {
+      [Primary]
+      [Secondary 1]
+      [Secondary 2]
+    }
+    [MongoDB Router (mongos)]
+  }
+  [Redis Cache]
 }
 
 cloud "Monitoring & Logging" {
@@ -78,27 +73,38 @@ cloud "Monitoring & Logging" {
   [Logging]
 }
 
-' 定义连接
-[Telegram User's Client] --> [Telegram Service] : Send Message
-[Load Balancer] --> [Service Instance]
-[Service Instance] --> [Authorization Service] : Check Permission
-[Authorization Service] -down-> [Message System] : Authorized Message
-[Cache Level 1] --> [Database Master] : Fallback if Miss
-[Database Master] --> [Cache Level 2] : Update Cache
-[Cache Level 2] --> [Database Slave] : Fallback if Miss
-[Database Read Replica] --> [Database Slave] : Read Operations
-[Database Master] --> [Message System] : After user updates
-[Kafka (Message Queue)] --> [Worker] : Process Message
-[Worker] --> [Kafka (Pub/Sub Model)] : Publish Processed Message with Priority
-[Notification Service] --> [Other Telegram Users] : Receive Message
-[Service Instance] --> [Monitoring & Logging]
+' Send Message Flow
+[Sender's Client] -right-> [Load Balancer]: 1. Send Message
+[Load Balancer] -right-> [Service Instance]
+[Service Instance] -down-> [Authorization & Permissions]: 2. Check Permission
+[Authorization & Permissions] -right-> [Kafka (Message Queue)]: 3. Authorized Message
+[Kafka (Message Queue)] -right-> [Message Worker]: 4. Process Message
+[Message Worker] -down-> [MongoDB Router (mongos)]: 5. Store Message
+[MongoDB Router (mongos)] -right-> [Primary]: 6. Write to Shard
+[Message Worker] -down-> [Redis Cache]: 7. Update Cache
+[Message Worker] -right-> [Kafka (Pub/Sub Model)]: 8. Publish Message Event
 
-' 消息系统与数据库系统的交互
-[Worker] --> [Centralized Database System] : Data Processing and Logging
-[Kafka (Pub/Sub Model)] --> [Notification Service] : Publish Notification Events
-[Notification Service] --> [Centralized Database System] : Retrieve User Settings / Log Notifications
-[Message Notification Center] --> [Notification Handling] : Dispatch Notifications
-[Notification Handling] --> [Message Notification Service] : Process and Send Notifications
-[Notification Handling] --> [Centralized Database System] : Retrieve User Settings / Update Notification Status
+[Kafka (Pub/Sub Model)] -down-> [Notification Handler]: 9. Trigger Notification
+[Notification Handler] -right-> [Push Notification Service]: 10. Send Push Notification
+[Push Notification Service] -up-> [Receiver's Client]: 11. Deliver Notification
+
+' Read Message Flow
+[Receiver's Client] -right-> [Load Balancer]: 12. Request to Read Message
+[Service Instance] -down-> [Redis Cache]: 13. Check Cache
+[Redis Cache] -up-> [Service Instance]: 14. Return Cached Message (if available)
+[Service Instance] -down-> [MongoDB Router (mongos)]: 15. Fetch Message (if not in cache)
+[MongoDB Router (mongos)] -right-> [Secondary 1]: 16. Read from Shard
+[MongoDB Router (mongos)] -up-> [Service Instance]: 17. Return Message
+[Service Instance] -up-> [Receiver's Client]: 18. Deliver Message
+
+' Replication
+[Primary] -down-> [Secondary 1]: Replicate
+[Primary] -down-> [Secondary 2]: Replicate
+
+' Config Servers
+[Config Servers] -right-> [MongoDB Router (mongos)]: Provide Cluster Metadata
+
+' Logging and Monitoring
+[Service Instance] -up-> [Monitoring & Logging]: Log Events
 
 @enduml
