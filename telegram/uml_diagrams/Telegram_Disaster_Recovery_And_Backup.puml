@@ -1,5 +1,4 @@
 @startuml Telegram_Disaster_Recovery_And_Backup
-!define RECTANGLE class
 
 skinparam backgroundColor #FEFEFE
 skinparam handwritten false
@@ -8,7 +7,7 @@ skinparam packageStyle rectangle
 skinparam defaultFontName Arial
 skinparam defaultFontSize 14
 
-RECTANGLE "Primary Data Center" {
+rectangle "Primary Data Center" {
     database "Primary Databases" {
         [User Data]
         [Message Data]
@@ -16,7 +15,7 @@ RECTANGLE "Primary Data Center" {
     [Application Servers]
 }
 
-RECTANGLE "Backup Data Center" {
+rectangle "Backup Data Center" {
     database "Backup Databases" {
         [Replicated User Data]
         [Replicated Message Data]
@@ -24,23 +23,23 @@ RECTANGLE "Backup Data Center" {
     [Standby Application Servers]
 }
 
-RECTANGLE "Disaster Recovery System" {
+rectangle "Disaster Recovery System" {
     [Monitoring Service]
     [Failover Manager]
     [Data Sync Service]
 }
 
-cloud "Cloud Storage" {
+rectangle "Cloud Storage" {
     [Encrypted Backups]
 }
 
-RECTANGLE "Backup Management" {
+rectangle "Backup Management" {
     [Backup Scheduler]
     [Encryption Service]
     [Integrity Checker]
 }
 
-RECTANGLE "Recovery Tools" {
+rectangle "Recovery Tools" {
     [Data Restoration Service]
     [System State Manager]
 }
