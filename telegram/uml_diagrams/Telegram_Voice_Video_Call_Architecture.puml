@@ -1,52 +1,66 @@
 @startuml Telegram_Voice_Video_Call_Architecture
 !define RECTANGLE class
-
-skinparam backgroundColor #FEFEFE
+skinparam backgroundColor #F0F0F0
 skinparam handwritten false
 skinparam monochrome true
 skinparam packageStyle rectangle
 skinparam defaultFontName Arial
 skinparam defaultFontSize 14
 
-RECTANGLE "User Devices" {
-    [Caller Device]
-    [Callee Device]
+rectangle "User Devices" {
+    [Caller Device\nWebRTC Engine] as CallerDevice
+    [Callee Device\nWebRTC Engine] as CalleeDevice
 }
 
-RECTANGLE "Signaling Server" {
-    [Call Initiator]
-    [Session Manager]
-    [ICE Candidate Exchange]
+rectangle "Telegram Servers" {
+    [Signaling Server] as SignalingServer
+    [Call Initiator] as CallInitiator
+    [Session Manager] as SessionManager
 }
 
-RECTANGLE "TURN Server" {
-    [Relay Service]
+cloud "Network Services" {
+    [STUN Server] as STUNServer
+    [TURN Server] as TURNServer
 }
 
-RECTANGLE "STUN Server" {
-    [NAT Traversal]
+database "Database" {
+    [Call Logs] as CallLogs
+    [User Preferences] as UserPreferences
 }
 
-RECTANGLE "Media Servers" {
-    [Audio Mixing]
-    [Video Transcoding]
-    [Recording]
-}
+CallerDevice -down-> SignalingServer : 1. Initiate call
+SignalingServer -down-> CalleeDevice : 2. Notify incoming call
+CallerDevice <--> STUNServer : 3. Get public IP
+CalleeDevice <--> STUNServer : 4. Get public IP
+CallerDevice <--> TURNServer : 5. Relay if needed
+CalleeDevice <--> TURNServer : 6. Relay if needed
+CallerDevice <---> CalleeDevice : 7. Establish P2P connection
+SignalingServer --> CallLogs : Log calls
+SignalingServer --> UserPreferences : Get user settings
 
-RECTANGLE "WebRTC" {
-    [Peer Connection]
-    [Data Channels]
-    [Media Streams]
-}
+note right of CallerDevice
+  WebRTC engine handles:
+  - Audio/video codec
+  - Network transport
+  - Echo cancellation
+  - Noise suppression
+end note
 
-"Caller Device" --> "Signaling Server" : Initiate call
-"Signaling Server" --> "Callee Device" : Notify incoming call
-"Caller Device" <--> "STUN Server" : Discover public IP
-"Callee Device" <--> "STUN Server" : Discover public IP
-"Caller Device" <--> "TURN Server" : Relay if direct connection fails
-"Callee Device" <--> "TURN Server" : Relay if direct connection fails
-"Caller Device" <--> "WebRTC" : Establish peer connection
-"Callee Device" <--> "WebRTC" : Establish peer connection
-"WebRTC" <--> "Media Servers" : Optional processing
+note right of SignalingServer
+  Handles:
+  - User online status
+  - Call request routing
+  - ICE candidate exchange
+  - Call statistics
+end note
 
+note bottom of STUNServer
+  Helps NAT traversal,
+  discovers public IP and port
+end note
+
+note bottom of TURNServer
+  Provides audio/video relay
+  when P2P connection fails
+end note
 @enduml
