@@ -19,7 +19,7 @@ RECTANGLE "Search Service" {
     [Result Ranker]
 }
 
-database "User Database" {
+RECTANGLE "User Database" {
     [User Profiles]
     [Contact Lists]
 }
