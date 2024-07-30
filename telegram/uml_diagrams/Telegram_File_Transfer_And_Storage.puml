@@ -1,135 +1,114 @@
 @startuml Telegram_File_Transfer_And_Storage_Optimized
 
-!define RECTANGLE component
-!define DATABASE database
-!define QUEUE queue
-!define CLOUD cloud
-
 skinparam backgroundColor #E6E6FA
 skinparam handwritten false
 skinparam monochrome true
 skinparam packageStyle rectangle
 skinparam defaultFontName Arial
-skinparam defaultFontSize 16
-skinparam ArrowFontSize 14
-skinparam NoteFontSize 14
+skinparam defaultFontSize 20
+skinparam ArrowFontSize 18
+skinparam NoteFontSize 16
 
-RECTANGLE "Client Applications" {
+rectangle "Client Apps" as CA {
     [Mobile App]
     [Desktop Client]
     [Web Client]
 }
 
-CLOUD "Global Load Balancer" {
+cloud "Global LB" as GLB {
     [GeoDNS]
 }
 
-RECTANGLE "Regional Load Balancers" {
-    [File Transfer LB - US]
-    [File Transfer LB - EU]
-    [File Transfer LB - Asia]
+rectangle "Regional LBs" as RLB {
+    [LB - US]
+    [LB - EU]
+    [LB - Asia]
 }
 
-RECTANGLE "File Transfer Service Cluster" {
+rectangle "File Transfer\nService Cluster" as FTSC {
     [Chunk Manager]
     [Metadata Handler]
     [Encryption Service]
-    [Deduplication Service]
+    [Deduplication]
 }
 
-DATABASE "Metadata Database" {
-    [Cassandra Cluster]
-    note right of [Cassandra Cluster]
+database "Metadata DB" as MDB {
+    [Cassandra]
+    note right of [Cassandra]
         Sharding Key: file_id
         --
-        原因：
-        1. 文件元数据通常按文件ID查询
-        2. 确保同一文件的元数据位于同一分片，
-           提高读写效率
-        3. 支持高效的文件级操作，如权限检查
-           和文件信息检索
+        1. 按文件ID查询高效
+        2. 同文件元数据同分片
+        3. 支持文件级操作
     end note
 }
 
-DATABASE "Object Storage" {
-    [S3-compatible Storage]
-    note right of [S3-compatible Storage]
+database "Object Storage" as OS {
+    [S3-compatible]
+    note right of [S3-compatible]
         Sharding Key: chunk_id
         --
-        原因：
-        1. 文件块独立存储和访问，提高并行性
-        2. 支持大文件的分块上传和断点续传
-        3. 允许更均匀的数据分布，避免热点
-        4. 有利于负载均衡和横向扩展
+        1. 独立存取，高并行
+        2. 支持分块和续传
+        3. 均匀分布，避免热点
+        4. 易于横向扩展
     end note
 }
 
-note "file_id 与 chunk_id 关系:\n\n1. 一个 file_id 对应多个 chunk_id\n2. Metadata DB 存储 file_id 到 chunk_id 列表的映射\n3. 文件上传时，先获取 file_id，再为每个块生成 chunk_id\n4. 文件下载时，通过 file_id 查询所有相关 chunk_id\n5. chunk_id 通常格式为 file_id + 序列号，如 file_123_chunk_001\n6. 这种设计支持大文件的分块存储和并行传输" as Relationship
-
-CLOUD "Content Delivery Network" {
+cloud "CDN" as CDN {
     [Edge Servers]
     [Caching Servers]
 }
 
-QUEUE "File Processing Queue" {
-    [Kafka Cluster]
+queue "File Processing\nQueue" as FPQ {
+    [Kafka]
 }
 
-DATABASE "Caching Layer" {
-    [Redis Cluster]
-    note right of [Redis Cluster]
-        Redis 键设计:
-        
-        1. 文件元数据缓存:
-           Key: file:{file_id}:meta
-           Value: Hash(filename, size, type, upload_time)
-        
-        2. 文件块信息缓存:
-           Key: file:{file_id}:chunks
-           Value: Set(chunk_id1, chunk_id2, ...)
-        
-        3. 块元数据缓存:
-           Key: chunk:{chunk_id}:meta
-           Value: Hash(size, checksum, storage_location)
-        
-        4. 用户最近访问文件列表:
-           Key: user:{user_id}:recent_files
-           Value: SortedSet(file_id, timestamp)
-        
-        5. 文件访问计数:
-           Key: file:{file_id}:access_count
-           Value: String(count)
-        
-        6. 文件上传状态:
-           Key: file:{file_id}:upload_status
-           Value: Hash(total_chunks, uploaded_chunks, status)
-        
+database "Cache Layer" as CL {
+    [Redis]
+    note right of [Redis]
+        键设计:
+        1. 文件元数据: file:{id}:meta
+           Hash(name,size,type,time)
+        2. 文件块列表: file:{id}:chunks
+           Set(chunk_id1, chunk_id2, ...)
+        3. 块元数据: chunk:{id}:meta
+           Hash(size,checksum,location)
+        4. 用户最近文件: user:{id}:recent
+           SortedSet(file_id, timestamp)
+        5. 文件访问数: file:{id}:access
+           String(count)
+        6. 上传状态: file:{id}:upload
+           Hash(total,uploaded,status)
+        --
         过期策略:
-        - 文件元数据和块信息: LRU, 1小时
-        - 用户最近访问文件列表: 7天
-        - 文件访问计数: 30天
-        - 文件上传状态: 上传完成后15分钟
+        - 元数据/块信息: LRU, 1h
+        - 最近文件: 7d
+        - 访问数: 30d
+        - 上传状态: 完成后15m
     end note
 }
 
-RECTANGLE "File Processing Workers" {
-    [Thumbnail Generator]
+rectangle "File Processing\nWorkers" as FPW {
+    [Thumbnail Gen]
     [Video Transcoder]
     [Virus Scanner]
 }
 
-"Client Applications" <--> "Global Load Balancer" : HTTPS
-"Global Load Balancer" --> "Regional Load Balancers" : Route
-"Regional Load Balancers" --> "File Transfer Service Cluster" : Distribute
-"File Transfer Service Cluster" <--> "Metadata Database" : CRUD
-"File Transfer Service Cluster" <--> "Object Storage" : Store/Retrieve
-"File Transfer Service Cluster" --> "Content Delivery Network" : Distribute
-"Content Delivery Network" --> "Client Applications" : Serve
-"File Transfer Service Cluster" --> "File Processing Queue" : Enqueue
-"File Processing Queue" --> "File Processing Workers" : Process
-"File Transfer Service Cluster" <--> "Caching Layer" : Cache
+CA <--> GLB : HTTPS
+GLB --> RLB : Route
+RLB --> FTSC : Distribute
+FTSC <--> MDB : CRUD
+FTSC <--> OS : Store/Retrieve
+FTSC --> CDN : Distribute
+CDN --> CA : Serve
+FTSC --> FPQ : Enqueue
+FPQ --> FPW : Process
+FTSC <--> CL : Cache
 
-Relationship .. "Metadata Database"
-Relationship .. "Object Storage"
+note "file_id 与 chunk_id 关系:\n1. 一个file_id对应多个chunk_id\n2. Metadata DB存储映射\n3. 上传: 先file_id再chunk_id\n4. 下载: file_id查所有chunk_id\n5. chunk_id格式: file_id+序列号\n6. 支持大文件分块传输" as Rel
+
+Rel .. MDB
+Rel .. OS
 
 @enduml
