@@ -1,45 +1,102 @@
-@startuml Telegram_File_Transfer_And_Storage
+@startuml Telegram_File_Transfer_And_Storage_Optimized
 
-skinparam backgroundColor #FEFEFE
+!define RECTANGLE component
+!define DATABASE database
+!define QUEUE queue
+!define CLOUD cloud
+
+skinparam backgroundColor #E6E6FA
 skinparam handwritten false
 skinparam monochrome true
 skinparam packageStyle rectangle
 skinparam defaultFontName Arial
-skinparam defaultFontSize 14
+skinparam defaultFontSize 16
+skinparam ArrowFontSize 14
+skinparam NoteFontSize 14
 
-rectangle "Client" {
-    [File Uploader]
-    [File Downloader]
+RECTANGLE "Client Applications" {
+    [Mobile App]
+    [Desktop Client]
+    [Web Client]
 }
 
-rectangle "Load Balancer" {
-    [File Transfer Load Balancer]
+CLOUD "Global Load Balancer" {
+    [GeoDNS]
 }
 
-rectangle "File Transfer Service" {
+RECTANGLE "Regional Load Balancers" {
+    [File Transfer LB - US]
+    [File Transfer LB - EU]
+    [File Transfer LB - Asia]
+}
+
+RECTANGLE "File Transfer Service Cluster" {
     [Chunk Manager]
     [Metadata Handler]
     [Encryption Service]
+    [Deduplication Service]
 }
 
-rectangle "Storage" {
-    database "Metadata DB" {
-        [File Metadata]
-    }
-    database "Object Storage" {
-        [File Chunks]
-    }
+DATABASE "Metadata Database" {
+    [Cassandra Cluster]
+    note right of [Cassandra Cluster]
+        Sharding Key: file_id
+        --
+        原因：
+        1. 文件元数据通常按文件ID查询
+        2. 确保同一文件的元数据位于同一分片，
+           提高读写效率
+        3. 支持高效的文件级操作，如权限检查
+           和文件信息检索
+    end note
 }
 
-rectangle "CDN" {
+DATABASE "Object Storage" {
+    [S3-compatible Storage]
+    note right of [S3-compatible Storage]
+        Sharding Key: chunk_id
+        --
+        原因：
+        1. 文件块独立存储和访问，提高并行性
+        2. 支持大文件的分块上传和断点续传
+        3. 允许更均匀的数据分布，避免热点
+        4. 有利于负载均衡和横向扩展
+    end note
+}
+
+note "file_id 与 chunk_id 关系:\n\n1. 一个 file_id 对应多个 chunk_id\n2. Metadata DB 存储 file_id 到 chunk_id 列表的映射\n3. 文件上传时，先获取 file_id，再为每个块生成 chunk_id\n4. 文件下载时，通过 file_id 查询所有相关 chunk_id\n5. chunk_id 通常格式为 file_id + 序列号，如 file_123_chunk_001\n6. 这种设计支持大文件的分块存储和并行传输" as Relationship
+
+CLOUD "Content Delivery Network" {
     [Edge Servers]
+    [Caching Servers]
 }
 
-Client --> "Load Balancer" : Upload/Download request
-"Load Balancer" --> "File Transfer Service" : Route request
-"File Transfer Service" --> "Metadata DB" : Store/Retrieve metadata
-"File Transfer Service" --> "Object Storage" : Store/Retrieve file chunks
-"File Transfer Service" --> "CDN" : Distribute popular files
-"CDN" --> Client : Serve files from nearest edge server
+QUEUE "File Processing Queue" {
+    [Kafka Cluster]
+}
+
+DATABASE "Caching Layer" {
+    [Redis Cluster]
+}
+
+RECTANGLE "File Processing Workers" {
+    [Thumbnail Generator]
+    [Video Transcoder]
+    [Virus Scanner]
+}
+
+"Client Applications" <--> "Global Load Balancer" : HTTPS
+"Global Load Balancer" --> "Regional Load Balancers" : Route
+"Regional Load Balancers" --> "File Transfer Service Cluster" : Distribute
+"File Transfer Service Cluster" <--> "Metadata Database" : CRUD
+"File Transfer Service Cluster" <--> "Object Storage" : Store/Retrieve
+"File Transfer Service Cluster" --> "Content Delivery Network" : Distribute
+"Content Delivery Network" --> "Client Applications" : Serve
+"File Transfer Service Cluster" --> "File Processing Queue" : Enqueue
+"File Processing Queue" --> "File Processing Workers" : Process
+"File Transfer Service Cluster" <--> "Caching Layer" : Cache
+
+Relationship .. "Metadata Database"
+Relationship .. "Object Storage"
 
 @enduml
