@@ -27,7 +27,7 @@ RECTANGLE "STUN Server" {
     [NAT Traversal]
 }
 
-cloud "Media Servers" {
+RECTANGLE "Media Servers" {
     [Audio Mixing]
     [Video Transcoding]
     [Recording]
