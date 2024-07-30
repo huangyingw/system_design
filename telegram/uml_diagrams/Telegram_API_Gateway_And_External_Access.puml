@@ -28,7 +28,7 @@ RECTANGLE "API Services" {
     [Bot API]
 }
 
-database "API Keys" {
+RECTANGLE "API Keys" {
     [Client Credentials]
     [Access Tokens]
 }
