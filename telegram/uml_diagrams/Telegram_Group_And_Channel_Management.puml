@@ -1,52 +1,70 @@
-@startuml Telegram_Group_And_Channel_Management
-!define RECTANGLE class
+@startuml Telegram_Group_And_Channel_Management_Optimized
 
-skinparam backgroundColor #FEFEFE
+!define RECTANGLE component
+!define DATABASE database
+!define QUEUE queue
+!define CLOUD cloud
+
+skinparam backgroundColor #E0E0E0
 skinparam handwritten false
 skinparam monochrome true
 skinparam packageStyle rectangle
 skinparam defaultFontName Arial
-skinparam defaultFontSize 14
+skinparam defaultFontSize 12
 
-RECTANGLE "Client" {
-    [Group/Channel Creator]
-    [Admin Interface]
-    [Member Interface]
+RECTANGLE "Client Applications" {
+    [Mobile App]
+    [Desktop Client]
+    [Web Client]
 }
 
-RECTANGLE "Group/Channel Service" {
+CLOUD "Load Balancer" {
+    [API Gateway]
+}
+
+RECTANGLE "Group/Channel Service Cluster" {
     [Creation Handler]
     [Membership Manager]
     [Permission Controller]
     [Content Distributor]
 }
 
-RECTANGLE "Group/Channel DB" {
-    [Metadata]
-    [Member List]
-    [Permissions]
+DATABASE "Group/Channel Database" {
+    [Cassandra Cluster]
+    note right: Sharding Key: group_id/channel_id
 }
 
-RECTANGLE "Message Queue" {
-    [Group Messages]
-    [Channel Posts]
+DATABASE "User Database" {
+    [MongoDB Cluster]
+    note right: Sharding Key: user_id
+}
+
+QUEUE "Message Queue" {
+    [Kafka Cluster]
 }
 
 RECTANGLE "Push Notification Service" {
     [Notification Dispatcher]
 }
 
-RECTANGLE "Content Delivery Network" {
-    [Message Caching]
-    [Media Distribution]
+CLOUD "Content Delivery Network" {
+    [Edge Servers]
 }
 
-Client --> "Group/Channel Service" : Manage group/channel
-"Group/Channel Service" <--> "Group/Channel DB" : Store/Retrieve data
-"Group/Channel Service" --> "Message Queue" : Publish messages/posts
-"Message Queue" --> "Push Notification Service" : Trigger notifications
-"Push Notification Service" --> Client : Send notifications
-"Message Queue" --> "Content Delivery Network" : Distribute content
-"Content Delivery Network" --> Client : Deliver content
+DATABASE "Caching Layer" {
+    [Redis Cluster]
+    note right: Key: group_id:message_id
+}
+
+"Client Applications" <--> "Load Balancer" : HTTPS
+"Load Balancer" <--> "Group/Channel Service Cluster" : Route Requests
+"Group/Channel Service Cluster" <--> "Group/Channel Database" : CRUD Operations
+"Group/Channel Service Cluster" <--> "User Database" : User Info
+"Group/Channel Service Cluster" --> "Message Queue" : Publish Messages/Posts
+"Message Queue" --> "Push Notification Service" : Trigger Notifications
+"Push Notification Service" --> "Client Applications" : Send Notifications
+"Message Queue" --> "Content Delivery Network" : Distribute Content
+"Content Delivery Network" --> "Client Applications" : Deliver Content
+"Group/Channel Service Cluster" <--> "Caching Layer" : Cache Data
 
 @enduml
