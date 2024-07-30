@@ -1,4 +1,7 @@
 @startuml
+!define DARKBLUE
+!includeurl https://raw.githubusercontent.com/Drakemor/RedDress-PlantUML/master/style.puml
+
 skinparam backgroundColor #2C2F33
 skinparam DefaultFontColor #FFFFFF
 skinparam Shadowing false
@@ -10,75 +13,95 @@ skinparam Class {
     BorderThickness 2
 }
 
+' User table
 class "User" {
-    + user_id: int (PK)
-    ---
-    username: varchar
-    phone_number: varchar
-    email: varchar
+    + user_id: int <<PK>>
+    --
+    username: varchar <<index>>
+    phone_number: varchar <<index>>
+    email: varchar <<index>>
     password_hash: varchar
     last_login: datetime
     registration_date: datetime
     status_timestamp: datetime
 }
 
+' PrivateChat table
 class "PrivateChat" {
-    + chat_id: int (PK)
-    ---
-    sender_id: int (FK)
-    recipient_id: int (FK)
+    + chat_id: int <<PK>>
+    --
+    sender_id: int <<FK>> <<index>>
+    recipient_id: int <<FK>> <<index>>
+    last_message_id: ObjectId <<FK>>
+    last_message_timestamp: datetime <<index>>
 }
 
+' GroupChat table
 class "GroupChat" {
-    + chat_id: int (PK)
-    ---
+    + chat_id: int <<PK>>
+    --
     chat_name: varchar
     chat_type: enum ('group', 'channel')
     creation_date: datetime
+    last_message_id: ObjectId <<FK>>
+    last_message_timestamp: datetime <<index>>
 }
 
+' MongoDB Message NoSQL collection
 class "MongoDB_Message_NoSQL" {
-    + message_id: ObjectID (PK)
-    ---
-    chat_id: int (FK) <<sharding key>>
-    sender_user_id: int (FK)
+    + message_id: ObjectId <<PK>>
+    --
+    chat_id: int <<FK>> <<sharding key>>
+    sender_user_id: int <<FK>>
     content: text
-    timestamp: datetime
+    timestamp: datetime <<index>>
     type: enum('text', 'photo', 'video', 'document')
 }
 
+' GroupMembers table
 class "GroupMembers" {
-    + group_id: int (FK)
-    + user_id: int (FK)
-    ---
+    + group_id: int <<FK>> <<index>>
+    + user_id: int <<FK>> <<index>>
+    --
     join_date: datetime
     role: enum ('member', 'admin', 'owner')
 }
 
+' UserProfile table
 class "UserProfile" {
-    + user_id: int (FK)
-    ---
+    + user_id: int <<FK>> <<PK>>
+    --
     avatar: image
     about: text
+    last_updated: datetime
 }
 
+' Stickers table
 class "Stickers" {
-    + sticker_id: int (PK)
-    ---
-    user_id: int (FK)
+    + sticker_id: int <<PK>>
+    --
+    user_id: int <<FK>> <<index>>
     image: image
     added_date: datetime
 }
 
+' Redis Cache
 class "RedisCache" {
     + User Status and Last Seen
+    Key: user:{user_id}:status
+    Value: online|offline|last_seen_timestamp
+    --
     + Unread Messages Count
+    Key: user:{user_id}:unread:{chat_id}
+    Value: count
 }
 
+' Contacts table
 class "Contacts" {
-    + user_id: int (FK)
-    + contact_id: int (FK)
-    ---
+    + user_id: int <<FK>> <<index>>
+    + contact_id: int <<FK>> <<index>>
+    --
+    added_date: datetime
 }
 
 User "1" -- "1" PrivateChat : Initiates
