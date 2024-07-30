@@ -1,0 +1,52 @@
+@startuml Telegram_Group_And_Channel_Management
+!define RECTANGLE class
+
+skinparam backgroundColor #FEFEFE
+skinparam handwritten false
+skinparam monochrome true
+skinparam packageStyle rectangle
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+
+RECTANGLE "Client" {
+    [Group/Channel Creator]
+    [Admin Interface]
+    [Member Interface]
+}
+
+RECTANGLE "Group/Channel Service" {
+    [Creation Handler]
+    [Membership Manager]
+    [Permission Controller]
+    [Content Distributor]
+}
+
+database "Group/Channel DB" {
+    [Metadata]
+    [Member List]
+    [Permissions]
+}
+
+queue "Message Queue" {
+    [Group Messages]
+    [Channel Posts]
+}
+
+RECTANGLE "Push Notification Service" {
+    [Notification Dispatcher]
+}
+
+RECTANGLE "Content Delivery Network" {
+    [Message Caching]
+    [Media Distribution]
+}
+
+Client --> "Group/Channel Service" : Manage group/channel
+"Group/Channel Service" <--> "Group/Channel DB" : Store/Retrieve data
+"Group/Channel Service" --> "Message Queue" : Publish messages/posts
+"Message Queue" --> "Push Notification Service" : Trigger notifications
+"Push Notification Service" --> Client : Send notifications
+"Message Queue" --> "Content Delivery Network" : Distribute content
+"Content Delivery Network" --> Client : Deliver content
+
+@enduml

@@ -1,0 +1,55 @@
+@startuml Telegram_Disaster_Recovery_And_Backup
+!define RECTANGLE class
+
+skinparam backgroundColor #FEFEFE
+skinparam handwritten false
+skinparam monochrome true
+skinparam packageStyle rectangle
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+
+RECTANGLE "Primary Data Center" {
+    database "Primary Databases" {
+        [User Data]
+        [Message Data]
+    }
+    [Application Servers]
+}
+
+RECTANGLE "Backup Data Center" {
+    database "Backup Databases" {
+        [Replicated User Data]
+        [Replicated Message Data]
+    }
+    [Standby Application Servers]
+}
+
+RECTANGLE "Disaster Recovery System" {
+    [Monitoring Service]
+    [Failover Manager]
+    [Data Sync Service]
+}
+
+cloud "Cloud Storage" {
+    [Encrypted Backups]
+}
+
+RECTANGLE "Backup Management" {
+    [Backup Scheduler]
+    [Encryption Service]
+    [Integrity Checker]
+}
+
+RECTANGLE "Recovery Tools" {
+    [Data Restoration Service]
+    [System State Manager]
+}
+
+"Primary Data Center" <--> "Disaster Recovery System" : Monitor & Manage
+"Backup Data Center" <--> "Disaster Recovery System" : Sync & Activate
+"Primary Data Center" --> "Cloud Storage" : Store encrypted backups
+"Backup Management" --> "Cloud Storage" : Manage backups
+"Recovery Tools" <-- "Cloud Storage" : Restore from backups
+"Disaster Recovery System" <--> "Recovery Tools" : Coordinate recovery
+
+@enduml

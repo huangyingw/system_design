@@ -1,0 +1,46 @@
+@startuml Telegram_File_Transfer_And_Storage
+!define RECTANGLE class
+
+skinparam backgroundColor #FEFEFE
+skinparam handwritten false
+skinparam monochrome true
+skinparam packageStyle rectangle
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+
+RECTANGLE "Client" {
+    [File Uploader]
+    [File Downloader]
+}
+
+RECTANGLE "Load Balancer" {
+    [File Transfer Load Balancer]
+}
+
+RECTANGLE "File Transfer Service" {
+    [Chunk Manager]
+    [Metadata Handler]
+    [Encryption Service]
+}
+
+RECTANGLE "Storage" {
+    database "Metadata DB" {
+        [File Metadata]
+    }
+    database "Object Storage" {
+        [File Chunks]
+    }
+}
+
+RECTANGLE "CDN" {
+    [Edge Servers]
+}
+
+Client --> "Load Balancer" : Upload/Download request
+"Load Balancer" --> "File Transfer Service" : Route request
+"File Transfer Service" --> "Metadata DB" : Store/Retrieve metadata
+"File Transfer Service" --> "Object Storage" : Store/Retrieve file chunks
+"File Transfer Service" --> "CDN" : Distribute popular files
+"CDN" --> Client : Serve files from nearest edge server
+
+@enduml

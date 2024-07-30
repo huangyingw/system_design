@@ -1,0 +1,49 @@
+@startuml Telegram_Multi_Device_Sync
+!define RECTANGLE class
+
+skinparam backgroundColor #FEFEFE
+skinparam handwritten false
+skinparam monochrome true
+skinparam packageStyle rectangle
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+
+RECTANGLE "User Devices" {
+    [Mobile Device]
+    [Desktop Client]
+    [Web Client]
+}
+
+RECTANGLE "Sync Service" {
+    [Device Manager]
+    [Message Synchronizer]
+    [State Reconciliation]
+}
+
+database "Message Store" {
+    [Encrypted Messages]
+    [Message Metadata]
+}
+
+database "Device Registry" {
+    [Device List]
+    [Device Keys]
+}
+
+RECTANGLE "Key Management Service" {
+    [Key Distribution]
+    [Key Rotation]
+}
+
+RECTANGLE "Push Notification Service" {
+    [Notification Dispatcher]
+}
+
+"User Devices" <--> "Sync Service" : Bi-directional sync
+"Sync Service" <--> "Message Store" : Fetch/Store messages
+"Sync Service" <--> "Device Registry" : Manage devices
+"Sync Service" <--> "Key Management Service" : Handle encryption keys
+"Push Notification Service" --> "User Devices" : Notify changes
+"Key Management Service" --> "User Devices" : Distribute keys
+
+@enduml

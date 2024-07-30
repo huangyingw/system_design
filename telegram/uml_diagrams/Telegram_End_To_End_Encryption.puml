@@ -1,0 +1,53 @@
+@startuml Telegram_End_To_End_Encryption
+!define RECTANGLE class
+
+skinparam backgroundColor #FEFEFE
+skinparam handwritten false
+skinparam monochrome true
+skinparam packageStyle rectangle
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+
+RECTANGLE "Sender's Device" {
+    [Message Composer]
+    [Encryption Engine]
+    [Key Management]
+}
+
+RECTANGLE "Receiver's Device" {
+    [Message Viewer]
+    [Decryption Engine]
+    [Key Management]
+}
+
+RECTANGLE "Telegram Servers" {
+    [Message Router]
+    [Encrypted Message Storage]
+}
+
+RECTANGLE "Key Exchange Service" {
+    [Diffie-Hellman Key Exchange]
+}
+
+"Sender's Device" --> "Key Exchange Service" : Initiate key exchange
+"Receiver's Device" --> "Key Exchange Service" : Complete key exchange
+"Key Exchange Service" --> "Sender's Device" : Shared secret
+"Key Exchange Service" --> "Receiver's Device" : Shared secret
+
+"Sender's Device" --> "Telegram Servers" : Send encrypted message
+"Telegram Servers" --> "Receiver's Device" : Route encrypted message
+
+note right of "Sender's Device"
+  1. Compose message
+  2. Generate session key
+  3. Encrypt message with session key
+  4. Encrypt session key with receiver's public key
+end note
+
+note left of "Receiver's Device"
+  1. Decrypt session key with private key
+  2. Decrypt message with session key
+  3. Display message
+end note
+
+@enduml

@@ -1,0 +1,52 @@
+@startuml Telegram_Voice_Video_Call_Architecture
+!define RECTANGLE class
+
+skinparam backgroundColor #FEFEFE
+skinparam handwritten false
+skinparam monochrome true
+skinparam packageStyle rectangle
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+
+RECTANGLE "User Devices" {
+    [Caller Device]
+    [Callee Device]
+}
+
+RECTANGLE "Signaling Server" {
+    [Call Initiator]
+    [Session Manager]
+    [ICE Candidate Exchange]
+}
+
+RECTANGLE "TURN Server" {
+    [Relay Service]
+}
+
+RECTANGLE "STUN Server" {
+    [NAT Traversal]
+}
+
+cloud "Media Servers" {
+    [Audio Mixing]
+    [Video Transcoding]
+    [Recording]
+}
+
+RECTANGLE "WebRTC" {
+    [Peer Connection]
+    [Data Channels]
+    [Media Streams]
+}
+
+"Caller Device" --> "Signaling Server" : Initiate call
+"Signaling Server" --> "Callee Device" : Notify incoming call
+"Caller Device" <--> "STUN Server" : Discover public IP
+"Callee Device" <--> "STUN Server" : Discover public IP
+"Caller Device" <--> "TURN Server" : Relay if direct connection fails
+"Callee Device" <--> "TURN Server" : Relay if direct connection fails
+"Caller Device" <--> "WebRTC" : Establish peer connection
+"Callee Device" <--> "WebRTC" : Establish peer connection
+"WebRTC" <--> "Media Servers" : Optional processing
+
+@enduml
