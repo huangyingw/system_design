@@ -27,7 +27,7 @@ RECTANGLE "Bot Runtime Environment" {
     [Sandbox]
 }
 
-database "Bot Storage" {
+RECTANGLE "Bot Storage" {
     [Bot Data]
     [User Session Data]
 }
