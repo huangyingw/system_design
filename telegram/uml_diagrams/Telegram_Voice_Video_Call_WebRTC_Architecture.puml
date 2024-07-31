@@ -1,11 +1,12 @@
-@startuml Telegram_Voice_Video_Call_Architecture
-!define RECTANGLE class
-skinparam backgroundColor #F0F0F0
+@startuml Telegram_Voice_Video_Call_Architecture_Optimized
+!theme plain
+skinparam backgroundColor #E6E6FA
 skinparam handwritten false
-skinparam monochrome true
-skinparam packageStyle rectangle
 skinparam defaultFontName Arial
 skinparam defaultFontSize 14
+skinparam roundcorner 10
+skinparam arrowColor #333333
+skinparam componentBackgroundColor #EEEEEE
 
 rectangle "User Devices" {
     [Caller Device\nWebRTC Engine] as CallerDevice
@@ -13,54 +14,60 @@ rectangle "User Devices" {
 }
 
 rectangle "Telegram Servers" {
-    [Signaling Server] as SignalingServer
+    [Global Load Balancer] as GlobalLB
+    [Regional Load Balancer] as RegionalLB
+    rectangle "Signaling Server Cluster" {
+        [Signaling Server] as SignalingServer
+        [Cluster Manager] as SignalingManager
+    }
     [Call Initiator] as CallInitiator
     [Session Manager] as SessionManager
 }
 
-cloud "Network Services" {
-    [STUN Server] as STUNServer
-    [TURN Server] as TURNServer
+cloud "Optimized Network Services" {
+    rectangle "STUN/TURN Server Cluster" {
+        [STUN/TURN Server] as STUNTURNServer
+        [Cluster Manager] as STUNTURNManager
+    }
+    [Auto-scaler] as AutoScaler
 }
 
-database "Database" {
-    [Call Logs] as CallLogs
-    [User Preferences] as UserPreferences
+database "Database Cluster" {
+    [Database Node] as DBNode
+    [Cluster Manager] as DBManager
 }
 
-CallerDevice -down-> SignalingServer : 1. Initiate call
-SignalingServer -down-> CalleeDevice : 2. Notify incoming call
-CallerDevice <--> STUNServer : 3. Get public IP
-CalleeDevice <--> STUNServer : 4. Get public IP
-CallerDevice <--> TURNServer : 5. Relay if needed
-CalleeDevice <--> TURNServer : 6. Relay if needed
+rectangle "Caching Layer" {
+    [Redis Node] as RedisNode
+    [Cluster Manager] as RedisManager
+}
+
+CallerDevice -down-> GlobalLB : 1. Initiate call
+GlobalLB -down-> RegionalLB : 2. Route to nearest region
+RegionalLB -down-> SignalingServer : 3. Handle signaling
+SignalingServer -down-> CalleeDevice : 4. Notify incoming call
+CallerDevice <--> STUNTURNServer : 5. Get public IP / Relay
+CalleeDevice <--> STUNTURNServer : 6. Get public IP / Relay
 CallerDevice <---> CalleeDevice : 7. Establish P2P connection
-SignalingServer --> CallLogs : Log calls
-SignalingServer --> UserPreferences : Get user settings
+SignalingServer --> DBNode : Log calls
+SignalingServer <--> RedisNode : Cache user status
+RedisNode <--> DBNode : Sync preferences
 
-note right of CallerDevice
-  WebRTC engine handles:
-  - Audio/video codec
-  - Network transport
-  - Echo cancellation
-  - Noise suppression
+AutoScaler -up-> STUNTURNManager : Manage scaling
+
+note right of DBNode
+  Tables:
+  Users (PK: user_id, Index: username, phone_number)
+  CallLogs (PK: call_id, FK: caller_id, callee_id, Index: start_time, end_time)
+  UserPreferences (PK: user_id)
 end note
 
-note right of SignalingServer
-  Handles:
-  - User online status
-  - Call request routing
-  - ICE candidate exchange
-  - Call statistics
+note right of RedisNode
+  Keys:
+  user:online:{user_id} (TTL: 5min)
+  active_call:{call_id} (Hash)
+  user:device:{user_id} (Hash)
+  call:stats:{call_id} (Hash)
 end note
 
-note bottom of STUNServer
-  Helps NAT traversal,
-  discovers public IP and port
-end note
-
-note bottom of TURNServer
-  Provides audio/video relay
-  when P2P connection fails
-end note
 @enduml
