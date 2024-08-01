@@ -1,71 +1,83 @@
 @startuml
+!define RECTANGLE class
+!define DATABASE database
+!define CLOUD cloud
+
+skinparam backgroundColor #E0E0E0
+skinparam handwritten false
+skinparam monochrome false
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam arrowColor #2C3E50
+skinparam arrowThickness 1.5
+
+skinparam rectangle {
+  BackgroundColor #3498DB
+  BorderColor #2980B9
+  FontColor #ECF0F1
+  BorderThickness 2
+  Shadowing false
+}
+
+skinparam database {
+  BackgroundColor #E74C3C
+  BorderColor #C0392B
+  FontColor #ECF0F1
+}
+
+skinparam cloud {
+  BackgroundColor #95A5A6
+  BorderColor #7F8C8D
+  FontColor #ECF0F1
+}
+
+skinparam package {
+  BackgroundColor #2ECC71
+  BorderColor #27AE60
+  FontColor #ECF0F1
+}
+
 title Telegram-like System Architecture with Read/Write Splitting and Sharding
 
-skinparam backgroundColor #D3D3D3
-skinparam Shadowing false
-skinparam rectangle {
-  BackgroundColor #4F6377
-  BorderColor #AAB3C2
-  FontColor #F1F1F1
-  BorderThickness 2
-}
-skinparam package {
-  BackgroundColor #677B94
-  BorderColor #AAB3C2
-  FontColor #F1F1F1
-  RoundCorner 25
-}
-skinparam cloud {
-  BackgroundColor #5D8299
-  BorderColor #AAB3C2
-  FontColor #F1F1F1
-  RoundCorner 30
-}
-skinparam database {
-  BackgroundColor #708AA6
-  BorderColor #AAB3C2
-  FontColor #FFCC00
-  RoundCorner 20
-}
-
-left to right direction
-
-package "Client Side" {
+rectangle "Client Side" {
   [Sender's Client]
   [Receiver's Client]
 }
 
-rectangle "Telegram Service" {
+rectangle "Frontend Services" {
   [Load Balancer]
   [Service Instance]
 }
 
-rectangle "Authorization Service" {
-  [Authorization & Permissions]
-}
-
-rectangle "Message System" {
-  [Kafka (Message Queue)]
-  [Kafka (Pub/Sub Model)]
-  [Message Worker]
-}
-
-rectangle "Notification Service" {
-  [Notification Handler]
-  [Push Notification Service]
+rectangle "Backend Services" {
+  package "Authorization Service" {
+    [Authorization & Permissions]
+  }
+  
+  package "Message System" {
+    [Kafka (Message Queue)]
+    [Kafka (Pub/Sub Model)]
+    [Message Worker]
+  }
+  
+  package "Notification Service" {
+    [Notification Handler]
+    [Push Notification Service]
+  }
 }
 
 database "Database System" {
   package "MongoDB Cluster" {
-    [Config Servers]
+    database "Config Servers"
     package "Shard" {
-      [Primary]
-      [Secondary 1]
-      [Secondary 2]
+      database "Primary"
+      database "Secondary 1"
+      database "Secondary 2"
     }
     [MongoDB Router (mongos)]
   }
-  [Redis Cache]
+  database "Redis Cache"
 }
 
 cloud "Monitoring & Logging" {
@@ -73,38 +85,37 @@ cloud "Monitoring & Logging" {
   [Logging]
 }
 
-' Send Message Flow
-[Sender's Client] -right-> [Load Balancer]: 1. Send Message
-[Load Balancer] -right-> [Service Instance]
-[Service Instance] -down-> [Authorization & Permissions]: 2. Check Permission
-[Authorization & Permissions] -right-> [Kafka (Message Queue)]: 3. Authorized Message
-[Kafka (Message Queue)] -right-> [Message Worker]: 4. Process Message
-[Message Worker] -down-> [MongoDB Router (mongos)]: 5. Store Message
-[MongoDB Router (mongos)] -right-> [Primary]: 6. Write to Shard
-[Message Worker] -down-> [Redis Cache]: 7. Update Cache
-[Message Worker] -right-> [Kafka (Pub/Sub Model)]: 8. Publish Message Event
-
-[Kafka (Pub/Sub Model)] -down-> [Notification Handler]: 9. Trigger Notification
-[Notification Handler] -right-> [Push Notification Service]: 10. Send Push Notification
-[Push Notification Service] -up-> [Receiver's Client]: 11. Deliver Notification
+' Message Flow
+[Sender's Client] --> [Load Balancer]: 1. Send Message
+[Load Balancer] --> [Service Instance]
+[Service Instance] --> [Authorization & Permissions]: 2. Check Permission
+[Authorization & Permissions] --> [Kafka (Message Queue)]: 3. Authorized Message
+[Kafka (Message Queue)] --> [Message Worker]: 4. Process Message
+[Message Worker] --> [MongoDB Router (mongos)]: 5. Store Message
+[MongoDB Router (mongos)] --> [Primary]: 6. Write to Shard
+[Message Worker] --> [Redis Cache]: 7. Update Cache
+[Message Worker] --> [Kafka (Pub/Sub Model)]: 8. Publish Message Event
+[Kafka (Pub/Sub Model)] --> [Notification Handler]: 9. Trigger Notification
+[Notification Handler] --> [Push Notification Service]: 10. Send Push Notification
+[Push Notification Service] --> [Receiver's Client]: 11. Deliver Notification
 
 ' Read Message Flow
-[Receiver's Client] -right-> [Load Balancer]: 12. Request to Read Message
-[Service Instance] -down-> [Redis Cache]: 13. Check Cache
-[Redis Cache] -up-> [Service Instance]: 14. Return Cached Message (if available)
-[Service Instance] -down-> [MongoDB Router (mongos)]: 15. Fetch Message (if not in cache)
-[MongoDB Router (mongos)] -right-> [Secondary 1]: 16. Read from Shard
-[MongoDB Router (mongos)] -up-> [Service Instance]: 17. Return Message
-[Service Instance] -up-> [Receiver's Client]: 18. Deliver Message
+[Receiver's Client] --> [Load Balancer]: 12. Request to Read Message
+[Service Instance] --> [Redis Cache]: 13. Check Cache
+[Redis Cache] --> [Service Instance]: 14. Return Cached Message (if available)
+[Service Instance] --> [MongoDB Router (mongos)]: 15. Fetch Message (if not in cache)
+[MongoDB Router (mongos)] --> [Secondary 1]: 16. Read from Shard
+[MongoDB Router (mongos)] --> [Service Instance]: 17. Return Message
+[Service Instance] --> [Receiver's Client]: 18. Deliver Message
 
 ' Replication
-[Primary] -down-> [Secondary 1]: Replicate
-[Primary] -down-> [Secondary 2]: Replicate
+[Primary] --> [Secondary 1]: Replicate
+[Primary] --> [Secondary 2]: Replicate
 
 ' Config Servers
-[Config Servers] -right-> [MongoDB Router (mongos)]: Provide Cluster Metadata
+[Config Servers] --> [MongoDB Router (mongos)]: Provide Cluster Metadata
 
 ' Logging and Monitoring
-[Service Instance] -up-> [Monitoring & Logging]: Log Events
+[Service Instance] --> [Monitoring & Logging]: Log Events
 
 @enduml
