@@ -33,8 +33,8 @@ skinparam cloud {
 }
 
 skinparam package {
-  BackgroundColor #2ECC71
-  BorderColor #27AE60
+  BackgroundColor #9B59B6
+  BorderColor #8E44AD
   FontColor #ECF0F1
 }
 
@@ -103,9 +103,9 @@ cloud "Monitoring & Logging" {
 [Receiver's Client] --> [Load Balancer]: 12. Request to Read Message
 [Service Instance] --> [Redis Cache]: 13. Check Cache
 [Redis Cache] --> [Service Instance]: 14. Return Cached Message (if available)
-[Service Instance] --> [MongoDB Router (mongos)]: 15. Fetch Message (if not in cache)
+[Service Instance] -[#FF5733,thickness=2]-> [MongoDB Router (mongos)]: 15. Fetch Message (if not in cache)
 [MongoDB Router (mongos)] --> [Secondary 1]: 16. Read from Shard
-[MongoDB Router (mongos)] --> [Service Instance]: 17. Return Message
+[MongoDB Router (mongos)] -[#33FF57,thickness=2]-> [Service Instance]: 17. Return Message
 [Service Instance] --> [Receiver's Client]: 18. Deliver Message
 
 ' Replication
