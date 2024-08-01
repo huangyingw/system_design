@@ -1,14 +1,18 @@
 @startuml Telegram_File_Transfer_And_Storage_Optimized
 
-skinparam backgroundColor #E6E6FA
+' Set theme and styling
+skinparam backgroundColor #F0F0F0
 skinparam handwritten false
 skinparam monochrome true
 skinparam packageStyle rectangle
 skinparam defaultFontName Arial
-skinparam defaultFontSize 20
-skinparam ArrowFontSize 18
-skinparam NoteFontSize 16
+skinparam defaultFontSize 28
+skinparam ArrowFontSize 24
+skinparam NoteFontSize 22
+skinparam roundcorner 10
+skinparam shadowing false
 
+' Define components
 rectangle "Client Apps" as CA {
     [Mobile App]
     [Desktop Client]
@@ -37,9 +41,9 @@ database "Metadata DB" as MDB {
     note right of [Cassandra]
         Sharding Key: file_id
         --
-        1. 按文件ID查询高效
-        2. 同文件元数据同分片
-        3. 支持文件级操作
+        1. Efficient query by file ID
+        2. Same shard for file metadata
+        3. Support file-level operations
     end note
 }
 
@@ -48,10 +52,10 @@ database "Object Storage" as OS {
     note right of [S3-compatible]
         Sharding Key: chunk_id
         --
-        1. 独立存取，高并行
-        2. 支持分块和续传
-        3. 均匀分布，避免热点
-        4. 易于横向扩展
+        1. Independent access, high parallelism
+        2. Support chunking and resumable transfers
+        3. Even distribution, avoid hotspots
+        4. Easy horizontal scaling
     end note
 }
 
@@ -67,25 +71,25 @@ queue "File Processing\nQueue" as FPQ {
 database "Cache Layer" as CL {
     [Redis]
     note right of [Redis]
-        键设计:
-        1. 文件元数据: file:{id}:meta
+        Key Design:
+        1. File metadata: file:{id}:meta
            Hash(name,size,type,time)
-        2. 文件块列表: file:{id}:chunks
+        2. File chunk list: file:{id}:chunks
            Set(chunk_id1, chunk_id2, ...)
-        3. 块元数据: chunk:{id}:meta
+        3. Chunk metadata: chunk:{id}:meta
            Hash(size,checksum,location)
-        4. 用户最近文件: user:{id}:recent
+        4. User recent files: user:{id}:recent
            SortedSet(file_id, timestamp)
-        5. 文件访问数: file:{id}:access
+        5. File access count: file:{id}:access
            String(count)
-        6. 上传状态: file:{id}:upload
+        6. Upload status: file:{id}:upload
            Hash(total,uploaded,status)
         --
-        过期策略:
-        - 元数据/块信息: LRU, 1h
-        - 最近文件: 7d
-        - 访问数: 30d
-        - 上传状态: 完成后15m
+        Expiration Strategy:
+        - Metadata/chunks: LRU, 1h
+        - Recent files: 7d
+        - Access count: 30d
+        - Upload status: 15m after completion
     end note
 }
 
@@ -95,6 +99,7 @@ rectangle "File Processing\nWorkers" as FPW {
     [Virus Scanner]
 }
 
+' Define relationships
 CA <--> GLB : HTTPS
 GLB --> RLB : Route
 RLB --> FTSC : Distribute
@@ -106,8 +111,7 @@ FTSC --> FPQ : Enqueue
 FPQ --> FPW : Process
 FTSC <--> CL : Cache
 
-note "file_id 与 chunk_id 关系:\n1. 一个file_id对应多个chunk_id\n2. Metadata DB存储映射\n3. 上传: 先file_id再chunk_id\n4. 下载: file_id查所有chunk_id\n5. chunk_id格式: file_id+序列号\n6. 支持大文件分块传输" as Rel
-
+note "file_id and chunk_id relationship:\n1. One file_id maps to multiple chunk_ids\n2. Metadata DB stores the mapping\n3. Upload: file_id first, then chunk_ids\n4. Download: query all chunk_ids by file_id\n5. chunk_id format: file_id + sequence number\n6. Support large file chunked transfer" as Rel
 Rel .. MDB
 Rel .. OS
 
