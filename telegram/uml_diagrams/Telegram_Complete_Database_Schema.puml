@@ -1,120 +1,124 @@
 @startuml
-!define DARKBLUE
-!includeurl https://raw.githubusercontent.com/Drakemor/RedDress-PlantUML/master/style.puml
+!theme plain
+skinparam backgroundColor #F0F0F0
+skinparam defaultFontName "Arial"
+skinparam defaultFontColor #333333
+skinparam classFontColor #000000
+skinparam classFontSize 14
+skinparam classAttributeFontSize 12
+skinparam classBorderThickness 1
+skinparam arrowThickness 1.5
+skinparam arrowColor #666666
 
-skinparam backgroundColor #2C2F33
-skinparam DefaultFontColor #FFFFFF
-skinparam Shadowing false
-skinparam Class {
-    BackgroundColor #7289DA
-    BorderColor #FFFFFF
-    FontColor #FFFFFF
-    ArrowColor #FFFFFF
-    BorderThickness 2
+skinparam class {
+    BackgroundColor<<T>> #4A90E2
+    BackgroundColor<<D>> #50C878
+    BackgroundColor<<R>> #FF6B6B
+    BorderColor #333333
 }
 
 ' User table
-class "User" {
-    + user_id: int <<PK>>
-    --
-    username: varchar <<index>>
-    phone_number: varchar <<index>>
-    email: varchar <<index>>
-    password_hash: varchar
-    last_login: datetime
-    registration_date: datetime
-    status_timestamp: datetime
+class "User" as U << (T,#4A90E2) >> {
+  + user_id: int <<PK>>
+  --
+  username: varchar <<index>>
+  phone_number: varchar <<index>>
+  email: varchar <<index>>
+  password_hash: varchar
+  last_login: datetime
+  registration_date: datetime
+  status_timestamp: datetime
 }
 
 ' PrivateChat table
-class "PrivateChat" {
-    + chat_id: int <<PK>>
-    --
-    sender_id: int <<FK>> <<index>>
-    recipient_id: int <<FK>> <<index>>
-    last_message_id: ObjectId <<FK>>
-    last_message_timestamp: datetime <<index>>
+class "PrivateChat" as PC << (T,#4A90E2) >> {
+  + chat_id: int <<PK>>
+  --
+  sender_id: int <<FK>> <<index>>
+  recipient_id: int <<FK>> <<index>>
+  last_message_id: ObjectId <<FK>>
+  last_message_timestamp: datetime <<index>>
 }
 
 ' GroupChat table
-class "GroupChat" {
-    + chat_id: int <<PK>>
-    --
-    chat_name: varchar
-    chat_type: enum ('group', 'channel')
-    creation_date: datetime
-    last_message_id: ObjectId <<FK>>
-    last_message_timestamp: datetime <<index>>
+class "GroupChat" as GC << (T,#4A90E2) >> {
+  + chat_id: int <<PK>>
+  --
+  chat_name: varchar
+  chat_type: enum ('group', 'channel')
+  creation_date: datetime
+  last_message_id: ObjectId <<FK>>
+  last_message_timestamp: datetime <<index>>
 }
 
 ' MongoDB Message NoSQL collection
-class "MongoDB_Message_NoSQL" {
-    + message_id: ObjectId <<PK>>
-    --
-    chat_id: int <<FK>> <<sharding key>>
-    sender_user_id: int <<FK>>
-    content: text
-    timestamp: datetime <<index>>
-    type: enum('text', 'photo', 'video', 'document')
+class "MongoDB_Message_NoSQL" as MM << (D,#50C878) >> {
+  + message_id: ObjectId <<PK>>
+  --
+  chat_id: int <<FK>> <<sharding key>>
+  sender_user_id: int <<FK>>
+  content: text
+  timestamp: datetime <<index>>
+  type: enum('text', 'photo', 'video', 'document')
 }
 
 ' GroupMembers table
-class "GroupMembers" {
-    + group_id: int <<FK>> <<index>>
-    + user_id: int <<FK>> <<index>>
-    --
-    join_date: datetime
-    role: enum ('member', 'admin', 'owner')
+class "GroupMembers" as GM << (T,#4A90E2) >> {
+  + group_id: int <<FK>> <<index>>
+  + user_id: int <<FK>> <<index>>
+  --
+  join_date: datetime
+  role: enum ('member', 'admin', 'owner')
 }
 
 ' UserProfile table
-class "UserProfile" {
-    + user_id: int <<FK>> <<PK>>
-    --
-    avatar: image
-    about: text
-    last_updated: datetime
+class "UserProfile" as UP << (T,#4A90E2) >> {
+  + user_id: int <<FK>> <<PK>>
+  --
+  avatar: image
+  about: text
+  last_updated: datetime
 }
 
 ' Stickers table
-class "Stickers" {
-    + sticker_id: int <<PK>>
-    --
-    user_id: int <<FK>> <<index>>
-    image: image
-    added_date: datetime
+class "Stickers" as S << (T,#4A90E2) >> {
+  + sticker_id: int <<PK>>
+  --
+  user_id: int <<FK>> <<index>>
+  image: image
+  added_date: datetime
 }
 
 ' Redis Cache
-class "RedisCache" {
-    + User Status and Last Seen
-    Key: user:{user_id}:status
-    Value: online|offline|last_seen_timestamp
-    --
-    + Unread Messages Count
-    Key: user:{user_id}:unread:{chat_id}
-    Value: count
+class "RedisCache" as RC << (R,#FF6B6B) >> {
+  + User Status and Last Seen
+  Key: user:{user_id}:status
+  Value: online|offline|last_seen_timestamp
+  --
+  + Unread Messages Count
+  Key: user:{user_id}:unread:{chat_id}
+  Value: count
 }
 
 ' Contacts table
-class "Contacts" {
-    + user_id: int <<FK>> <<index>>
-    + contact_id: int <<FK>> <<index>>
-    --
-    added_date: datetime
+class "Contacts" as C << (T,#4A90E2) >> {
+  + user_id: int <<FK>> <<index>>
+  + contact_id: int <<FK>> <<index>>
+  --
+  added_date: datetime
 }
 
-User "1" -- "1" PrivateChat : Initiates
-User "1" -- "1" PrivateChat : Receives
-User "1" -- "n" GroupChat : Participates
-User "1" -- "n" MongoDB_Message_NoSQL : Sends
-PrivateChat "1" -- "n" MongoDB_Message_NoSQL : Contains
-GroupChat "1" -- "n" MongoDB_Message_NoSQL : Contains
-GroupChat "1" -- "n" GroupMembers : Has
-User "1" -- "1" UserProfile : Has
-User "n" -- "n" GroupMembers : Joins
-User "1" -- "n" Stickers : Owns
-User --> RedisCache : Uses for\nfrequent updates
-User "n" -- "n" Contacts
+U "1" -- "1" PC : Initiates >
+U "1" -- "1" PC : < Receives
+U "1" -- "n" GC : Participates >
+U "1" -- "n" MM : Sends >
+PC "1" -- "n" MM : Contains >
+GC "1" -- "n" MM : Contains >
+GC "1" -- "n" GM : Has >
+U "1" -- "1" UP : Has >
+U "n" -- "n" GM : Joins >
+U "1" -- "n" S : Owns >
+U --> RC : Uses for\nfrequent updates >
+U "n" -- "n" C : Has >
 
 @enduml
