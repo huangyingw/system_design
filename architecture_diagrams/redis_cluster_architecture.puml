@@ -1,41 +1,41 @@
-@startuml
-skinparam backgroundColor #D3D3D3
-!define RedisNode(x) class x << (R,orchid) >>
-!define ClientNode(x) class x << (C,lightblue) >>
+@startuml Redis Cluster Architecture
+skinparam backgroundColor #E8E8E8
+skinparam classFontColor #333333
+skinparam classAttributeFontColor #333333
+
+!define RedisNode(x) class x << (R,#A0522D) >>
+!define ClientNode(x) class x << (C,#4682B4) >>
 
 package "Redis Cluster" {
-    RedisNode(Master1)
-    RedisNode(Master2)
-    RedisNode(Master3)
-    RedisNode(Slave1)
-    RedisNode(Slave2)
-    RedisNode(Slave3)
+    together {
+        RedisNode(Master1) #D2B48C
+        RedisNode(Master2) #D2B48C
+    }
+    
+    together {
+        RedisNode(Slave1) #F4A460
+        RedisNode(Slave2) #F4A460
+    }
 
-    Master1 -[hidden]down- Master2
-    Master2 -[hidden]down- Master3
-    Slave1 -[hidden]right- Slave2
-    Slave2 -[hidden]right- Slave3
-
-    Master1 -down-> Slave1 : replication
-    Master2 -down-> Slave2 : replication
-    Master3 -down-> Slave3 : replication
+    Master1 -[#8B4513]down-> Slave1 : replication
+    Master2 -[#8B4513]down-> Slave2 : replication
 
     interface "Cluster Communication" as ClusterComm
 
-    Master1 -right-> ClusterComm : heartbeat
-    Master2 -right-> ClusterComm
-    Master3 -right-> ClusterComm
-    Slave1 -left-> ClusterComm
-    Slave2 -left-> ClusterComm
-    Slave3 -left-> ClusterComm
+    Master1 -[#2E8B57]right-> ClusterComm : heartbeat
+    Master2 -[#2E8B57]left-> ClusterComm
+    Slave1 -[#2E8B57]right-> ClusterComm
+    Slave2 -[#2E8B57]left-> ClusterComm
 }
 
-ClientNode(Client1)
-ClientNode(Client2)
+ClientNode(Client1) #B0C4DE
+ClientNode(Client2) #B0C4DE
 
-Client1 -down-> Master1 : read/write
-Client1 -down-> Master2
-Client2 -down-> Master3 : read/write
-Client2 -down-> Slave3 : read
+Client1 -[#4169E1]down-> Master1 : write
+Client1 .[#20B2AA]down-> Master1 : read request
+Master1 .[#20B2AA]down-> Slave1 : route read
+Client2 -[#4169E1]down-> Master2 : write
+Client2 .[#20B2AA]down-> Master2 : read request
+Master2 .[#20B2AA]down-> Slave2 : route read
 
 @enduml
