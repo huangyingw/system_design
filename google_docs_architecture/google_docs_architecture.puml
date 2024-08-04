@@ -1,21 +1,119 @@
-@startuml
-skinparam backgroundColor #D3D3D3
+@startuml Google Docs System Architecture
 
-package "Google Docs System" {
-    component [Frontend UI] as UI
-    component [Backend Services] as Backend
-    component [Storage System] as Storage
-    component [Collaboration Synchronization] as Sync
-    component [Security and Permissions] as Security
-    component [Message Queue] as MQ
+!define RECTANGLE class
 
-    UI --> Backend : sends user requests
-    Backend --> Security : access validation
-    Security --> Backend : validation results
-    Backend --> MQ : enqueue tasks/data
-    MQ --> Storage : store processed data
-    Backend --> Sync : manage real-time updates
-    Sync --> UI : update user views
+skinparam backgroundColor #F0F8FF
+skinparam handwritten false
+skinparam monochrome false
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam arrow {
+    Color #4A4A4A
+    FontColor #4A4A4A
 }
+
+skinparam rectangle {
+    BackgroundColor #E6F3FF
+    BorderColor #4A4A4A
+    FontColor #4A4A4A
+}
+
+skinparam database {
+    BackgroundColor #FFE6CC
+    BorderColor #4A4A4A
+    FontColor #4A4A4A
+}
+
+skinparam queue {
+    BackgroundColor #E6FFCC
+    BorderColor #4A4A4A
+    FontColor #4A4A4A
+}
+
+skinparam cloud {
+    BackgroundColor #F2E6FF
+    BorderColor #4A4A4A
+    FontColor #4A4A4A
+}
+
+rectangle "Frontend" {
+    [Web UI]
+    [Mobile App]
+    [Desktop App]
+}
+
+rectangle "API Gateway" {
+    [Load Balancer]
+    [Rate Limiter]
+    [API Versioning]
+}
+
+rectangle "Backend Services" {
+    [Authentication Service]
+    [Document Service]
+    [Collaboration Service]
+    [Search Service]
+    [Notification Service]
+}
+
+rectangle "Data Storage" {
+    database "Document DB (NoSQL)" {
+        [Document Data]
+        note right: Sharding Key: doc_id
+    }
+    
+    database "User DB (SQL)" {
+        [User Data]
+        note right: PK: user_id\nIndexes: email, username
+    }
+    
+    database "Redis Cache" {
+        [Session Data]
+        note right: Key: session_id
+        [Document Cache]
+        note right: Key: doc_id:version
+    }
+}
+
+queue "Message Queue" {
+    [RabbitMQ]
+}
+
+cloud "External Services" {
+    [Email Service]
+    [Analytics Service]
+}
+
+[Web UI] --> [Load Balancer]
+[Mobile App] --> [Load Balancer]
+[Desktop App] --> [Load Balancer]
+
+[Load Balancer] --> [Rate Limiter]
+[Rate Limiter] --> [API Versioning]
+
+[API Versioning] --> [Authentication Service]
+[API Versioning] --> [Document Service]
+[API Versioning] --> [Collaboration Service]
+[API Versioning] --> [Search Service]
+[API Versioning] --> [Notification Service]
+
+[Authentication Service] --> [User Data]
+[Authentication Service] --> [Session Data]
+
+[Document Service] --> [Document Data]
+[Document Service] --> [Document Cache]
+[Document Service] --> [RabbitMQ]
+
+[Collaboration Service] --> [Document Data]
+[Collaboration Service] --> [Document Cache]
+[Collaboration Service] --> [RabbitMQ]
+
+[Search Service] --> [Document Data]
+
+[Notification Service] --> [RabbitMQ]
+[Notification Service] --> [Email Service]
+
+[RabbitMQ] --> [Analytics Service]
 
 @enduml
