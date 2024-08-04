@@ -19,19 +19,28 @@ skinparam component {
     BorderColor<<Microservice>> #94ABD9
 }
 
-' 应用服务
+' Application Layer
 package "Application Layer" {
     MICROSERVICE(Service1)
     MICROSERVICE(Service2)
+    note right of Service2
+        Scalable
+        Can add more service instances as needed
+    end note
 }
 
-' 路由层
+' Router Layer
 package "Router Layer" {
     MONGOS(Mongos1)
     MONGOS(Mongos2)
+    note right of Mongos2
+        Scalable
+        Multiple Mongos instances provide
+        load balancing and high availability
+    end note
 }
 
-' 数据存储层
+' Data Storage Layer
 package "Data Storage Layer" {
     package "Shard 1 (Replica Set)" {
         SHARD(Shard1_Primary)
@@ -48,18 +57,28 @@ package "Data Storage Layer" {
         REPLICANODE(Shard3_Secondary1)
         REPLICANODE(Shard3_Secondary2)
     }
+    note right of Shard3_Secondary2
+        Scalable
+        Can add more shards to increase
+        storage capacity and processing power
+    end note
 }
 
-' 配置服务器
+' Config Servers
 package "Config Server Replica Set" {
     CONFIGSVR(ConfigServer1)
     CONFIGSVR(ConfigServer2)
     CONFIGSVR(ConfigServer3)
+    note right of ConfigServer3
+        Fixed number (usually 3)
+        Provides high availability
+        and data consistency
+    end note
 }
 
-' 连接关系
-Service1 -down-> Mongos1 : 查询
-Service2 -down-> Mongos2 : 查询
+' Connections
+Service1 -down-> Mongos1 : Query
+Service2 -down-> Mongos2 : Query
 
 Mongos1 -down-> Shard1_Primary
 Mongos1 -down-> Shard2_Primary
@@ -75,12 +94,12 @@ Mongos2 -left-> ConfigServer1
 Mongos2 -left-> ConfigServer2
 Mongos2 -left-> ConfigServer3
 
-' 副本集内部复制关系
-Shard1_Primary <-right-> Shard1_Secondary1 : 复制
-Shard1_Primary <-down-> Shard1_Secondary2 : 复制
-Shard2_Primary <-right-> Shard2_Secondary1 : 复制
-Shard2_Primary <-down-> Shard2_Secondary2 : 复制
-Shard3_Primary <-right-> Shard3_Secondary1 : 复制
-Shard3_Primary <-down-> Shard3_Secondary2 : 复制
+' Replica Set Internal Replication
+Shard1_Primary <-right-> Shard1_Secondary1 : Replicate
+Shard1_Primary <-down-> Shard1_Secondary2 : Replicate
+Shard2_Primary <-right-> Shard2_Secondary1 : Replicate
+Shard2_Primary <-down-> Shard2_Secondary2 : Replicate
+Shard3_Primary <-right-> Shard3_Secondary1 : Replicate
+Shard3_Primary <-down-> Shard3_Secondary2 : Replicate
 
 @enduml
