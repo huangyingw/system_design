@@ -3,9 +3,9 @@
 !define DATABASE database
 !define CLOUD cloud
 
-skinparam backgroundColor #E0E0E0
+skinparam backgroundColor #F0F0F0
+
 skinparam handwritten false
-skinparam monochrome false
 skinparam shadowing false
 skinparam defaultFontName Arial
 skinparam defaultFontSize 12
@@ -15,27 +15,26 @@ skinparam arrowThickness 1.5
 skinparam rectangle {
   BackgroundColor #3498DB
   BorderColor #2980B9
-  FontColor #ECF0F1
+  FontColor #FFFFFF
   BorderThickness 2
-  Shadowing false
 }
 
 skinparam database {
   BackgroundColor #E74C3C
   BorderColor #C0392B
-  FontColor #ECF0F1
+  FontColor #FFFFFF
 }
 
 skinparam cloud {
   BackgroundColor #95A5A6
   BorderColor #7F8C8D
-  FontColor #ECF0F1
+  FontColor #FFFFFF
 }
 
 skinparam package {
   BackgroundColor #9B59B6
   BorderColor #8E44AD
-  FontColor #ECF0F1
+  FontColor #FFFFFF
 }
 
 title Telegram-like System Architecture with Read/Write Splitting and Sharding
@@ -69,15 +68,25 @@ rectangle "Backend Services" {
 
 database "Database System" {
   package "MongoDB Cluster" {
-    database "Config Servers"
+    database "Config Servers" {
+      [Metadata]
+    }
     package "Shard" {
-      database "Primary"
-      database "Secondary 1"
-      database "Secondary 2"
+      database "Primary" {
+        [Write Operations]
+      }
+      database "Secondary 1" {
+        [Read Operations]
+      }
+      database "Secondary 2" {
+        [Read Operations]
+      }
     }
     [MongoDB Router (mongos)]
   }
-  database "Redis Cache"
+  database "Redis Cache" {
+    [Key-Value Store]
+  }
 }
 
 cloud "Monitoring & Logging" {
@@ -85,37 +94,54 @@ cloud "Monitoring & Logging" {
   [Logging]
 }
 
-' Message Flow
-[Sender's Client] --> [Load Balancer]: 1. Send Message
-[Load Balancer] --> [Service Instance]
-[Service Instance] --> [Authorization & Permissions]: 2. Check Permission
-[Authorization & Permissions] --> [Kafka (Message Queue)]: 3. Authorized Message
-[Kafka (Message Queue)] --> [Message Worker]: 4. Process Message
-[Message Worker] --> [MongoDB Router (mongos)]: 5. Store Message
-[MongoDB Router (mongos)] --> [Primary]: 6. Write to Shard
-[Message Worker] --> [Redis Cache]: 7. Update Cache
-[Message Worker] --> [Kafka (Pub/Sub Model)]: 8. Publish Message Event
-[Kafka (Pub/Sub Model)] --> [Notification Handler]: 9. Trigger Notification
-[Notification Handler] --> [Push Notification Service]: 10. Send Push Notification
-[Push Notification Service] --> [Receiver's Client]: 11. Deliver Notification
+' 消息流
+[Sender's Client] -[#1ABC9C,bold]-> [Load Balancer]: 1. Send Message
+[Load Balancer] -[#1ABC9C,bold]-> [Service Instance]
+[Service Instance] -[#1ABC9C,bold]-> [Authorization & Permissions]: 2. Check Permission
+[Authorization & Permissions] -[#1ABC9C,bold]-> [Kafka (Message Queue)]: 3. Authorized Message
+[Kafka (Message Queue)] -[#1ABC9C,bold]-> [Message Worker]: 4. Process Message
+[Message Worker] -[#1ABC9C,bold]-> [MongoDB Router (mongos)]: 5. Store Message
+[MongoDB Router (mongos)] -[#1ABC9C,bold]-> [Primary]: 6. Write to Shard
+[Message Worker] -[#1ABC9C,bold]-> [Redis Cache]: 7. Update Cache
+[Message Worker] -[#1ABC9C,bold]-> [Kafka (Pub/Sub Model)]: 8. Publish Message Event
+[Kafka (Pub/Sub Model)] -[#1ABC9C,bold]-> [Notification Handler]: 9. Trigger Notification
+[Notification Handler] -[#1ABC9C,bold]-> [Push Notification Service]: 10. Send Push Notification
+[Push Notification Service] -[#1ABC9C,bold]-> [Receiver's Client]: 11. Deliver Notification
 
-' Read Message Flow
-[Receiver's Client] --> [Load Balancer]: 12. Request to Read Message
-[Service Instance] --> [Redis Cache]: 13. Check Cache
-[Redis Cache] --> [Service Instance]: 14. Return Cached Message (if available)
-[Service Instance] -[#FF5733,thickness=2]-> [MongoDB Router (mongos)]: 15. Fetch Message (if not in cache)
-[MongoDB Router (mongos)] --> [Secondary 1]: 16. Read from Shard
-[MongoDB Router (mongos)] -[#33FF57,thickness=2]-> [Service Instance]: 17. Return Message
-[Service Instance] --> [Receiver's Client]: 18. Deliver Message
+' 读取消息流
+[Receiver's Client] -[#F39C12,bold]-> [Load Balancer]: 12. Request to Read Message
+[Service Instance] -[#F39C12,bold]-> [Redis Cache]: 13. Check Cache
+[Redis Cache] -[#F39C12,bold]-> [Service Instance]: 14. Return Cached Message (if available)
+[Service Instance] -[#F39C12,bold]-> [MongoDB Router (mongos)]: 15. Fetch Message (if not in cache)
+[MongoDB Router (mongos)] -[#F39C12,bold]-> [Secondary 1]: 16. Read from Shard
+[MongoDB Router (mongos)] -[#F39C12,bold]-> [Service Instance]: 17. Return Message
+[Service Instance] -[#F39C12,bold]-> [Receiver's Client]: 18. Deliver Message
 
-' Replication
-[Primary] --> [Secondary 1]: Replicate
-[Primary] --> [Secondary 2]: Replicate
+' 复制
+[Primary] -[#8E44AD,bold]-> [Secondary 1]: Replicate
+[Primary] -[#8E44AD,bold]-> [Secondary 2]: Replicate
 
-' Config Servers
-[Config Servers] --> [MongoDB Router (mongos)]: Provide Cluster Metadata
+' 配置服务器
+[Config Servers] -[#27AE60,bold]-> [MongoDB Router (mongos)]: Provide Cluster Metadata
 
-' Logging and Monitoring
-[Service Instance] --> [Monitoring & Logging]: Log Events
+' 日志和监控
+[Service Instance] -[#95A5A6,bold]-> [Monitoring & Logging]: Log Events
+
+note right of [MongoDB Router (mongos)]
+  Sharding Key: user_id
+  Improves query performance
+  and scalability
+end note
+
+note right of [Redis Cache]
+  Key: user_id:message_id
+  Reduces database load
+  and improves read speed
+end note
+
+note bottom of [Kafka (Message Queue)]
+  Ensures reliable message
+  delivery and scalability
+end note
 
 @enduml
