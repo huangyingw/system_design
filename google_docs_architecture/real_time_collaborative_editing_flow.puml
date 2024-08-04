@@ -1,0 +1,92 @@
+@startuml Real-time Collaborative Editing
+
+skinparam backgroundColor #F0F8FF
+skinparam handwritten false
+skinparam monochrome false
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam arrow {
+    Color #4A4A4A
+    FontColor #4A4A4A
+}
+
+actor "User A" as UserA
+actor "User B" as UserB
+participant "Frontend A" as FrontendA
+participant "Frontend B" as FrontendB
+participant "API Gateway" as Gateway
+participant "Collaboration Service" as CollabService
+participant "Document Service" as DocService
+database "Document DB" as DocDB
+queue "Message Queue" as MQ
+participant "Notification Service" as NotifyService
+
+== Document Opening ==
+UserA -> FrontendA: Open document
+FrontendA -> Gateway: Request document
+Gateway -> DocService: Fetch document
+DocService -> DocDB: Retrieve document
+DocDB --> DocService: Document data
+DocService --> Gateway: Document data
+Gateway --> FrontendA: Document data
+FrontendA --> UserA: Display document
+
+UserB -> FrontendB: Open same document
+FrontendB -> Gateway: Request document
+Gateway -> DocService: Fetch document
+DocService -> DocDB: Retrieve document
+DocDB --> DocService: Document data
+DocService --> Gateway: Document data
+Gateway --> FrontendB: Document data
+FrontendB --> UserB: Display document
+
+== Real-time Editing ==
+UserA -> FrontendA: Make changes
+FrontendA -> Gateway: Send changes
+Gateway -> CollabService: Process changes
+CollabService -> DocService: Update document
+DocService -> DocDB: Save changes
+CollabService -> MQ: Broadcast changes
+
+MQ -> NotifyService: Notify of changes
+NotifyService -> Gateway: Push update
+Gateway --> FrontendB: Receive update
+FrontendB --> UserB: Display updated content
+
+== Conflict Resolution ==
+UserB -> FrontendB: Make conflicting changes
+FrontendB -> Gateway: Send changes
+Gateway -> CollabService: Process changes
+CollabService -> CollabService: Detect conflict
+CollabService -> CollabService: Resolve conflict
+CollabService -> DocService: Update document
+DocService -> DocDB: Save merged changes
+CollabService -> MQ: Broadcast resolved changes
+
+MQ -> NotifyService: Notify of resolved changes
+NotifyService -> Gateway: Push update
+Gateway --> FrontendA: Receive update
+Gateway --> FrontendB: Receive update
+FrontendA --> UserA: Display merged content
+FrontendB --> UserB: Display merged content
+
+== Offline Editing ==
+UserA -> FrontendA: Go offline
+UserA -> FrontendA: Make offline changes
+UserA -> FrontendA: Come back online
+FrontendA -> Gateway: Sync offline changes
+Gateway -> CollabService: Process offline changes
+CollabService -> CollabService: Merge with latest version
+CollabService -> DocService: Update document
+DocService -> DocDB: Save merged changes
+CollabService -> MQ: Broadcast merged changes
+
+MQ -> NotifyService: Notify of merged changes
+NotifyService -> Gateway: Push update
+Gateway --> FrontendA: Confirm sync
+Gateway --> FrontendB: Receive update
+FrontendA --> UserA: Display synced content
+FrontendB --> UserB: Display updated content
+
+@enduml
