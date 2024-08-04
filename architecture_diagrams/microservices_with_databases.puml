@@ -1,52 +1,86 @@
-@startuml
-skinparam backgroundColor #D3D3D3
+@startuml MongoDB Sharded Cluster Architecture
 
-!define MICROSERVICE(x) component x <<Microservice>>
-!define MONGOS(x) database x <<Mongos>>
-!define SHARD(x) database x <<Shard>>
-!define CONFIGSVR(x) database x <<ConfigServer>>
+skinparam backgroundColor #F0F0F0
+skinparam handwritten false
+skinparam monochrome false
+skinparam packageStyle rectangle
+skinparam packageBackgroundColor #EEEBDC
+skinparam componentStyle uml2
 
-' 定义微服务
-MICROSERVICE(Service1)
-MICROSERVICE(Service2)
+!define MICROSERVICE(x) component x <<Microservice>> #ADD1B2
+!define MONGOS(x) database x <<Mongos>> #A9DCDF
+!define SHARD(x) database x <<Shard>> #FFBD9D
+!define REPLICANODE(x) database x <<ReplicaNode>> #FFF59D
+!define CONFIGSVR(x) database x <<ConfigServer>> #C8F2AD
 
-' 定义路由服务器（Mongos）
-MONGOS(Mongos1)
-MONGOS(Mongos2)
+skinparam component {
+    FontColor #000000
+    BackgroundColor<<Microservice>> #ADD1B2
+    BorderColor<<Microservice>> #94ABD9
+}
 
-' 定义分片
-SHARD(Shard1)
-SHARD(Shard2)
-SHARD(Shard3)
+' 应用服务
+package "Application Layer" {
+    MICROSERVICE(Service1)
+    MICROSERVICE(Service2)
+}
 
-' 定义配置服务器
-CONFIGSVR(ConfigServer1)
-CONFIGSVR(ConfigServer2)
-CONFIGSVR(ConfigServer3)
+' 路由层
+package "Router Layer" {
+    MONGOS(Mongos1)
+    MONGOS(Mongos2)
+}
 
-' 微服务连接到Mongos
-Service1 --> Mongos1 : 查询
-Service2 --> Mongos2 : 查询
+' 数据存储层
+package "Data Storage Layer" {
+    package "Shard 1 (Replica Set)" {
+        SHARD(Shard1_Primary)
+        REPLICANODE(Shard1_Secondary1)
+        REPLICANODE(Shard1_Secondary2)
+    }
+    package "Shard 2 (Replica Set)" {
+        SHARD(Shard2_Primary)
+        REPLICANODE(Shard2_Secondary1)
+        REPLICANODE(Shard2_Secondary2)
+    }
+    package "Shard 3 (Replica Set)" {
+        SHARD(Shard3_Primary)
+        REPLICANODE(Shard3_Secondary1)
+        REPLICANODE(Shard3_Secondary2)
+    }
+}
 
-' Mongos连接到分片
-Mongos1 --> Shard1
-Mongos1 --> Shard2
-Mongos1 --> Shard3
-Mongos2 --> Shard1
-Mongos2 --> Shard2
-Mongos2 --> Shard3
+' 配置服务器
+package "Config Server Replica Set" {
+    CONFIGSVR(ConfigServer1)
+    CONFIGSVR(ConfigServer2)
+    CONFIGSVR(ConfigServer3)
+}
 
-' Mongos连接到配置服务器
-Mongos1 --> ConfigServer1
-Mongos1 --> ConfigServer2
-Mongos1 --> ConfigServer3
-Mongos2 --> ConfigServer1
-Mongos2 --> ConfigServer2
-Mongos2 --> ConfigServer3
+' 连接关系
+Service1 -down-> Mongos1 : 查询
+Service2 -down-> Mongos2 : 查询
 
-' 分片间的副本集关系
-Shard1 .. Shard2 : 副本集
-Shard2 .. Shard3 : 副本集
-Shard3 .. Shard1 : 副本集
+Mongos1 -down-> Shard1_Primary
+Mongos1 -down-> Shard2_Primary
+Mongos1 -down-> Shard3_Primary
+Mongos2 -down-> Shard1_Primary
+Mongos2 -down-> Shard2_Primary
+Mongos2 -down-> Shard3_Primary
+
+Mongos1 -right-> ConfigServer1
+Mongos1 -right-> ConfigServer2
+Mongos1 -right-> ConfigServer3
+Mongos2 -left-> ConfigServer1
+Mongos2 -left-> ConfigServer2
+Mongos2 -left-> ConfigServer3
+
+' 副本集内部复制关系
+Shard1_Primary <-right-> Shard1_Secondary1 : 复制
+Shard1_Primary <-down-> Shard1_Secondary2 : 复制
+Shard2_Primary <-right-> Shard2_Secondary1 : 复制
+Shard2_Primary <-down-> Shard2_Secondary2 : 复制
+Shard3_Primary <-right-> Shard3_Secondary1 : 复制
+Shard3_Primary <-down-> Shard3_Secondary2 : 复制
 
 @enduml
