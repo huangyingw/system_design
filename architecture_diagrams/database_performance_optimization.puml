@@ -1,62 +1,125 @@
-@startuml
-skinparam backgroundColor #D3D3D3
+@startuml Database Software Optimization Strategies
 
-!define DATABASE_COLOR #FAD7A0
-!define OPTIMIZATION_COLOR #ABEBC6
+skinparam backgroundColor #F5F5F5
+skinparam defaultFontName Arial
+skinparam titleFontSize 20
+skinparam titleFontColor #333333
+skinparam classFontSize 14
+skinparam classAttributeFontSize 12
+skinparam noteFontSize 11
+skinparam noteFontColor #333333
 
-skinparam class {
-    BackgroundColor White
-    ArrowColor Black
-    BorderColor Black
+title Database Software Optimization Strategies
+
+class "Database Optimization" as Optimization #FFFFFF {
+    + Index Optimization
+    + Query Optimization
+    + Table Structure Adjustment
+    + Data Partitioning
+    + Caching Strategy
+    + Database Configuration
+    + Monitoring and Tuning
 }
 
-class "数据库优化" as Optimization {
-    +索引优化
-    +查询优化
-    +表结构调整
-    +数据分区
-    +缓存策略
+class "Index Optimization" as IndexOptimization #F8D7DA {
+    + Add Missing Indexes
+    + Remove Redundant Indexes
+    + Use Composite Indexes
+    + Implement Covering Indexes
+    + Analyze Index Usage
 }
+note bottom of IndexOptimization
+  Key to improving query performance
+  Reduces full table scans
+  Accelerates data retrieval
+end note
 
-class "索引优化" as IndexOptimization {
-    +添加缺失索引
-    +删除冗余索引
-    +使用复合索引
+class "Query Optimization" as QueryOptimization #D4EDDA {
+    + Avoid Full Table Scans
+    + Optimize Subqueries
+    + Use JOINs Instead of Subqueries
+    + Utilize Explain Plan
+    + Optimize WHERE Clauses
+    + Use Stored Procedures
 }
+note right of QueryOptimization
+  Improves SQL execution efficiency
+  Reduces resource consumption
+  Faster response times
+end note
 
-class "查询优化" as QueryOptimization {
-    +避免全表扫描
-    +优化子查询
-    +使用JOIN代替子查询
+class "Table Structure Adjustment" as TableOptimization #E2E3E5 {
+    + Normalize Data
+    + Denormalize When Necessary
+    + Optimize Data Types
+    + Implement Vertical Partitioning
+    + Use Appropriate Primary Keys
 }
+note bottom of TableOptimization
+  Optimizes data storage structure
+  Improves data integrity
+  Enhances query efficiency
+end note
 
-class "表结构调整" as TableOptimization {
-    +规范化数据
-    +反规范化
-    +数据类型优化
+class "Data Partitioning" as Partitioning #D1ECF1 {
+    + Time-Based Partitioning
+    + Key-Based Partitioning
+    + List Partitioning
+    + Hash Partitioning
+    + Range Partitioning
 }
+note left of Partitioning
+  Distributes data storage
+  Improves parallel processing
+  Enhances performance for large tables
+end note
 
-class "数据分区" as Partitioning {
-    +按时间分区
-    +按键值分区
+class "Caching Strategy" as Caching #FFF3CD {
+    + Query Result Caching
+    + Object Caching
+    + Page Caching
+    + Implement Redis/Memcached
+    + Database Buffer Cache Tuning
 }
+note right of Caching
+  Reduces database load
+  Improves response speed
+  Decreases I/O operations
+end note
 
-class "缓存策略" as Caching {
-    +查询缓存
-    +对象缓存
-    +页面缓存
+class "Database Configuration" as Configuration #FFE4B5 {
+    + Optimize Buffer Pool Size
+    + Tune Query Cache
+    + Adjust Thread Pool
+    + Configure I/O Parameters
+    + Set Appropriate Isolation Levels
 }
+note left of Configuration
+  Adjusts DB parameters for hardware
+  and business requirements
+  Optimizes resource utilization
+end note
 
-Optimization -down-> IndexOptimization : 包含
-Optimization -down-> QueryOptimization : 包含
-Optimization -down-> TableOptimization : 包含
-Optimization -down-> Partitioning : 包含
-Optimization -down-> Caching : 包含
+class "Monitoring and Tuning" as Monitoring #98FB98 {
+    + Use Performance Schema
+    + Implement Slow Query Log
+    + Regular Performance Reviews
+    + Automated Monitoring Tools
+    + Query Plan Analysis
+}
+note top of Monitoring
+  Continuous performance monitoring
+  Timely detection and resolution
+  of potential issues
+end note
 
-IndexOptimization -[DATABASE_COLOR]-> Optimization
-QueryOptimization -[DATABASE_COLOR]-> Optimization
-TableOptimization -[DATABASE_COLOR]-> Optimization
-Partitioning -[DATABASE_COLOR]-> Optimization
-Caching -[DATABASE_COLOR]-> Optimization
+Optimization -down-> IndexOptimization
+Optimization -down-> QueryOptimization
+Optimization -down-> TableOptimization
+Optimization -down-> Partitioning
+Optimization -[hidden]right-> Caching
+Caching -up-> Optimization
+Configuration -up-> Optimization
+Monitoring -up-> Optimization
 
 @enduml
