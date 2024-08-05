@@ -1,36 +1,70 @@
 @startuml
-skinparam backgroundColor #D3D3D3
-package "分布式文件系统" {
-    node "客户端A" as ClientA
-    node "客户端B" as ClientB
-    node "名称节点" as NameNode {
-        [元数据存储] as MetadataStorage
+!define RECTANGLE class
+!define DATABASE database
+
+skinparam backgroundColor #F0F0E0
+skinparam handwritten false
+skinparam monochrome false
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam roundCorner 10
+skinparam ArrowColor #2C3E50
+skinparam ArrowThickness 1.5
+
+package "Distributed File System" {
+    RECTANGLE "Client A" as ClientA #A9CCE3
+    RECTANGLE "Client B" as ClientB #A9CCE3
+    
+    RECTANGLE "Load Balancer" as LoadBalancer #F5B041 {
+        RECTANGLE "Health Check" as HealthCheck
     }
-    node "数据节点1" as DataNode1 {
-        [数据存储] as DataStorage1
+    
+    RECTANGLE "Name Node" as NameNode #82E0AA {
+        DATABASE "Metadata Storage" as MetadataStorage
+        RECTANGLE "File System Tree" as FSTree
+        RECTANGLE "Block Management" as BlockMgmt
     }
-    node "数据节点2" as DataNode2 {
-        [数据存储] as DataStorage2
+    
+    RECTANGLE "Data Node 1" as DataNode1 #F1948A {
+        DATABASE "Data Storage 1" as DataStorage1
+        RECTANGLE "Data Replication" as Replication1
     }
-    node "管理节点" as AdminNode
-    node "负载均衡器" as LoadBalancer
-    node "备份节点" as BackupNode
-
-    ClientA -down-> LoadBalancer : 连接请求
-    ClientB -down-> LoadBalancer : 连接请求
-    LoadBalancer -right-> NameNode : 路由请求
-
-    NameNode -down-> DataNode1 : 指派任务
-    NameNode -down-> DataNode2 : 指派任务
-
-    ClientA -right-> DataNode1 : 读/写数据
-    ClientB -left-> DataNode2 : 读/写数据
-
-    DataNode1 -down-> BackupNode : 数据备份
-    DataNode2 -down-> BackupNode : 数据备份
-
-    AdminNode -left-> NameNode : 管理与监控
-    AdminNode -up-> DataNode1 : 管理与监控
-    AdminNode -up-> DataNode2 : 管理与监控
+    
+    RECTANGLE "Data Node 2" as DataNode2 #F1948A {
+        DATABASE "Data Storage 2" as DataStorage2
+        RECTANGLE "Data Replication" as Replication2
+    }
+    
+    RECTANGLE "Admin Node" as AdminNode #D7BDE2 {
+        RECTANGLE "Monitoring" as Monitoring
+        RECTANGLE "Configuration" as Config
+    }
+    
+    RECTANGLE "Backup Node" as BackupNode #FAD7A0 {
+        DATABASE "Backup Storage" as BackupStorage
+        RECTANGLE "Recovery Management" as RecoveryMgmt
+    }
+    
+    RECTANGLE "Caching Layer" as CacheLayer #85C1E9 {
+        DATABASE "Redis" as RedisCache
+    }
+    
+    ClientA -down-> LoadBalancer : "1. Connection Request"
+    ClientB -down-> LoadBalancer : "1. Connection Request"
+    LoadBalancer -right-> NameNode : "2. Route Request"
+    NameNode -down-> DataNode1 : "3. Assign Task"
+    NameNode -down-> DataNode2 : "3. Assign Task"
+    ClientA -right-> DataNode1 : "4. Read/Write Data"
+    ClientB -left-> DataNode2 : "4. Read/Write Data"
+    DataNode1 -down-> BackupNode : "5. Data Backup"
+    DataNode2 -down-> BackupNode : "5. Data Backup"
+    AdminNode -left-> NameNode : "6. Manage & Monitor"
+    AdminNode -up-> DataNode1 : "6. Manage & Monitor"
+    AdminNode -up-> DataNode2 : "6. Manage & Monitor"
+    ClientA -[#blue]-> CacheLayer : "7. Cache Access"
+    ClientB -[#blue]-> CacheLayer : "7. Cache Access"
+    NameNode -[#green]-> CacheLayer : "8. Metadata Cache"
 }
+
 @enduml
