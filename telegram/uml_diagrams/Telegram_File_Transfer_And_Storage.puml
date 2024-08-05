@@ -1,16 +1,49 @@
 @startuml Telegram_File_Transfer_And_Storage_Optimized
 
 ' Set theme and styling
-skinparam backgroundColor #F0F0F0
+skinparam backgroundColor #E6E6FA
 skinparam handwritten false
-skinparam monochrome true
+skinparam monochrome false
 skinparam packageStyle rectangle
 skinparam defaultFontName Arial
 skinparam defaultFontSize 28
 skinparam ArrowFontSize 24
-skinparam NoteFontSize 22
+skinparam NoteFontSize 26
 skinparam roundcorner 10
 skinparam shadowing false
+skinparam nodesep 60
+skinparam ranksep 60
+
+' Color scheme
+skinparam rectangle {
+    BackgroundColor #F0F8FF
+    BorderColor #4682B4
+    FontColor #000080
+}
+skinparam database {
+    BackgroundColor #F0FFFF
+    BorderColor #20B2AA
+    FontColor #008080
+}
+skinparam cloud {
+    BackgroundColor #F0F8FF
+    BorderColor #6495ED
+    FontColor #4169E1
+}
+skinparam queue {
+    BackgroundColor #FFF0F5
+    BorderColor #DB7093
+    FontColor #C71585
+}
+skinparam note {
+    BackgroundColor #FFFAF0
+    BorderColor #DEB887
+    FontColor #8B4513
+}
+skinparam arrow {
+    Color #4682B4
+    FontColor #000080
+}
 
 ' Define components
 rectangle "Client Apps" as CA {
@@ -38,26 +71,28 @@ rectangle "File Transfer\nService Cluster" as FTSC {
 
 database "Metadata DB" as MDB {
     [Cassandra]
-    note right of [Cassandra]
-        Sharding Key: file_id
-        --
-        1. Efficient query by file ID
-        2. Same shard for file metadata
-        3. Support file-level operations
-    end note
 }
+
+note right of MDB
+    <b>Sharding Key: file_id</b>
+    --
+    1. Efficient query by file ID
+    2. Same shard for file metadata
+    3. Support file-level operations
+end note
 
 database "Object Storage" as OS {
     [S3-compatible]
-    note right of [S3-compatible]
-        Sharding Key: chunk_id
-        --
-        1. Independent access, high parallelism
-        2. Support chunking and resumable transfers
-        3. Even distribution, avoid hotspots
-        4. Easy horizontal scaling
-    end note
 }
+
+note right of OS
+    <b>Sharding Key: chunk_id</b>
+    --
+    1. Independent access, high parallelism
+    2. Support chunking and resumable transfers
+    3. Even distribution, avoid hotspots
+    4. Easy horizontal scaling
+end note
 
 cloud "CDN" as CDN {
     [Edge Servers]
@@ -70,28 +105,29 @@ queue "File Processing\nQueue" as FPQ {
 
 database "Cache Layer" as CL {
     [Redis]
-    note right of [Redis]
-        Key Design:
-        1. File metadata: file:{id}:meta
-           Hash(name,size,type,time)
-        2. File chunk list: file:{id}:chunks
-           Set(chunk_id1, chunk_id2, ...)
-        3. Chunk metadata: chunk:{id}:meta
-           Hash(size,checksum,location)
-        4. User recent files: user:{id}:recent
-           SortedSet(file_id, timestamp)
-        5. File access count: file:{id}:access
-           String(count)
-        6. Upload status: file:{id}:upload
-           Hash(total,uploaded,status)
-        --
-        Expiration Strategy:
-        - Metadata/chunks: LRU, 1h
-        - Recent files: 7d
-        - Access count: 30d
-        - Upload status: 15m after completion
-    end note
 }
+
+note right of CL
+    <b>Key Design:</b>
+    1. File metadata: file:{id}:meta
+       Hash(name,size,type,time)
+    2. File chunk list: file:{id}:chunks
+       Set(chunk_id1, chunk_id2, ...)
+    3. Chunk metadata: chunk:{id}:meta
+       Hash(size,checksum,location)
+    4. User recent files: user:{id}:recent
+       SortedSet(file_id, timestamp)
+    5. File access count: file:{id}:access
+       String(count)
+    6. Upload status: file:{id}:upload
+       Hash(total,uploaded,status)
+    --
+    <b>Expiration Strategy:</b>
+    - Metadata/chunks: LRU, 1h
+    - Recent files: 7d
+    - Access count: 30d
+    - Upload status: 15m after completion
+end note
 
 rectangle "File Processing\nWorkers" as FPW {
     [Thumbnail Gen]
