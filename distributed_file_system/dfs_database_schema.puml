@@ -1,0 +1,69 @@
+@startuml
+!define TABLE(name,desc) class name as "desc" << (T,#FFAAAA) >>
+!define PK(x) <u>x</u>
+!define FK(x) <i>x</i>
+
+skinparam backgroundColor #F0F0E0
+skinparam class {
+    BackgroundColor #ECECFF
+    ArrowColor #2C3E50
+    BorderColor #2C3E50
+}
+
+TABLE(FileMetadata, "File Metadata\n(MySQL)") {
+    PK(file_id): INT
+    file_name: VARCHAR(255)
+    file_path: VARCHAR(1024)
+    file_size: BIGINT
+    owner: VARCHAR(100)
+    created_at: TIMESTAMP
+    updated_at: TIMESTAMP
+    +INDEX(file_path)
+    +INDEX(owner)
+}
+
+TABLE(BlockMetadata, "Block Metadata\n(MySQL)") {
+    PK(block_id): INT
+    FK(file_id): INT
+    block_size: INT
+    block_location: VARCHAR(255)
+    checksum: VARCHAR(64)
+    +INDEX(file_id)
+}
+
+TABLE(DataNodeInfo, "DataNode Info\n(MySQL)") {
+    PK(node_id): INT
+    hostname: VARCHAR(255)
+    ip_address: VARCHAR(15)
+    total_space: BIGINT
+    used_space: BIGINT
+    last_heartbeat: TIMESTAMP
+    status: ENUM('ACTIVE', 'INACTIVE', 'DECOMMISSIONED')
+    +INDEX(status)
+}
+
+TABLE(UserQuota, "User Quota\n(MySQL)") {
+    PK(user_id): INT
+    username: VARCHAR(100)
+    quota_limit: BIGINT
+    quota_used: BIGINT
+    +INDEX(username)
+}
+
+TABLE(FileChunks, "File Chunks\n(Cassandra)") {
+    PK((file_id, chunk_id)): (UUID, INT)
+    chunk_data: BLOB
+    created_at: TIMESTAMP
+}
+note bottom: Sharding Key: file_id
+
+TABLE(RedisCache, "Redis Cache") {
+    key: STRING
+    value: STRING
+    expiration: INT
+}
+note bottom: Keys: \nfile_metadata:{file_id}\nblock_locations:{file_id}\nuser_quota:{user_id}
+
+FileMetadata "1" -- "0..*" BlockMetadata
+FileMetadata "0..*" -- "1" UserQuota
+@enduml
