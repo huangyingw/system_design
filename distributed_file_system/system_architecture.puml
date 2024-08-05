@@ -1,70 +1,94 @@
-@startuml
-!define RECTANGLE class
-!define DATABASE database
+@startuml Distributed File System Architecture
 
 skinparam backgroundColor #F0F0E0
 skinparam handwritten false
 skinparam monochrome false
-skinparam shadowing false
 skinparam defaultFontName Arial
 skinparam defaultFontSize 12
 skinparam roundCorner 10
 skinparam ArrowColor #2C3E50
 skinparam ArrowThickness 1.5
 
-package "Distributed File System" {
-    RECTANGLE "Client A" as ClientA #A9CCE3
-    RECTANGLE "Client B" as ClientB #A9CCE3
-    
-    RECTANGLE "Load Balancer" as LoadBalancer #F5B041 {
-        RECTANGLE "Health Check" as HealthCheck
-    }
-    
-    RECTANGLE "Name Node" as NameNode #82E0AA {
-        DATABASE "Metadata Storage" as MetadataStorage
-        RECTANGLE "File System Tree" as FSTree
-        RECTANGLE "Block Management" as BlockMgmt
-    }
-    
-    RECTANGLE "Data Node 1" as DataNode1 #F1948A {
-        DATABASE "Data Storage 1" as DataStorage1
-        RECTANGLE "Data Replication" as Replication1
-    }
-    
-    RECTANGLE "Data Node 2" as DataNode2 #F1948A {
-        DATABASE "Data Storage 2" as DataStorage2
-        RECTANGLE "Data Replication" as Replication2
-    }
-    
-    RECTANGLE "Admin Node" as AdminNode #D7BDE2 {
-        RECTANGLE "Monitoring" as Monitoring
-        RECTANGLE "Configuration" as Config
-    }
-    
-    RECTANGLE "Backup Node" as BackupNode #FAD7A0 {
-        DATABASE "Backup Storage" as BackupStorage
-        RECTANGLE "Recovery Management" as RecoveryMgmt
-    }
-    
-    RECTANGLE "Caching Layer" as CacheLayer #85C1E9 {
-        DATABASE "Redis" as RedisCache
-    }
-    
-    ClientA -down-> LoadBalancer : "1. Connection Request"
-    ClientB -down-> LoadBalancer : "1. Connection Request"
-    LoadBalancer -right-> NameNode : "2. Route Request"
-    NameNode -down-> DataNode1 : "3. Assign Task"
-    NameNode -down-> DataNode2 : "3. Assign Task"
-    ClientA -right-> DataNode1 : "4. Read/Write Data"
-    ClientB -left-> DataNode2 : "4. Read/Write Data"
-    DataNode1 -down-> BackupNode : "5. Data Backup"
-    DataNode2 -down-> BackupNode : "5. Data Backup"
-    AdminNode -left-> NameNode : "6. Manage & Monitor"
-    AdminNode -up-> DataNode1 : "6. Manage & Monitor"
-    AdminNode -up-> DataNode2 : "6. Manage & Monitor"
-    ClientA -[#blue]-> CacheLayer : "7. Cache Access"
-    ClientB -[#blue]-> CacheLayer : "7. Cache Access"
-    NameNode -[#green]-> CacheLayer : "8. Metadata Cache"
+!define RECTANGLE rectangle
+!define DATABASE database
+
+' Client nodes
+rectangle "Client A" as ClientA #A9CCE3
+rectangle "Client B" as ClientB #A9CCE3
+
+' Load Balancers
+RECTANGLE "Read Load Balancer" as ReadLB #F5B041 {
+    component "Health Check" as ReadHealthCheck
 }
+
+RECTANGLE "Write Load Balancer" as WriteLB #F5B041 {
+    component "Health Check" as WriteHealthCheck
+}
+
+' Name Node Cluster
+RECTANGLE "Name Node Cluster" as NameNodeCluster #82E0AA {
+    DATABASE "Metadata Storage (MySQL Cluster)" as MetadataStorage
+    component "File System Tree" as FSTree
+    component "Block Management" as BlockMgmt
+}
+
+' Data Nodes
+RECTANGLE "Data Node 1" as DataNode1 #F1948A {
+    DATABASE "Data Storage 1" as DataStorage1
+    component "Data Replication" as Replication1
+}
+
+RECTANGLE "Data Node 2" as DataNode2 #F1948A {
+    DATABASE "Data Storage 2" as DataStorage2
+    component "Data Replication" as Replication2
+}
+
+' Admin Node
+RECTANGLE "Admin Node" as AdminNode #D7BDE2 {
+    component "Monitoring" as Monitoring
+    component "Configuration" as Config
+}
+
+' Backup Node
+RECTANGLE "Backup Node" as BackupNode #FAD7A0 {
+    DATABASE "Backup Storage" as BackupStorage
+    component "Recovery Management" as RecoveryMgmt
+}
+
+' Caching Layer
+RECTANGLE "Caching Layer" as CacheLayer #85C1E9 {
+    DATABASE "Redis Cluster" as RedisCache
+}
+
+' Block Metadata
+DATABASE "Block Metadata (MongoDB)" as BlockMetadataDB #AED6F1
+
+' Connections
+ClientA --> ReadLB : "1. Read Request"
+ClientA --> WriteLB : "1. Write Request"
+ClientB --> ReadLB : "1. Read Request"
+ClientB --> WriteLB : "1. Write Request"
+
+ReadLB --> NameNodeCluster : "2. Route Read Request"
+WriteLB --> NameNodeCluster : "2. Route Write Request"
+
+NameNodeCluster --> DataNode1 : "3. Assign Read Task"
+NameNodeCluster --> DataNode2 : "3. Assign Write Task"
+
+ClientA --> DataNode1 : "4. Read Data"
+ClientB --> DataNode2 : "4. Write Data"
+
+DataNode1 --> BackupNode : "5. Data Backup"
+DataNode2 --> BackupNode : "5. Data Backup"
+
+AdminNode --> NameNodeCluster : "6. Manage & Monitor"
+AdminNode --> DataNode1 : "6. Manage & Monitor"
+AdminNode --> DataNode2 : "6. Manage & Monitor"
+
+ClientA --> CacheLayer : "7. Cache Read"
+ClientB --> CacheLayer : "7. Cache Write"
+
+NameNodeCluster --> CacheLayer : "8. Metadata Cache"
+NameNodeCluster --> BlockMetadataDB : "9. Store/Retrieve Block Metadata"
 
 @enduml
