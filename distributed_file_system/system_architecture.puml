@@ -14,12 +14,16 @@ skinparam linetype ortho
 !define DATABASE database
 
 ' Client nodes
-rectangle "Client A" as ClientA #A9CCE3
-rectangle "Client B" as ClientB #A9CCE3
+rectangle "Read Client" as ReadClient #A9CCE3
+rectangle "Write Client" as WriteClient #D6EAF8
 
-' Load Balancer
-RECTANGLE "Load Balancer" as LB #F5B041 {
-    component "Health Check" as HealthCheck
+' Load Balancers
+RECTANGLE "Read Load Balancer" as ReadLB #F5B041 {
+    component "Health Check" as ReadHealthCheck
+}
+
+RECTANGLE "Write Load Balancer" as WriteLB #FAD7A0 {
+    component "Health Check" as WriteHealthCheck
 }
 
 ' Caching Layer
@@ -49,45 +53,39 @@ RECTANGLE "Data Node 2" as DataNode2 #F1948A {
 RECTANGLE "Admin Node" as AdminNode #D7BDE2 {
     component "Monitoring" as Monitoring
     component "Configuration" as Config
-}
-
-' Backup Node
-RECTANGLE "Backup Node" as BackupNode #FAD7A0 {
-    DATABASE "Backup Storage" as BackupStorage
-    component "Recovery Management" as RecoveryMgmt
+    component "Backup Management" as BackupMgmt
 }
 
 ' Block Metadata
 DATABASE "Block Metadata\n(MongoDB)" as BlockMetadataDB #AED6F1
 
 ' Layout
-ClientA -[hidden]right- ClientB
-ClientA -[hidden]down- LB
-ClientB -[hidden]down- LB
-LB -[hidden]down- CacheLayer
+ReadClient -[hidden]right- WriteClient
+ReadClient -[hidden]down- ReadLB
+WriteClient -[hidden]down- WriteLB
+ReadLB -[hidden]down- CacheLayer
+WriteLB -[hidden]down- CacheLayer
 CacheLayer -[hidden]right- NameNodeCluster
 NameNodeCluster -[hidden]right- BlockMetadataDB
 DataNode1 -[hidden]right- DataNode2
-DataNode1 -[hidden]down- BackupNode
-DataNode2 -[hidden]down- BackupNode
-AdminNode -[hidden]left- BackupNode
+AdminNode -[hidden]up- DataNode1
 
 ' Connections
-ClientA -down-> LB : "1. Request"
-ClientB -down-> LB : "1. Request"
-LB -down-> CacheLayer : "2. Check\nCache"
-CacheLayer -right-> NameNodeCluster : "3. Cache\nMiss"
-NameNodeCluster -down-> DataNode1 : "4. Assign\nTask"
-NameNodeCluster -down-> DataNode2 : "4. Assign\nTask"
-DataNode1 -up-> CacheLayer : "5. Update\nCache"
-DataNode2 -up-> CacheLayer : "5. Update\nCache"
-ClientA .[#blue].> DataNode1 : "6. Read/Write\nData"
-ClientB .[#blue].> DataNode2 : "6. Read/Write\nData"
-DataNode1 -down-> BackupNode : "7. Data\nBackup"
-DataNode2 -down-> BackupNode : "7. Data\nBackup"
-AdminNode -up-> NameNodeCluster : "8. Manage &\nMonitor"
-AdminNode -up-> DataNode1 : "8. Manage &\nMonitor"
-AdminNode -up-> DataNode2 : "8. Manage &\nMonitor"
+ReadClient -down-> ReadLB : "1. Read Request"
+WriteClient -down-> WriteLB : "1. Write Request"
+ReadLB -down-> CacheLayer : "2. Check Cache"
+WriteLB -down-> NameNodeCluster : "2. Route Write"
+CacheLayer -right-> NameNodeCluster : "3. Cache Miss"
+NameNodeCluster -down-> DataNode1 : "4. Assign Task"
+NameNodeCluster -down-> DataNode2 : "4. Assign Task"
+DataNode1 -up-> CacheLayer : "5. Update Cache"
+DataNode2 -up-> CacheLayer : "5. Update Cache"
+ReadClient .[#blue].> DataNode1 : "6. Read Data"
+WriteClient .[#red].> DataNode2 : "6. Write Data"
+DataNode1 <-[#green]-> DataNode2 : "7. Data Replication"
+AdminNode -up-> NameNodeCluster : "8. Manage & Monitor"
+AdminNode -up-> DataNode1 : "8. Manage & Monitor"
+AdminNode -up-> DataNode2 : "8. Manage & Monitor"
 NameNodeCluster -right-> BlockMetadataDB : "9. Store/Retrieve\nBlock Metadata"
 
 @enduml
