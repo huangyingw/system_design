@@ -1,6 +1,5 @@
-@startuml Distributed File System Architecture
-
-skinparam backgroundColor #F0F0E0
+@startuml Improved Distributed File System Architecture
+skinparam backgroundColor #FAFAFA
 skinparam handwritten false
 skinparam monochrome false
 skinparam defaultFontName Arial
@@ -9,44 +8,52 @@ skinparam roundCorner 10
 skinparam ArrowColor #2C3E50
 skinparam ArrowThickness 1.5
 skinparam linetype ortho
-
 !define RECTANGLE rectangle
 !define DATABASE database
 
-' Client nodes
-rectangle "Read Client" as ReadClient #A9CCE3
-rectangle "Write Client" as WriteClient #D6EAF8
+' Client
+rectangle "Client" as Client #A9CCE3
 
-' Load Balancers
-RECTANGLE "Read Load Balancer" as ReadLB #F5B041 {
-    component "Health Check" as ReadHealthCheck
-}
-
-RECTANGLE "Write Load Balancer" as WriteLB #FAD7A0 {
-    component "Health Check" as WriteHealthCheck
+' Load Balancer Cluster
+RECTANGLE "Load Balancer Cluster" as LB #F5B041 {
+    component "Health Check" as HealthCheck
+    component "Request Router" as RequestRouter
 }
 
 ' Caching Layer
 RECTANGLE "Caching Layer" as CacheLayer #85C1E9 {
-    DATABASE "Redis Cluster" as RedisCache
+    DATABASE "Redis Cluster" as RedisCache {
+        note right: "Keys:\n- file_path:chunk_id\n- metadata:file_path"
+    }
 }
 
 ' Name Node Cluster
 RECTANGLE "Name Node Cluster" as NameNodeCluster #82E0AA {
-    DATABASE "Metadata Storage\n(Aurora)" as MetadataStorage
-    component "File System Tree" as FSTree
-    component "Block Management" as BlockMgmt
+    DATABASE "Metadata Storage\n(ZooKeeper)" as MetadataStorage {
+        note right: "Data:\n- File system tree\n- Block mappings\n- Node status"
+    }
+    component "File System Manager" as FSManager
+    component "Block Manager" as BlockManager
+    component "Replication Manager" as ReplicationManager
 }
 
-' Data Nodes
-RECTANGLE "Data Node 1" as DataNode1 #F1948A {
-    DATABASE "Data Storage 1" as DataStorage1
-    component "Data Replication" as Replication1
+' Data Node Clusters
+RECTANGLE "Data Node Cluster 1" as DataNodeCluster1 #F1948A {
+    DATABASE "Primary Storage 1" as PrimaryStorage1 {
+        note right: "Sharding Key: file_id % 2 == 0"
+    }
+    DATABASE "Replica Storage 2" as ReplicaStorage2 {
+        note right: "Replica of Cluster 2"
+    }
 }
 
-RECTANGLE "Data Node 2" as DataNode2 #F1948A {
-    DATABASE "Data Storage 2" as DataStorage2
-    component "Data Replication" as Replication2
+RECTANGLE "Data Node Cluster 2" as DataNodeCluster2 #F1948A {
+    DATABASE "Primary Storage 2" as PrimaryStorage2 {
+        note right: "Sharding Key: file_id % 2 == 1"
+    }
+    DATABASE "Replica Storage 1" as ReplicaStorage1 {
+        note right: "Replica of Cluster 1"
+    }
 }
 
 ' Admin Node
@@ -54,38 +61,27 @@ RECTANGLE "Admin Node" as AdminNode #D7BDE2 {
     component "Monitoring" as Monitoring
     component "Configuration" as Config
     component "Backup Management" as BackupMgmt
+    component "Load Balancer" as AdminLB
+    component "Failure Handler" as FailureHandler
 }
 
-' Block Metadata
-DATABASE "Block Metadata\n(MongoDB)" as BlockMetadataDB #AED6F1
-
-' Layout
-ReadClient -[hidden]right- WriteClient
-ReadClient -[hidden]down- ReadLB
-WriteClient -[hidden]down- WriteLB
-ReadLB -[hidden]down- CacheLayer
-WriteLB -[hidden]down- CacheLayer
-CacheLayer -[hidden]right- NameNodeCluster
-NameNodeCluster -[hidden]right- BlockMetadataDB
-DataNode1 -[hidden]right- DataNode2
-AdminNode -[hidden]up- DataNode1
-
-' Connections
-ReadClient -down-> ReadLB : "1. Read Request"
-WriteClient -down-> WriteLB : "1. Write Request"
-ReadLB -down-> CacheLayer : "2. Check Cache"
-WriteLB -down-> NameNodeCluster : "2. Route Write"
+' Layout and Connections
+Client -down-> LB : "1. Client Request"
+LB -down-> CacheLayer : "2a. Read: Check Cache"
+LB -right-> NameNodeCluster : "2b. Write: Get Metadata"
 CacheLayer -right-> NameNodeCluster : "3. Cache Miss"
-NameNodeCluster -down-> DataNode1 : "4. Assign Task"
-NameNodeCluster -down-> DataNode2 : "4. Assign Task"
-DataNode1 -up-> CacheLayer : "5. Update Cache"
-DataNode2 -up-> CacheLayer : "5. Update Cache"
-ReadClient .[#blue].> DataNode1 : "6. Read Data"
-WriteClient .[#red].> DataNode2 : "6. Write Data"
-DataNode1 <-[#green]-> DataNode2 : "7. Data Replication"
-AdminNode -up-> NameNodeCluster : "8. Manage & Monitor"
-AdminNode -up-> DataNode1 : "8. Manage & Monitor"
-AdminNode -up-> DataNode2 : "8. Manage & Monitor"
-NameNodeCluster -right-> BlockMetadataDB : "9. Store/Retrieve\nBlock Metadata"
+NameNodeCluster -down-> DataNodeCluster1 : "4a. Write: Primary"
+NameNodeCluster -down-> DataNodeCluster2 : "4a. Write: Primary"
+NameNodeCluster -down-> DataNodeCluster1 : "4b. Read: Replica"
+NameNodeCluster -down-> DataNodeCluster2 : "4b. Read: Replica"
+DataNodeCluster1 -up-> CacheLayer : "5. Update Cache"
+DataNodeCluster2 -up-> CacheLayer : "5. Update Cache"
+AdminNode -up-> NameNodeCluster : "6. Manage & Monitor"
+AdminNode -up-> DataNodeCluster1 : "6. Manage & Monitor"
+AdminNode -up-> DataNodeCluster2 : "6. Manage & Monitor"
+AdminNode -up-> LB : "6. Manage & Monitor"
+
+DataNodeCluster1 -[#green]right-> DataNodeCluster2 : "7. Replicate"
+DataNodeCluster2 -[#green]left-> DataNodeCluster1 : "7. Replicate"
 
 @enduml
