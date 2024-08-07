@@ -1,69 +1,118 @@
-@startuml
+@startuml HDFS Data Model
 !define TABLE(name,desc) class name as "desc" << (T,#FFAAAA) >>
 !define PK(x) <u>x</u>
 !define FK(x) <i>x</i>
-
-skinparam backgroundColor #F0F0E0
+skinparam backgroundColor #FEFEFE
+skinparam handwritten false
+skinparam monochrome false
+skinparam lineType ortho
+skinparam shadowing false
 skinparam class {
-    BackgroundColor #ECECFF
-    ArrowColor #2C3E50
-    BorderColor #2C3E50
+    BackgroundColor #E0F2F1
+    ArrowColor #4A4A4A
+    BorderColor #1A237E
+    FontName Arial
+    FontSize 10
+}
+skinparam note {
+    BackgroundColor #FFF9C4
+    BorderColor #FBC02D
 }
 
-TABLE(FileMetadata, "File Metadata\n(MySQL)") {
-    PK(file_id): INT
-    file_name: VARCHAR(255)
-    file_path: VARCHAR(1024)
-    file_size: BIGINT
-    owner: VARCHAR(100)
-    created_at: TIMESTAMP
-    updated_at: TIMESTAMP
-    +INDEX(file_path)
-    +INDEX(owner)
+' NameNode Components
+rectangle "NameNode" as NameNode #E8F5E9 {
+    TABLE(FileMetadata, "File Metadata") {
+        PK(file_path): STRING
+        file_name: STRING
+        file_size: LONG
+        owner: STRING
+        permissions: STRING
+        created_at: LONG
+        updated_at: LONG
+        is_directory: BOOLEAN
+        replication_factor: SHORT
+    }
+
+    TABLE(BlockMetadata, "Block Metadata") {
+        PK(block_id): LONG
+        FK(file_path): STRING
+        block_size: LONG
+        block_locations: LIST<DataNodeID>
+        generation_stamp: LONG
+    }
+
+    TABLE(DataNodeInfo, "DataNode Info") {
+        PK(node_id): STRING
+        hostname: STRING
+        ip_address: STRING
+        total_space: LONG
+        used_space: LONG
+        last_heartbeat: LONG
+        status: STRING
+        rack_id: STRING
+    }
 }
 
-TABLE(BlockMetadata, "Block Metadata\n(MySQL)") {
-    PK(block_id): INT
-    FK(file_id): INT
-    block_size: INT
-    block_location: VARCHAR(255)
-    checksum: VARCHAR(64)
-    +INDEX(file_id)
+' NameNode Persistent Storage
+rectangle "NameNode Persistent Storage" as NameNodeStorage #FFF3E0 {
+    TABLE(EditLog, "Edit Log") {
+        PK(transaction_id): LONG
+        operation_type: STRING
+        operation_details: STRING
+        timestamp: LONG
+    }
+
+    TABLE(FSImage, "FSImage") {
+        PK(checkpoint_txid): LONG
+        file_system_metadata: BYTE[]
+        timestamp: LONG
+    }
 }
 
-TABLE(DataNodeInfo, "DataNode Info\n(MySQL)") {
-    PK(node_id): INT
-    hostname: VARCHAR(255)
-    ip_address: VARCHAR(15)
-    total_space: BIGINT
-    used_space: BIGINT
-    last_heartbeat: TIMESTAMP
-    status: ENUM('ACTIVE', 'INACTIVE', 'DECOMMISSIONED')
-    +INDEX(status)
+' DataNode Components
+rectangle "DataNode" as DataNode #E1F5FE {
+    TABLE(DataBlocks, "Data Blocks") {
+        PK(block_id): LONG
+        data: BYTE[]
+        checksum: BYTE[]
+    }
+
+    TABLE(BlockReport, "Block Report") {
+        FK(node_id): STRING
+        FK(block_id): LONG
+        block_length: LONG
+        generation_stamp: LONG
+    }
 }
 
-TABLE(UserQuota, "User Quota\n(MySQL)") {
-    PK(user_id): INT
-    username: VARCHAR(100)
-    quota_limit: BIGINT
-    quota_used: BIGINT
-    +INDEX(username)
+' Cache Layer
+rectangle "Cache Layer" as CacheLayer #F3E5F5 {
+    TABLE(RedisCache, "Redis Cache Cluster") {
+        key: STRING
+        value: STRING
+        expiration: INT
+    }
+    note bottom of RedisCache
+        Keys:
+        file_metadata:{file_path}
+        block_locations:{block_id}
+    end note
 }
 
-TABLE(FileChunks, "File Chunks\n(Cassandra)") {
-    PK((file_id, chunk_id)): (UUID, INT)
-    chunk_data: BLOB
-    created_at: TIMESTAMP
-}
-note bottom: Sharding Key: file_id
-
-TABLE(RedisCache, "Redis Cache") {
-    key: STRING
-    value: STRING
-    expiration: INT
-}
-note bottom: Keys: \nfile_metadata:{file_id}\nblock_locations:{file_id}\nuser_quota:{user_id}
-
+' Relationships
 FileMetadata "1" -- "0..*" BlockMetadata
-FileMetadata "0..*" -- "1" UserQuota
+BlockMetadata "0..*" -- "1..*" DataNodeInfo
+DataNodeInfo "1" -- "0..*" BlockReport
+BlockMetadata "1" -- "1" DataBlocks
+EditLog "1..*" -- "0..1" FSImage
+FileMetadata "1" -- "0..*" EditLog
+BlockMetadata "1" -- "0..*" EditLog
+RedisCache "0..*" -- "1" FileMetadata
+RedisCache "0..*" -- "1" BlockMetadata
+
+' Layout
+NameNode -[hidden]right- DataNode
+NameNode -[hidden]down- NameNodeStorage
+NameNodeStorage -[hidden]right- CacheLayer
+
 @enduml
