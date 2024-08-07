@@ -1,4 +1,4 @@
-@startuml Improved Distributed File System Architecture
+@startuml Optimized Distributed File System Architecture
 skinparam backgroundColor #FAFAFA
 skinparam handwritten false
 skinparam monochrome false
@@ -35,6 +35,7 @@ RECTANGLE "Name Node Cluster" as NameNodeCluster #82E0AA {
     component "File System Manager" as FSManager
     component "Block Manager" as BlockManager
     component "Replication Manager" as ReplicationManager
+    component "Data Node Manager" as DataNodeManager
 }
 
 ' Data Node Clusters
@@ -60,8 +61,6 @@ RECTANGLE "Data Node Cluster 2" as DataNodeCluster2 #F1948A {
 RECTANGLE "Admin Node" as AdminNode #D7BDE2 {
     component "Monitoring" as Monitoring
     component "Configuration" as Config
-    component "Backup Management" as BackupMgmt
-    component "Load Balancer" as AdminLB
     component "Failure Handler" as FailureHandler
 }
 
@@ -77,11 +76,12 @@ NameNodeCluster -down-> DataNodeCluster2 : "4b. Read: Replica"
 DataNodeCluster1 -up-> CacheLayer : "5. Update Cache"
 DataNodeCluster2 -up-> CacheLayer : "5. Update Cache"
 AdminNode -up-> NameNodeCluster : "6. Manage & Monitor"
-AdminNode -up-> DataNodeCluster1 : "6. Manage & Monitor"
-AdminNode -up-> DataNodeCluster2 : "6. Manage & Monitor"
 AdminNode -up-> LB : "6. Manage & Monitor"
 
 DataNodeCluster1 -[#green]right-> DataNodeCluster2 : "7. Replicate"
 DataNodeCluster2 -[#green]left-> DataNodeCluster1 : "7. Replicate"
+
+NameNodeCluster -[#blue]down-> DataNodeCluster1 : "8. Manage Data Nodes"
+NameNodeCluster -[#blue]down-> DataNodeCluster2 : "8. Manage Data Nodes"
 
 @enduml
