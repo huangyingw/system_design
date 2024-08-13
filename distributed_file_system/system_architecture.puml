@@ -1,5 +1,8 @@
 @startuml Optimized Distributed File System Architecture
-skinparam backgroundColor #FAFAFA
+!define RECTANGLE rectangle
+!define DATABASE database
+
+skinparam backgroundColor #F0F0F0
 skinparam handwritten false
 skinparam monochrome false
 skinparam defaultFontName Arial
@@ -8,8 +11,6 @@ skinparam roundCorner 10
 skinparam ArrowColor #2C3E50
 skinparam ArrowThickness 1.5
 skinparam linetype ortho
-!define RECTANGLE rectangle
-!define DATABASE database
 
 ' Client
 rectangle "Client" as Client #A9CCE3
@@ -77,11 +78,41 @@ DataNodeCluster1 -up-> CacheLayer : "5. Update Cache"
 DataNodeCluster2 -up-> CacheLayer : "5. Update Cache"
 AdminNode -up-> NameNodeCluster : "6. Manage & Monitor"
 AdminNode -up-> LB : "6. Manage & Monitor"
-
 DataNodeCluster1 -[#green]right-> DataNodeCluster2 : "7. Replicate"
 DataNodeCluster2 -[#green]left-> DataNodeCluster1 : "7. Replicate"
-
 NameNodeCluster -[#blue]down-> DataNodeCluster1 : "8. Manage Data Nodes"
 NameNodeCluster -[#blue]down-> DataNodeCluster2 : "8. Manage Data Nodes"
+
+' Additional notes for explanation
+note top of Client
+  Clients interact with the system through 
+  a unified interface, handling both 
+  read and write operations
+end note
+
+note bottom of LB
+  Load Balancer ensures even distribution 
+  of requests and provides fault tolerance
+end note
+
+note bottom of CacheLayer
+  Caching layer improves read performance 
+  by storing frequently accessed data
+end note
+
+note bottom of NameNodeCluster
+  Name Node Cluster manages metadata, 
+  ensuring data consistency and availability
+end note
+
+note bottom of DataNodeCluster1
+  Data Nodes store actual file data,
+  with built-in replication for fault tolerance
+end note
+
+note bottom of AdminNode
+  Admin Node oversees system health,
+  configuration, and handles failures
+end note
 
 @enduml
