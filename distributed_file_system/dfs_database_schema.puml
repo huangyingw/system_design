@@ -51,11 +51,11 @@ rectangle "NameNode" as NameNode #E8F5E9 {
 }
 
 note right of NameNode
-    NameNode是HDFS的核心，负责：
-    1. 管理文件系统命名空间
-    2. 维护文件和目录的元数据
-    3. 管理数据块到DataNode的映射
-    4. 处理客户端读写请求
+    NameNode is the core of HDFS, responsible for:
+    1. Managing the file system namespace
+    2. Maintaining metadata for files and directories
+    3. Managing the mapping of data blocks to DataNodes
+    4. Handling client read/write requests
 end note
 
 ' NameNode Persistent Storage
@@ -74,10 +74,10 @@ rectangle "NameNode Persistent Storage" as NameNodeStorage #FFF3E0 {
 }
 
 note bottom of NameNodeStorage
-    持久化存储确保系统可恢复性：
-    - EditLog记录所有文件系统操作
-    - FSImage是文件系统元数据的快照
-    定期将EditLog合并到FSImage中以提高效率
+    Persistent storage ensures system recoverability:
+    - EditLog records all file system operations
+    - FSImage is a snapshot of file system metadata
+    Periodically merge EditLog into FSImage for efficiency
 end note
 
 ' DataNode Components
@@ -96,11 +96,11 @@ rectangle "DataNode" as DataNode #E1F5FE {
 }
 
 note left of DataNode
-    DataNode负责：
-    1. 存储实际数据块
-    2. 处理数据块的读写请求
-    3. 定期向NameNode报告块状态
-    4. 执行数据块的复制和删除
+    DataNode is responsible for:
+    1. Storing actual data blocks
+    2. Handling read/write requests for data blocks
+    3. Periodically reporting block status to NameNode
+    4. Executing block replication and deletion
 end note
 
 ' Cache Layer
@@ -119,10 +119,10 @@ note bottom of RedisCache
 end note
 
 note right of CacheLayer
-    Redis缓存层用于：
-    1. 加速元数据访问
-    2. 减轻NameNode负载
-    3. 提高热点数据的读取性能
+    Redis cache layer is used for:
+    1. Accelerating metadata access
+    2. Reducing NameNode load
+    3. Improving read performance for hot data
 end note
 
 ' Relationships
@@ -142,12 +142,12 @@ NameNode -[hidden]down- NameNodeStorage
 NameNodeStorage -[hidden]right- CacheLayer
 
 note as PerformanceNote
-性能优化和扩展性考虑：
-1. 使用Redis缓存减少NameNode负载
-2. 通过数据块复制提高可用性和读取性能
-3. 使用机架感知策略优化数据放置
-4. 实现Secondary NameNode以加快故障恢复
-5. 考虑使用HDFS Federation进行水平扩展
+Performance optimization and scalability considerations:
+1. Use Redis cache to reduce NameNode load
+2. Improve availability and read performance through data block replication
+3. Optimize data placement using rack awareness strategy
+4. Implement Secondary NameNode for faster failure recovery
+5. Consider HDFS Federation for horizontal scaling
 end note
 PerformanceNote -[hidden]right- CacheLayer
 @enduml
