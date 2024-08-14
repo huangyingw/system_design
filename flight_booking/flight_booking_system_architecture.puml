@@ -6,12 +6,12 @@ skinparam rectangle {
 }
 
 skinparam linetype ortho
-skinparam nodesep 50
-skinparam ranksep 50
+skinparam nodesep 100
+skinparam ranksep 100
 skinparam dpi 150
 
 RECTANGLE "User Interface (UI)" as UI <<microservice>> {
-  note top of UI
+  note left
     - Allows users to search flights
     - Displays available options
     - Handles booking process
@@ -19,7 +19,7 @@ RECTANGLE "User Interface (UI)" as UI <<microservice>> {
 }
 
 RECTANGLE "Flight Search Service (FSS)" as FSS <<microservice>> {
-  note left of FSS
+  note right
     - Handles flight search requests
     - Queries Cache first
     - Retrieves data from the Database if not found in Cache
@@ -27,7 +27,7 @@ RECTANGLE "Flight Search Service (FSS)" as FSS <<microservice>> {
 }
 
 RECTANGLE "Booking Service (BS)" as BS <<microservice>> {
-  note bottom of BS
+  note right
     - Manages booking process
     - Verifies flight availability
     - Interacts with Payment Service
@@ -36,21 +36,21 @@ RECTANGLE "Booking Service (BS)" as BS <<microservice>> {
 }
 
 RECTANGLE "Payment Service (PS)" as PS <<microservice>> {
-  note right of PS
+  note right
     - Processes payments securely
     - Stores payment transaction data
   end note
 }
 
 RECTANGLE "Notification Service (NS)" as NS <<microservice>> {
-  note right of NS
+  note right
     - Sends booking confirmations
     - Notifies users of booking status
   end note
 }
 
 RECTANGLE "Airline API Integrator (AAI)" as AAI <<microservice>> {
-  note right of AAI
+  note right
     - Integrates with multiple Airline APIs
     - Fetches real-time flight data
     - Updates the Database with latest info
@@ -58,14 +58,14 @@ RECTANGLE "Airline API Integrator (AAI)" as AAI <<microservice>> {
 }
 
 RECTANGLE "Database (DB)" as DB {
-  note right of DB
+  note left
     - Stores flight, booking, and payment data
     - Provides data retrieval for services
   end note
 }
 
 RECTANGLE "Scheduled Data Fetcher (SDF)" as SDF <<microservice>> {
-  note bottom of SDF
+  note bottom
     - Periodically queries Airline API Integrator
     - Prefetches and caches flight data
     - Reduces load during peak times
@@ -73,33 +73,33 @@ RECTANGLE "Scheduled Data Fetcher (SDF)" as SDF <<microservice>> {
 }
 
 RECTANGLE "Cache" as CACHE <<microservice>> {
-  note right of CACHE
+  note left
     - Stores frequently accessed flight data
     - Reduces load on Database and API
   end note
 }
 
-UI -down-> FSS : "1. Search Flights"
-FSS -down-> CACHE : "2. Query Cache for Flights"
-CACHE -right-> DB : "If not in Cache, query Database"
-FSS -down-> AAI : "3. Fetch Flight Info if needed"
+UI -down-> FSS : "Search Flights"
+FSS -down-> CACHE : "Query Cache"
+CACHE -down-> DB : "Query DB if not in Cache"
+FSS -down-> AAI : "Fetch Flight Info if needed"
 AAI -down-> "Airline APIs" : "Fetch Real-time Data"
-AAI -left-> DB : "4. Store Flight Data"
-DB -left-> CACHE : "Update Cache with latest data"
-FSS -up-> UI : "5. Return Available Flights"
+AAI -down-> DB : "Store Flight Data"
+DB -down-> CACHE : "Update Cache"
+FSS -down-> UI : "Return Available Flights"
 
-UI -down-> BS : "6. Select Flight and Book"
-BS -up-> FSS : "7. Verify Flight Availability"
-BS -down-> DB : "8. Store Booking Data"
+UI -down-> BS : "Select Flight and Book"
+BS -down-> FSS : "Verify Flight Availability"
+BS -down-> DB : "Store Booking Data"
 
-BS -down-> PS : "9. Process Payment"
-PS -left-> DB : "10. Store Payment Data"
-PS -up-> BS : "11. Payment Confirmation"
+BS -down-> PS : "Process Payment"
+PS -down-> DB : "Store Payment Data"
+PS -down-> BS : "Payment Confirmation"
 
-BS -down-> NS : "12. Send Booking Confirmation"
-NS -up-> UI : "13. Notify User"
+BS -down-> NS : "Send Booking Confirmation"
+NS -down-> UI : "Notify User"
 
-SDF -right-> AAI : "Periodically Fetch Flight Data"
+SDF -down-> AAI : "Periodically Fetch Data"
 SDF -down-> DB : "Cache Flight Data"
 
 @enduml
