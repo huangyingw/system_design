@@ -1,39 +1,58 @@
 @startuml
-skinparam backgroundColor #D3D3D3
+skinparam backgroundColor #FFFAF0
+skinparam linetype ortho
+
+|#E6E6FA|数据分析层|
 start
-split
 :分析查询日志;
-split again
 :了解业务需求;
-end split
-if (有性能监控工具吗?) then (是)
+
+|#FFE4E1|性能监控|
+if (有性能监控工具?) then (是)
   :使用性能监控工具;
+else (否)
+  :考虑引入监控工具;
 endif
-split
-:回顾历史优化措施;
-split again
-:应用程序代码审查;
-end split
-split
-:收集用户反馈和数据;
-split again
-:综合分析查询模式;
-end split
+
+|#E6E6FA|优化分析层|
+fork
+  :回顾历史优化措施;
+fork again
+  :应用程序代码审查;
+end fork
+
+fork
+  :收集用户反馈和数据;
+fork again
+  :综合分析查询模式;
+end fork
+
+|#98FB98|查询优化层|
 :确定常见查询类型;
 note right
-  例如，SQL查询：
+  示例SQL查询：
   SELECT * FROM orders 
-  WHERE customer_id = 12345 
-  AND order_date BETWEEN '2023-01-01' AND '2023-01-31';
+  WHERE customer_id = ? 
+  AND order_date BETWEEN ? AND ?;
 end note
+
+|#FFD700|架构设计层|
 :基于查询模式选择分片键;
 note right
-  选择 customer_id 和 order_date 作为复合分片键
+  选择 customer_id 和 order_date 
+  作为复合分片键
 end note
+
 :设计分片架构;
 note right
-  如在NoSQL数据库中设置分片规则，
-  或在RDBMS中配置分片中间件
+  - NoSQL: 设置分片规则
+  - RDBMS: 配置分片中间件
 end note
+
+|#FF6347|性能评估层|
+:进行负载测试;
+:识别潜在瓶颈;
+:制定扩展策略;
+
 stop
 @enduml
