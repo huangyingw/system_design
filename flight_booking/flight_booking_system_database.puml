@@ -1,105 +1,144 @@
 @startuml
-!theme toy
+!define RECTANGLE class
+
+skinparam rectangle {
+  BackgroundColor LightBlue
+  BorderColor Blue
+}
+
 skinparam linetype ortho
+skinparam nodesep 30
+skinparam ranksep 30
+skinparam dpi 150
 
-entity "Users" as users {
-  + user_id : int <<PK>>
+entity "User" as user {
+  * user_id : INT <<PK>>
   --
-  email : varchar <<index>>
-  password_hash : varchar
-  name : varchar
-  created_at : timestamp
-  updated_at : timestamp
+  * name : VARCHAR(100)
+  * email : VARCHAR(100)
+  * password : VARCHAR(100)
+  * phone : VARCHAR(15)
+  --
+  * created_at : DATETIME
+  * updated_at : DATETIME
+  --
+  note right of user
+    Stores user information such as
+    name, email, password, and contact details.
+  end note
 }
 
-entity "Flights" as flights {
-  + flight_id : int <<PK>>
+entity "Flight" as flight {
+  * flight_id : INT <<PK>>
   --
-  airline_id : int <<FK>>
-  flight_number : varchar
-  departure_airport : varchar
-  arrival_airport : varchar
-  departure_time : timestamp
-  arrival_time : timestamp
-  price : decimal
-  available_seats : int
-  created_at : timestamp
-  updated_at : timestamp
+  * airline : VARCHAR(100)
+  * flight_number : VARCHAR(20)
+  * departure_airport : VARCHAR(100)
+  * arrival_airport : VARCHAR(100)
+  * departure_time : DATETIME
+  * arrival_time : DATETIME
+  * price : DECIMAL(10,2)
+  * available_seats : INT
   --
-  <<index>> (departure_airport, arrival_airport, departure_time)
-  <<index>> (airline_id)
+  * created_at : DATETIME
+  * updated_at : DATETIME
+  --
+  note right of flight
+    Stores details of each flight
+    including airline, departure, arrival, and pricing.
+  end note
 }
 
-entity "Airlines" as airlines {
-  + airline_id : int <<PK>>
+entity "Booking" as booking {
+  * booking_id : INT <<PK>>
   --
-  name : varchar
-  code : varchar <<index>>
-  created_at : timestamp
-  updated_at : timestamp
+  * user_id : INT <<FK>>
+  * flight_id : INT <<FK>>
+  * booking_date : DATETIME
+  * status : VARCHAR(50)
+  --
+  * created_at : DATETIME
+  * updated_at : DATETIME
+  --
+  note right of booking
+    Stores booking information, linking
+    a user to a specific flight.
+  end note
 }
 
-entity "Bookings" as bookings {
-  + booking_id : int <<PK>>
+entity "Payment" as payment {
+  * payment_id : INT <<PK>>
   --
-  user_id : int <<FK>>
-  flight_id : int <<FK>>
-  status : enum
-  booking_time : timestamp
-  created_at : timestamp
-  updated_at : timestamp
+  * booking_id : INT <<FK>>
+  * amount : DECIMAL(10,2)
+  * payment_date : DATETIME
+  * payment_method : VARCHAR(50)
+  * payment_status : VARCHAR(50)
   --
-  <<index>> (user_id)
-  <<index>> (flight_id)
+  * created_at : DATETIME
+  * updated_at : DATETIME
+  --
+  note right of payment
+    Records payment transactions related
+    to bookings, including amount and method.
+  end note
 }
 
-entity "Payments" as payments {
-  + payment_id : int <<PK>>
+entity "Notification" as notification {
+  * notification_id : INT <<PK>>
   --
-  booking_id : int <<FK>>
-  amount : decimal
-  status : enum
-  payment_method : varchar
-  transaction_id : varchar
-  created_at : timestamp
-  updated_at : timestamp
+  * user_id : INT <<FK>>
+  * message : TEXT
+  * sent_date : DATETIME
+  * status : VARCHAR(50)
   --
-  <<index>> (booking_id)
+  * created_at : DATETIME
+  * updated_at : DATETIME
+  --
+  note right of notification
+    Stores notifications sent to users
+    regarding booking and payment statuses.
+  end note
 }
 
-users "1" -- "*" bookings
-flights "1" -- "*" bookings
-airlines "1" -- "*" flights
-bookings "1" -- "1" payments
-
-note right of flights
-  考虑按 departure_time 进行范围分区
-  以提高大规模数据的查询效率
-end note
-
-note bottom of bookings
-  考虑使用 UUID 或雪花算法生成的 ID 作为主键
-  便于将来的水平分片
-end note
-
-rectangle "Redis Cache" {
-  card "FlightCache" as fc {
-    key : string (flight_id:date)
-    value : json
-    expiration : int
-  }
-  
-  card "UserSessionCache" as usc {
-    key : string (session_id)
-    value : json
-    expiration : int
-  }
-  
-  card "SearchResultCache" as src {
-    key : string (search_params_hash)
-    value : json
-    expiration : int
-  }
+entity "Airport" as airport {
+  * airport_id : INT <<PK>>
+  --
+  * code : VARCHAR(10)
+  * name : VARCHAR(100)
+  * city : VARCHAR(100)
+  * country : VARCHAR(100)
+  --
+  * created_at : DATETIME
+  * updated_at : DATETIME
+  --
+  note right of airport
+    Stores information about airports
+    including code, name, and location.
+  end note
 }
+
+entity "Airline" as airline {
+  * airline_id : INT <<PK>>
+  --
+  * name : VARCHAR(100)
+  * code : VARCHAR(10)
+  * country : VARCHAR(100)
+  --
+  * created_at : DATETIME
+  * updated_at : DATETIME
+  --
+  note right of airline
+    Stores information about airlines
+    including name, code, and country.
+  end note
+}
+
+user ||--o{ booking : "has"
+flight ||--o{ booking : "contains"
+booking ||--o{ payment : "has"
+user ||--o{ notification : "receives"
+flight ||--|| airport : "departs/arrives"
+flight ||--|| airline : "operated by"
 
 @enduml
