@@ -1,144 +1,116 @@
 @startuml
 !define RECTANGLE class
+skinparam backgroundColor #EEEBDC
+skinparam handwritten false
+skinparam linetype ortho
 
 skinparam rectangle {
-  BackgroundColor LightBlue
-  BorderColor Blue
+  BackgroundColor<<SQL>> LightYellow
+  BackgroundColor<<NoSQL>> LightGreen
+  BorderColor<<SQL>> DarkOrange
+  BorderColor<<NoSQL>> DarkGreen
 }
 
-skinparam linetype ortho
-skinparam nodesep 30
-skinparam ranksep 30
-skinparam dpi 150
-
-entity "User" as user {
-  * user_id : INT <<PK>>
-  --
-  * name : VARCHAR(100)
-  * email : VARCHAR(100)
-  * password : VARCHAR(100)
-  * phone : VARCHAR(15)
-  --
-  * created_at : DATETIME
-  * updated_at : DATETIME
-  --
-  note right of user
-    Stores user information such as
-    name, email, password, and contact details.
-  end note
+' 尝试使用特殊颜色标记分片键
+skinparam class {
+  AttributeFontColor<<shardingKey>> #FF4500
+  AttributeIconColor<<shardingKey>> #FF4500
 }
 
-entity "Flight" as flight {
-  * flight_id : INT <<PK>>
-  --
-  * airline : VARCHAR(100)
-  * flight_number : VARCHAR(20)
-  * departure_airport : VARCHAR(100)
-  * arrival_airport : VARCHAR(100)
-  * departure_time : DATETIME
-  * arrival_time : DATETIME
-  * price : DECIMAL(10,2)
-  * available_seats : INT
-  --
-  * created_at : DATETIME
-  * updated_at : DATETIME
-  --
-  note right of flight
-    Stores details of each flight
-    including airline, departure, arrival, and pricing.
-  end note
+rectangle "用户服务" {
+  entity "User [SQL]" as user <<SQL>> {
+    * user_id : INT <<PK>> <<shardingKey>>
+    --
+    * name : VARCHAR(100)
+    * email : VARCHAR(100) <<index>>
+    * password : VARCHAR(100)
+    * phone : VARCHAR(15)
+    --
+    * created_at : DATETIME
+    * updated_at : DATETIME
+  }
+  note bottom of user : 分片键: user_id
 }
 
-entity "Booking" as booking {
-  * booking_id : INT <<PK>>
-  --
-  * user_id : INT <<FK>>
-  * flight_id : INT <<FK>>
-  * booking_date : DATETIME
-  * status : VARCHAR(50)
-  --
-  * created_at : DATETIME
-  * updated_at : DATETIME
-  --
-  note right of booking
-    Stores booking information, linking
-    a user to a specific flight.
-  end note
+rectangle "航班服务" {
+  entity "Flight [SQL]" as flight <<SQL>> {
+    * flight_id : INT <<PK>>
+    --
+    * airline : VARCHAR(100)
+    * flight_number : VARCHAR(20) <<index>>
+    * departure_airport : VARCHAR(100) <<index>>
+    * arrival_airport : VARCHAR(100) <<index>>
+    * departure_date : DATE <<shardingKey>> <<index>>
+    * departure_time : DATETIME
+    * arrival_time : DATETIME
+    * price : DECIMAL(10,2)
+    * available_seats : INT
+    --
+    * created_at : DATETIME
+    * updated_at : DATETIME
+  }
+  note bottom of flight : 分片键: departure_date
 }
 
-entity "Payment" as payment {
-  * payment_id : INT <<PK>>
-  --
-  * booking_id : INT <<FK>>
-  * amount : DECIMAL(10,2)
-  * payment_date : DATETIME
-  * payment_method : VARCHAR(50)
-  * payment_status : VARCHAR(50)
-  --
-  * created_at : DATETIME
-  * updated_at : DATETIME
-  --
-  note right of payment
-    Records payment transactions related
-    to bookings, including amount and method.
-  end note
+rectangle "预订服务" {
+  entity "Booking [NoSQL]" as booking <<NoSQL>> {
+    * booking_id : STRING <<PK>> <<shardingKey>>
+    --
+    * user_id : STRING <<shardingKey>>
+    * flight_id : STRING
+    * booking_date : DATETIME
+    * status : STRING
+    --
+    * created_at : DATETIME
+    * updated_at : DATETIME
+  }
+  note bottom of booking : 分片键: user_id + booking_id（复合键）
 }
 
-entity "Notification" as notification {
-  * notification_id : INT <<PK>>
-  --
-  * user_id : INT <<FK>>
-  * message : TEXT
-  * sent_date : DATETIME
-  * status : VARCHAR(50)
-  --
-  * created_at : DATETIME
-  * updated_at : DATETIME
-  --
-  note right of notification
-    Stores notifications sent to users
-    regarding booking and payment statuses.
-  end note
+rectangle "支付服务" {
+  entity "Payment [SQL]" as payment <<SQL>> {
+    * payment_id : INT <<PK>>
+    --
+    * booking_id : STRING <<FK>> <<index>>
+    * amount : DECIMAL(10,2)
+    * payment_date : DATETIME
+    * payment_method : VARCHAR(50)
+    * payment_status : VARCHAR(50) <<index>>
+    --
+    * created_at : DATETIME
+    * updated_at : DATETIME
+  }
 }
 
-entity "Airport" as airport {
-  * airport_id : INT <<PK>>
-  --
-  * code : VARCHAR(10)
-  * name : VARCHAR(100)
-  * city : VARCHAR(100)
-  * country : VARCHAR(100)
-  --
-  * created_at : DATETIME
-  * updated_at : DATETIME
-  --
-  note right of airport
-    Stores information about airports
-    including code, name, and location.
-  end note
+rectangle "通知服务" {
+  entity "Notification [NoSQL]" as notification <<NoSQL>> {
+    * notification_id : STRING <<PK>>
+    --
+    * user_id : STRING <<shardingKey>> <<index>>
+    * message : TEXT
+    * sent_date : DATETIME
+    * status : VARCHAR(50) <<index>>
+    --
+    * created_at : DATETIME
+    * updated_at : DATETIME
+  }
+  note bottom of notification : 分片键: user_id
 }
 
-entity "Airline" as airline {
-  * airline_id : INT <<PK>>
-  --
-  * name : VARCHAR(100)
-  * code : VARCHAR(10)
-  * country : VARCHAR(100)
-  --
-  * created_at : DATETIME
-  * updated_at : DATETIME
-  --
-  note right of airline
-    Stores information about airlines
-    including name, code, and country.
-  end note
+rectangle "缓存服务" {
+  entity "Cache [Redis]" as cache <<NoSQL>> {
+    * key : STRING <<PK>>
+    * value : BLOB
+    * ttl : INT
+    --
+    * created_at : DATETIME
+  }
+  note bottom of cache : 键格式: entity:id:field\n例如: user:1234:profile
 }
 
 user ||--o{ booking : "has"
 flight ||--o{ booking : "contains"
 booking ||--o{ payment : "has"
 user ||--o{ notification : "receives"
-flight ||--|| airport : "departs/arrives"
-flight ||--|| airline : "operated by"
 
 @enduml
