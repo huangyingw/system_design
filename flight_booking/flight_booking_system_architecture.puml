@@ -1,42 +1,85 @@
 @startuml
-!theme toy
+!define RECTANGLE class
+skinparam rectangle {
+  BackgroundColor<<microservice>> LightBlue
+  BorderColor<<microservice>> Blue
+}
+
 skinparam linetype ortho
+skinparam nodesep 50
+skinparam ranksep 50
+skinparam dpi 150
 
-actor "User" as user
-node "Load Balancer" as lb
-node "API Gateway" as api
-node "Web Server" as web
-node "Application Server" as app
-node "Flight Search Service" as fss
-node "Booking Service" as bs
-node "Payment Service" as ps
-node "Notification Service" as ns
-node "Caching Service" as cs
-node "Scheduling Service" as ss
-database "Main Database" as db
-database "Read Replica" as rdb
-database "Redis Cache" as redis
-queue "Message Queue" as mq
-cloud "Airline APIs" as al
+RECTANGLE "User Interface (UI)" as UI <<microservice>> {
+  note top of UI
+    - Allows users to search flights
+    - Displays available options
+    - Handles booking process
+  end note
+}
 
-user -down-> lb : HTTPS
-lb -down-> api : HTTPS
-api -down-> web
-web -down-> app
-app -down-> fss
-app -down-> bs
-app -down-> ps
-app -down-> ns
-fss -down-> cs
-bs -down-> cs
-ps -down-> cs
-ns -down-> cs
-cs -right-> redis
-fss -down-> db
-bs -down-> db
-db -right-> rdb
-app -down-> ss
-ss -down-> mq
-mq -down-> al
+RECTANGLE "Flight Search Service (FSS)" as FSS <<microservice>> {
+  note left of FSS
+    - Handles flight search requests
+    - Queries Airline API Integrator
+    - Retrieves data from the Database
+  end note
+}
+
+RECTANGLE "Booking Service (BS)" as BS <<microservice>> {
+  note bottom of BS
+    - Manages booking process
+    - Verifies flight availability
+    - Interacts with Payment Service
+    - Stores booking details
+  end note
+}
+
+RECTANGLE "Payment Service (PS)" as PS <<microservice>> {
+  note right of PS
+    - Processes payments securely
+    - Stores payment transaction data
+  end note
+}
+
+RECTANGLE "Notification Service (NS)" as NS <<microservice>> {
+  note right of NS
+    - Sends booking confirmations
+    - Notifies users of booking status
+  end note
+}
+
+RECTANGLE "Airline API Integrator (AAI)" as AAI <<microservice>> {
+  note right of AAI
+    - Integrates with multiple Airline APIs
+    - Fetches real-time flight data
+    - Updates the Database with latest info
+  end note
+}
+
+RECTANGLE "Database (DB)" as DB {
+  note right of DB
+    - Stores flight, booking, and payment data
+    - Provides data retrieval for services
+  end note
+}
+
+UI -down-> FSS : "1. Search Flights"
+FSS -down-> AAI : "2. Fetch Flight Info"
+AAI -down-> "Airline APIs" : "Fetch Real-time Data"
+AAI -left-> DB : "3. Store Flight Data"
+FSS -right-> DB : "4. Retrieve Flight Data"
+FSS -up-> UI : "5. Return Available Flights"
+
+UI -down-> BS : "6. Select Flight and Book"
+BS -up-> FSS : "7. Verify Flight Availability"
+BS -down-> DB : "8. Store Booking Data"
+
+BS -down-> PS : "9. Process Payment"
+PS -up-> DB : "10. Store Payment Data"
+PS -up-> BS : "11. Payment Confirmation"
+
+BS -down-> NS : "12. Send Booking Confirmation"
+NS -up-> UI : "13. Notify User"
 
 @enduml
