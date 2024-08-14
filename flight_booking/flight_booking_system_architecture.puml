@@ -79,27 +79,27 @@ RECTANGLE "Cache" as CACHE <<microservice>> {
   end note
 }
 
-UI -down-> FSS : "Search Flights"
-FSS -down-> CACHE : "Query Cache"
-CACHE -down-> DB : "Query DB if not in Cache"
-FSS -down-> AAI : "Fetch Flight Info if needed"
-AAI -down-> "Airline APIs" : "Fetch Real-time Data"
-AAI -down-> DB : "Store Flight Data"
-DB -down-> CACHE : "Update Cache"
-FSS -down-> UI : "Return Available Flights"
+UI -down-> FSS : "1. Search Flights"
+FSS -down-> CACHE : "2. Query Cache"
+CACHE -down-> DB : "3. Query DB if not in Cache"
+FSS -down-> AAI : "4. Fetch Flight Info if needed"
+AAI -down-> "Airline APIs" : "5. Fetch Real-time Data"
+AAI -down-> DB : "6. Store Flight Data"
+DB -down-> CACHE : "7. Update Cache"
+FSS -down-> UI : "8. Return Available Flights"
 
-UI -down-> BS : "Select Flight and Book"
-BS -down-> FSS : "Verify Flight Availability"
-BS -down-> DB : "Store Booking Data"
+UI -down-> BS : "9. Select Flight and Book"
+BS -down-> FSS : "10. Verify Flight Availability"
+BS -down-> DB : "11. Store Booking Data"
 
-BS -down-> PS : "Process Payment"
-PS -down-> DB : "Store Payment Data"
-PS -down-> BS : "Payment Confirmation"
+BS -down-> PS : "12. Process Payment"
+PS -down-> DB : "13. Store Payment Data"
+PS -down-> BS : "14. Payment Confirmation"
 
-BS -down-> NS : "Send Booking Confirmation"
-NS -down-> UI : "Notify User"
+BS -down-> NS : "15. Send Booking Confirmation"
+NS -down-> UI : "16. Notify User"
 
-SDF -down-> AAI : "Periodically Fetch Data"
-SDF -down-> DB : "Cache Flight Data"
+SDF -down-> AAI : "17. Periodically Fetch Data"
+SDF -down-> DB : "18. Cache Flight Data"
 
 @enduml
