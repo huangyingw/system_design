@@ -1,0 +1,42 @@
+@startuml
+!theme toy
+skinparam linetype ortho
+
+actor "User" as user
+node "Load Balancer" as lb
+node "API Gateway" as api
+node "Web Server" as web
+node "Application Server" as app
+node "Flight Search Service" as fss
+node "Booking Service" as bs
+node "Payment Service" as ps
+node "Notification Service" as ns
+node "Caching Service" as cs
+node "Scheduling Service" as ss
+database "Main Database" as db
+database "Read Replica" as rdb
+database "Redis Cache" as redis
+queue "Message Queue" as mq
+cloud "Airline APIs" as al
+
+user -down-> lb : HTTPS
+lb -down-> api : HTTPS
+api -down-> web
+web -down-> app
+app -down-> fss
+app -down-> bs
+app -down-> ps
+app -down-> ns
+fss -down-> cs
+bs -down-> cs
+ps -down-> cs
+ns -down-> cs
+cs -right-> redis
+fss -down-> db
+bs -down-> db
+db -right-> rdb
+app -down-> ss
+ss -down-> mq
+mq -down-> al
+
+@enduml

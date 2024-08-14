@@ -1,0 +1,105 @@
+@startuml
+!theme toy
+skinparam linetype ortho
+
+entity "Users" as users {
+  + user_id : int <<PK>>
+  --
+  email : varchar <<index>>
+  password_hash : varchar
+  name : varchar
+  created_at : timestamp
+  updated_at : timestamp
+}
+
+entity "Flights" as flights {
+  + flight_id : int <<PK>>
+  --
+  airline_id : int <<FK>>
+  flight_number : varchar
+  departure_airport : varchar
+  arrival_airport : varchar
+  departure_time : timestamp
+  arrival_time : timestamp
+  price : decimal
+  available_seats : int
+  created_at : timestamp
+  updated_at : timestamp
+  --
+  <<index>> (departure_airport, arrival_airport, departure_time)
+  <<index>> (airline_id)
+}
+
+entity "Airlines" as airlines {
+  + airline_id : int <<PK>>
+  --
+  name : varchar
+  code : varchar <<index>>
+  created_at : timestamp
+  updated_at : timestamp
+}
+
+entity "Bookings" as bookings {
+  + booking_id : int <<PK>>
+  --
+  user_id : int <<FK>>
+  flight_id : int <<FK>>
+  status : enum
+  booking_time : timestamp
+  created_at : timestamp
+  updated_at : timestamp
+  --
+  <<index>> (user_id)
+  <<index>> (flight_id)
+}
+
+entity "Payments" as payments {
+  + payment_id : int <<PK>>
+  --
+  booking_id : int <<FK>>
+  amount : decimal
+  status : enum
+  payment_method : varchar
+  transaction_id : varchar
+  created_at : timestamp
+  updated_at : timestamp
+  --
+  <<index>> (booking_id)
+}
+
+users "1" -- "*" bookings
+flights "1" -- "*" bookings
+airlines "1" -- "*" flights
+bookings "1" -- "1" payments
+
+note right of flights
+  考虑按 departure_time 进行范围分区
+  以提高大规模数据的查询效率
+end note
+
+note bottom of bookings
+  考虑使用 UUID 或雪花算法生成的 ID 作为主键
+  便于将来的水平分片
+end note
+
+rectangle "Redis Cache" {
+  card "FlightCache" as fc {
+    key : string (flight_id:date)
+    value : json
+    expiration : int
+  }
+  
+  card "UserSessionCache" as usc {
+    key : string (session_id)
+    value : json
+    expiration : int
+  }
+  
+  card "SearchResultCache" as src {
+    key : string (search_params_hash)
+    value : json
+    expiration : int
+  }
+}
+
+@enduml
