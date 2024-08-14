@@ -21,8 +21,8 @@ RECTANGLE "User Interface (UI)" as UI <<microservice>> {
 RECTANGLE "Flight Search Service (FSS)" as FSS <<microservice>> {
   note left of FSS
     - Handles flight search requests
-    - Queries Airline API Integrator
-    - Retrieves data from the Database
+    - Queries Cache first
+    - Retrieves data from the Database if not found in Cache
   end note
 }
 
@@ -64,11 +64,28 @@ RECTANGLE "Database (DB)" as DB {
   end note
 }
 
+RECTANGLE "Scheduled Data Fetcher (SDF)" as SDF <<microservice>> {
+  note bottom of SDF
+    - Periodically queries Airline API Integrator
+    - Prefetches and caches flight data
+    - Reduces load during peak times
+  end note
+}
+
+RECTANGLE "Cache" as CACHE <<microservice>> {
+  note right of CACHE
+    - Stores frequently accessed flight data
+    - Reduces load on Database and API
+  end note
+}
+
 UI -down-> FSS : "1. Search Flights"
-FSS -down-> AAI : "2. Fetch Flight Info"
+FSS -down-> CACHE : "2. Query Cache for Flights"
+CACHE -right-> DB : "If not in Cache, query Database"
+FSS -down-> AAI : "3. Fetch Flight Info if needed"
 AAI -down-> "Airline APIs" : "Fetch Real-time Data"
-AAI -left-> DB : "3. Store Flight Data"
-FSS -right-> DB : "4. Retrieve Flight Data"
+AAI -left-> DB : "4. Store Flight Data"
+DB -left-> CACHE : "Update Cache with latest data"
 FSS -up-> UI : "5. Return Available Flights"
 
 UI -down-> BS : "6. Select Flight and Book"
@@ -76,10 +93,13 @@ BS -up-> FSS : "7. Verify Flight Availability"
 BS -down-> DB : "8. Store Booking Data"
 
 BS -down-> PS : "9. Process Payment"
-PS -up-> DB : "10. Store Payment Data"
+PS -left-> DB : "10. Store Payment Data"
 PS -up-> BS : "11. Payment Confirmation"
 
 BS -down-> NS : "12. Send Booking Confirmation"
 NS -up-> UI : "13. Notify User"
+
+SDF -right-> AAI : "Periodically Fetch Flight Data"
+SDF -down-> DB : "Cache Flight Data"
 
 @enduml
