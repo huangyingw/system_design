@@ -1,60 +1,75 @@
 @startuml
-!define Table(name,desc) class name as "desc" << (T,#FFAAAA) >>
-!define pk(x) <b><color:red>PK: </color>x</b>
-!define fk(x) <color:green>FK: </color>x
-!define unique(x) <color:blue>UQ: </color>x
-!define index(x) <color:purple>IDX: </color>x
-!define sharding_key(x) <color:orange>Sharding Key: </color>x
+!define MONGO(x) class x << (M,#FFEBCD) >>
+!define index(x) <color:#3306FF><&list-rich></color> x
+!define sharding_key(x) <color:#FF9900><&key></color> x
 
 skinparam class {
-    BackgroundColor #EEEEEE
-    ArrowColor #222222
-    BorderColor #000000
+    BackgroundColor #FEFECE
+    BorderColor #333333
+    ArrowColor #333333
 }
 skinparam linetype ortho
-skinparam backgroundColor #E0E0E0
+skinparam backgroundColor #FAFAFA
 
-' MongoDB Collections
-Table(urls, "urls") {
-    pk(_id: ObjectId)
-    sharding_key(short_code: String)
-    original_url: String
-    index(created_at: Date)
-    index(user_id: ObjectId)
-    visits_count: Int
-    is_active: Boolean
+package "MongoDB Collections" {
+    MONGO(urls) {
+        _id: ObjectId
+        sharding_key(short_code): String
+        original_url: String
+        index(created_at): Date
+        index(user_id): ObjectId
+        visits_count: Int
+        is_active: Boolean
+    }
+
+    MONGO(users) {
+        _id: ObjectId
+        username: String
+        email: String
+        password_hash: String
+        created_at: Date
+        last_login: Date
+    }
+
+    MONGO(visits) {
+        _id: ObjectId
+        sharding_key(url_id): ObjectId
+        visitor_ip: String
+        user_agent: String
+        timestamp: Date
+        index(timestamp): Date
+    }
 }
 
-Table(users, "users") {
-    pk(_id: ObjectId)
-    username: String
-    email: String
-    unique(email)
-    password_hash: String
-    created_at: Date
-    last_login: Date
-}
+note right of urls
+    urls 集合:
+    - 存储短链接和原始URL的映射
+    - short_code 作为分片键，优化查询性能
+    - 记录访问次数，减少对 visits 集合的查询
+end note
 
-Table(visits, "visits") {
-    pk(_id: ObjectId)
-    sharding_key(url_id: ObjectId)
-    fk(url_id: ObjectId)
-    visitor_ip: String
-    user_agent: String
-    referer: String
-    timestamp: Date
-    index(timestamp)
-}
+note right of users
+    users 集合:
+    - 存储用户信息
+    - 用于用户认证和个人资料管理
+end note
 
-' Redis Key-Value Structures
-class "Redis Keys" as redis_keys << (R,#AAFFAA) >> {
-    "short_code:{short_code}" -> "original_url"
-    "url_visits:{short_code}" -> "visit_count"
-    "user_urls:{user_id}" -> "Set of short_codes"
-}
+note right of visits
+    visits 集合:
+    - 记录每次短链接访问的详细信息
+    - 用于生成访问统计和分析报告
+    - url_id 作为分片键，将相关访问记录存储在同一分片
+end note
+
+note bottom of visits
+    NoSQL 设计说明:
+    1. 这是 MongoDB 的文档模型，不是传统的关系型数据库表
+    2. 没有外键约束，通过应用层保证数据一致性
+    3. 分片键(Sharding Key)用于数据分布和查询优化
+    4. 索引(Index)用于提高查询性能
+end note
 
 urls -- users : "belongs to"
 urls -- visits : "has many"
-urls .. redis_keys : "cached in"
 
 @enduml
