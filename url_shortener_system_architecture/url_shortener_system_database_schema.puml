@@ -1,75 +1,81 @@
 @startuml
-!define MONGO(x) class x << (M,#FFEBCD) >>
-!define index(x) <color:#3306FF><&list-rich></color> x
-!define sharding_key(x) <color:#FF9900><&key></color> x
+!define MONGO(x) class x << (M,#3498db) >>
 
 skinparam class {
-    BackgroundColor #FEFECE
-    BorderColor #333333
-    ArrowColor #333333
+    BackgroundColor #ecf0f1
+    BorderColor #34495e
+    ArrowColor #7f8c8d
+    FontColor #2c3e50
+}
+skinparam note {
+    BackgroundColor #f9e79f
+    BorderColor #f39c12
+    FontColor #34495e
 }
 skinparam linetype ortho
 skinparam backgroundColor #FAFAFA
 
-package "MongoDB Collections" {
-    MONGO(urls) {
-        _id: ObjectId
-        sharding_key(short_code): String
-        original_url: String
-        index(created_at): Date
-        index(user_id): ObjectId
-        visits_count: Int
-        is_active: Boolean
+package "MongoDB Collections" #e8f6f3 {
+    together {
+        MONGO(urls) {
+            _id: ObjectId (Primary Key)
+            short_code: String (Shard Key)
+            original_url: String
+            created_at: Date (Index)
+            user_id: ObjectId (Index)
+            visits_count: Int
+            is_active: Boolean
+        }
+
+        MONGO(users) {
+            _id: ObjectId (Primary Key)
+            username: String
+            email: String
+            password_hash: String
+            created_at: Date
+            last_login: Date
+        }
+
+        MONGO(visits) {
+            _id: ObjectId (Primary Key)
+            url_id: ObjectId (Shard Key)
+            visitor_ip: String
+            user_agent: String
+            timestamp: Date (Index)
+        }
     }
 
-    MONGO(users) {
-        _id: ObjectId
-        username: String
-        email: String
-        password_hash: String
-        created_at: Date
-        last_login: Date
-    }
+    note bottom of urls
+        urls collection:
+        - Stores mapping of short codes to original URLs
+        - Uses short_code as shard key for optimized query performance
+        - Tracks visit count to reduce queries to visits collection
+    end note
 
-    MONGO(visits) {
-        _id: ObjectId
-        sharding_key(url_id): ObjectId
-        visitor_ip: String
-        user_agent: String
-        timestamp: Date
-        index(timestamp): Date
-    }
+    note bottom of users
+        users collection:
+        - Stores user information
+        - Used for user authentication and profile management
+    end note
+
+    note bottom of visits
+        visits collection:
+        - Records detailed information for each short URL visit
+        - Used for generating visit statistics and analytics reports
+        - Uses url_id as shard key to keep related visit records on the same shard
+    end note
 }
 
-note right of urls
-    urls 集合:
-    - 存储短链接和原始URL的映射
-    - short_code 作为分片键，优化查询性能
-    - 记录访问次数，减少对 visits 集合的查询
+note as N1 #d5f5e3
+    NoSQL Design Notes:
+    1. This is a MongoDB document model, not a traditional relational database table design
+    2. No foreign key constraints; data consistency is maintained at the application level
+    3. Shard Keys are used for data distribution and query optimization
+    4. Indexes are used to improve query performance
+    5. The _id field serves as the Primary Key for each collection
 end note
 
-note right of users
-    users 集合:
-    - 存储用户信息
-    - 用于用户认证和个人资料管理
-end note
-
-note right of visits
-    visits 集合:
-    - 记录每次短链接访问的详细信息
-    - 用于生成访问统计和分析报告
-    - url_id 作为分片键，将相关访问记录存储在同一分片
-end note
-
-note bottom of visits
-    NoSQL 设计说明:
-    1. 这是 MongoDB 的文档模型，不是传统的关系型数据库表
-    2. 没有外键约束，通过应用层保证数据一致性
-    3. 分片键(Sharding Key)用于数据分布和查询优化
-    4. 索引(Index)用于提高查询性能
-end note
-
-urls -- users : "belongs to"
-urls -- visits : "has many"
+urls -[#7f8c8d]-> users : "belongs to"
+urls -[#7f8c8d]-> visits : "has many"
 
 @enduml
