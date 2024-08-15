@@ -1,35 +1,89 @@
 @startuml
-skinparam backgroundColor #D3D3D3
 !define RECTANGLE class
 
-RECTANGLE Client
-RECTANGLE LoadBalancer
-RECTANGLE "API Server\n(API_Server)" as API_Server
-RECTANGLE "Cache\n(Cache_Read_Write)" as Cache_Read_Write
-RECTANGLE "MongoDB Shard 1 Master\n(Write)" as MongoDB_Shard_1_Master
-RECTANGLE "MongoDB Shard 1 Slave\n(Read)" as MongoDB_Shard_1_Slave
-RECTANGLE "MongoDB Shard 2 Master\n(Write)" as MongoDB_Shard_2_Master
-RECTANGLE "MongoDB Shard 2 Slave\n(Read)" as MongoDB_Shard_2_Slave
-RECTANGLE "MongoDB Config Server\n(Configuration)" as MongoDB_Config
-RECTANGLE "MongoDB Router\n(MongoS)" as MongoDB_Router
-RECTANGLE BackgroundWorker
+skinparam backgroundColor #FAFAFA
+skinparam linetype ortho
+skinparam padding 8
+skinparam roundcorner 15
 
-Client -down-> LoadBalancer : 请求生成/解析短URL
-LoadBalancer -down-> API_Server : 分发请求
-API_Server -right-> Cache_Read_Write : 查询缓存
-Cache_Read_Write -right-> MongoDB_Router : 缓存未命中时查询数据库
-MongoDB_Router -down-> MongoDB_Shard_1_Master : 路由写操作到分片 1 主节点
-MongoDB_Router -down-> MongoDB_Shard_1_Slave : 路由读操作到分片 1 从节点
-MongoDB_Router -down-> MongoDB_Shard_2_Master : 路由写操作到分片 2 主节点
-MongoDB_Router -down-> MongoDB_Shard_2_Slave : 路由读操作到分片 2 从节点
-MongoDB_Shard_1_Master -up-> MongoDB_Router : 返回写入确认
-MongoDB_Shard_1_Slave -up-> MongoDB_Router : 返回查询结果
-MongoDB_Shard_2_Master -up-> MongoDB_Router : 返回写入确认
-MongoDB_Shard_2_Slave -up-> MongoDB_Router : 返回查询结果
-MongoDB_Router -up-> Cache_Read_Write : 返回数据库查询结果
-Cache_Read_Write -up-> API_Server : 返回短URL/原始URL
-API_Server -up-> Client : 返回原始URL/短URL
-MongoDB_Config -left-> MongoDB_Router : 提供配置信息
-MongoDB_Router -down-> BackgroundWorker : 异步任务处理
+skinparam rectangle {
+    BackgroundColor<< Frontend >> #E1F5FE
+    BackgroundColor<< Cache >> #FFEBEE
+    BackgroundColor<< Database >> #E8F5E9
+    BackgroundColor<< Queue >> #FFF3E0
+    BorderColor #78909C
+    FontColor #37474F
+}
+
+skinparam arrow {
+    Color #78909C
+    FontColor #37474F
+}
+
+rectangle "Client\n客户端" as Client << Frontend >>
+rectangle "CDN" as CDN << Frontend >>
+
+rectangle "Load Balancer\n负载均衡器" as LoadBalancer {
+    rectangle "API Servers\nAPI服务器集群" as APIServers {
+        rectangle "API Server 1\nAPI服务器1" as API1
+        rectangle "API Server 2\nAPI服务器2" as API2
+        rectangle "API Server 3\nAPI服务器3" as API3
+    }
+}
+
+rectangle "Redis Cluster\nRedis集群" as RedisCluster << Cache >> {
+    rectangle "Redis Master\nRedis主节点" as RedisMaster
+    rectangle "Redis Slave 1\nRedis从节点1" as RedisSlave1
+    rectangle "Redis Slave 2\nRedis从节点2" as RedisSlave2
+}
+
+rectangle "MongoDB Cluster\nMongoDB集群" as MongoDBCluster << Database >> {
+    rectangle "MongoDB Router\n(MongoS)" as MongoRouter
+    rectangle "Config Servers\n配置服务器" as ConfigServers
+    rectangle "Shard 1\n分片1" as Shard1
+    rectangle "Shard 2\n分片2" as Shard2
+}
+
+rectangle "Message Queue\n消息队列" as MessageQueue << Queue >>
+rectangle "Background Worker\n后台工作器" as BackgroundWorker
+
+Client -down-> CDN : 1. Static resource\n1. 静态资源
+Client -down-> LoadBalancer : 2. API request\n2. API请求
+LoadBalancer -down-> APIServers : 3. Distribute\n3. 分发
+APIServers -right-> RedisCluster : 4. Cache\n4. 缓存
+APIServers -down-> MongoDBCluster : 5. Persist\n5. 持久化
+APIServers -left-> MessageQueue : 6. Async tasks\n6. 异步任务
+BackgroundWorker -up-> MessageQueue : 7. Process\n7. 处理
+BackgroundWorker -right-> MongoDBCluster : 8. Update\n8. 更新
+
+note right of CDN #E1F5FE
+    Optimize static resource loading
+    优化静态资源加载
+end note
+
+note right of LoadBalancer #E1F5FE
+    Auto-scaling, handle traffic spikes
+    自动扩展，应对流量峰值
+end note
+
+note right of APIServers #E1F5FE
+    Circuit breaking and rate limiting
+    熔断和限流
+end note
+
+note right of RedisCluster #FFEBEE
+    Optimize caching strategy
+    优化缓存策略，提高命中率
+end note
+
+note right of MongoDBCluster #E8F5E9
+    Optimize sharding strategy
+    优化分片策略，均衡数据分布
+end note
+
+note left of BackgroundWorker #FFF3E0
+    Task priority and retry mechanism
+    任务优先级和重试机制
+end note
 
 @enduml
