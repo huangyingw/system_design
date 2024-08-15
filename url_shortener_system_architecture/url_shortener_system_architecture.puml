@@ -50,40 +50,46 @@ rectangle "Background Worker\n后台工作器" as BackgroundWorker
 Client -down-> CDN : 1. Static resource\n1. 静态资源
 Client -down-> LoadBalancer : 2. API request\n2. API请求
 LoadBalancer -down-> APIServers : 3. Distribute\n3. 分发
-APIServers -right-> RedisCluster : 4. Cache\n4. 缓存
-APIServers -down-> MongoDBCluster : 5. Persist\n5. 持久化
+APIServers -right-> RedisCluster : 4. Cache read/write\n4. 缓存读写
+APIServers -down-> MongoDBCluster : 5. DB read/write\n5. 数据库读写
 APIServers -left-> MessageQueue : 6. Async tasks\n6. 异步任务
 BackgroundWorker -up-> MessageQueue : 7. Process\n7. 处理
 BackgroundWorker -right-> MongoDBCluster : 8. Update\n8. 更新
 
-note right of CDN #E1F5FE
-    Optimize static resource loading
-    优化静态资源加载
-end note
-
 note right of LoadBalancer #E1F5FE
-    Auto-scaling, handle traffic spikes
-    自动扩展，应对流量峰值
-end note
-
-note right of APIServers #E1F5FE
-    Circuit breaking and rate limiting
-    熔断和限流
+    读写分离：
+    - 读请求优先发送到Redis集群
+    - 写请求直接发送到MongoDB集群
+    - 大部分请求是读操作（URL重定向）
 end note
 
 note right of RedisCluster #FFEBEE
-    Optimize caching strategy
-    优化缓存策略，提高命中率
+    读写策略：
+    - 优先从Redis读取短链接映射
+    - 缓存未命中时从MongoDB读取并更新缓存
+    - 写入操作同时更新Redis和MongoDB
 end note
 
 note right of MongoDBCluster #E8F5E9
-    Optimize sharding strategy
-    优化分片策略，均衡数据分布
+    分片策略：
+    - 基于短链接hash进行分片
+    - 读操作可以分散到各个分片
+    - 写操作通过MongoDB Router路由到相应分片
 end note
 
-note left of BackgroundWorker #FFF3E0
-    Task priority and retry mechanism
-    任务优先级和重试机制
+note left of MessageQueue #FFF3E0
+    消息队列用途：
+    1. 异步处理访问统计
+    2. 定期清理过期短链接
+    3. 生成分析报告
+    4. 处理长时间运行的后台任务
+end note
+
+note bottom of APIServers #E1F5FE
+    API服务器职责：
+    1. 处理短链接创建请求（写操作）
+    2. 处理短链接重定向请求（读操作）
+    3. 实现缓存策略和读写分离逻辑
 end note
 
 @enduml
