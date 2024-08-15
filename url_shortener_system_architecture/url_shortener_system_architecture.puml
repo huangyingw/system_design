@@ -20,76 +20,76 @@ skinparam arrow {
     FontColor #37474F
 }
 
-rectangle "Client\n客户端" as Client << Frontend >>
+rectangle "Client" as Client << Frontend >>
 rectangle "CDN" as CDN << Frontend >>
 
-rectangle "Load Balancer\n负载均衡器" as LoadBalancer {
-    rectangle "API Servers\nAPI服务器集群" as APIServers {
-        rectangle "API Server 1\nAPI服务器1" as API1
-        rectangle "API Server 2\nAPI服务器2" as API2
-        rectangle "API Server 3\nAPI服务器3" as API3
+rectangle "Load Balancer" as LoadBalancer {
+    rectangle "API Servers" as APIServers {
+        rectangle "API Server 1" as API1
+        rectangle "API Server 2" as API2
+        rectangle "API Server 3" as API3
     }
 }
 
-rectangle "Redis Cluster\nRedis集群" as RedisCluster << Cache >> {
-    rectangle "Redis Master\nRedis主节点" as RedisMaster
-    rectangle "Redis Slave 1\nRedis从节点1" as RedisSlave1
-    rectangle "Redis Slave 2\nRedis从节点2" as RedisSlave2
+rectangle "Redis Cluster" as RedisCluster << Cache >> {
+    rectangle "Redis Master" as RedisMaster
+    rectangle "Redis Slave 1" as RedisSlave1
+    rectangle "Redis Slave 2" as RedisSlave2
 }
 
-rectangle "MongoDB Cluster\nMongoDB集群" as MongoDBCluster << Database >> {
+rectangle "MongoDB Cluster" as MongoDBCluster << Database >> {
     rectangle "MongoDB Router\n(MongoS)" as MongoRouter
-    rectangle "Config Servers\n配置服务器" as ConfigServers
-    rectangle "Shard 1\n分片1" as Shard1
-    rectangle "Shard 2\n分片2" as Shard2
+    rectangle "Config Servers" as ConfigServers
+    rectangle "Shard 1" as Shard1
+    rectangle "Shard 2" as Shard2
 }
 
-rectangle "Message Queue\n消息队列" as MessageQueue << Queue >>
-rectangle "Background Worker\n后台工作器" as BackgroundWorker
+rectangle "Message Queue" as MessageQueue << Queue >>
+rectangle "Background Worker" as BackgroundWorker
 
-Client -down-> CDN : 1. Static resource\n1. 静态资源
-Client -down-> LoadBalancer : 2. API request\n2. API请求
-LoadBalancer -down-> APIServers : 3. Distribute\n3. 分发
-APIServers -right-> RedisCluster : 4. Cache read/write\n4. 缓存读写
-APIServers -down-> MongoDBCluster : 5. DB read/write\n5. 数据库读写
-APIServers -left-> MessageQueue : 6. Async tasks\n6. 异步任务
-BackgroundWorker -up-> MessageQueue : 7. Process\n7. 处理
-BackgroundWorker -right-> MongoDBCluster : 8. Update\n8. 更新
+Client -down-> CDN : 1. Static resource request
+Client -down-> LoadBalancer : 2. API request
+LoadBalancer -down-> APIServers : 3. Distribute requests
+APIServers -right-> RedisCluster : 4. Cache read/write
+APIServers -down-> MongoDBCluster : 5. DB read/write
+APIServers -left-> MessageQueue : 6. Async tasks
+BackgroundWorker -up-> MessageQueue : 7. Process tasks
+BackgroundWorker -right-> MongoDBCluster : 8. Update data
 
 note right of LoadBalancer #E1F5FE
-    读写分离：
-    - 读请求优先发送到Redis集群
-    - 写请求直接发送到MongoDB集群
-    - 大部分请求是读操作（URL重定向）
+    Read/Write Separation:
+    - Read requests prioritized to Redis cluster
+    - Write requests sent directly to MongoDB cluster
+    - Majority of requests are reads (URL redirections)
 end note
 
 note right of RedisCluster #FFEBEE
-    读写策略：
-    - 优先从Redis读取短链接映射
-    - 缓存未命中时从MongoDB读取并更新缓存
-    - 写入操作同时更新Redis和MongoDB
+    Caching Strategy:
+    - Prioritize reading short URL mappings from Redis
+    - On cache miss, read from MongoDB and update cache
+    - Write operations update both Redis and MongoDB
 end note
 
 note right of MongoDBCluster #E8F5E9
-    分片策略：
-    - 基于短链接hash进行分片
-    - 读操作可以分散到各个分片
-    - 写操作通过MongoDB Router路由到相应分片
+    Sharding Strategy:
+    - Shard based on short URL hash
+    - Read operations distributed across shards
+    - Write operations routed through MongoDB Router
 end note
 
 note left of MessageQueue #FFF3E0
-    消息队列用途：
-    1. 异步处理访问统计
-    2. 定期清理过期短链接
-    3. 生成分析报告
-    4. 处理长时间运行的后台任务
+    Message Queue Usage:
+    1. Asynchronous processing of visit statistics
+    2. Periodic cleanup of expired short URLs
+    3. Generation of analytical reports
+    4. Handling of long-running background tasks
 end note
 
 note bottom of APIServers #E1F5FE
-    API服务器职责：
-    1. 处理短链接创建请求（写操作）
-    2. 处理短链接重定向请求（读操作）
-    3. 实现缓存策略和读写分离逻辑
+    API Server Responsibilities:
+    1. Handle short URL creation requests (write operations)
+    2. Process short URL redirection requests (read operations)
+    3. Implement caching strategy and read/write separation logic
 end note
 
 @enduml
