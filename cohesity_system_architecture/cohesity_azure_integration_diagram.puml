@@ -1,83 +1,104 @@
 @startuml
-skinparam backgroundColor #D3D3D3
+skinparam backgroundColor #FAFAFA
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam linetype ortho
+skinparam Padding 20
+skinparam ParticipantPadding 30
+skinparam ComponentPadding 25
+skinparam rectanglePadding 30
 
-package "Cohesity Platform" {
+skinparam rectangle {
+    roundCorner 10
+    BackgroundColor<<Cohesity>> #E3F2FD
+    BorderColor<<Cohesity>> #1E88E5
+    BackgroundColor<<Azure>> #E8EAF6
+    BorderColor<<Azure>> #3949AB
+    BackgroundColor<<ThirdParty>> #FFF3E0
+    BorderColor<<ThirdParty>> #FB8C00
+}
+
+skinparam arrow {
+    Color #616161
+    Thickness 1.2
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+rectangle "Cohesity" <<Cohesity>> {
     [REST Endpoint]
 }
 
-package "Microsoft Azure" {
-    [Azure Sentinel]
-    [Producer Function App with Timer Trigger]
-    [Consumer Function App]
-    [Service Bus Queue]
-    [Playbooks]
-    [Sentinel API]
-    [Azure Cache for Redis]
+rectangle "Microsoft Azure" <<Azure>> {
+    [Producer Function] as Producer
+    [Consumer Function] as Consumer
+    [Service Bus Queue] as Queue
+    [Azure Sentinel] as Sentinel
+    [Azure Cache for Redis] as Redis
 }
 
-package "Third-party Applications" {
+rectangle "Third-party" <<ThirdParty>> {
     [ServiceNow]
 }
 
-[REST Endpoint] --> [Producer Function App with Timer Trigger] : Fetch and Transform Data
-[Producer Function App with Timer Trigger] --> [Service Bus Queue] : Queue Alerts
-[Producer Function App with Timer Trigger] --> [Azure Cache for Redis] : Store Query Times
-[Azure Cache for Redis] --> [Producer Function App with Timer Trigger] : Get Start Time for Next Query
-[Service Bus Queue] --> [Consumer Function App] : FIFO, Deduplication, Transactions
-[Consumer Function App] --> [Azure Sentinel] : Create Incidents
-[Azure Sentinel] --> [Playbooks] : Execute on New Incident
-[Playbooks] --> [Sentinel API] : Read Incident Data
-[Playbooks] --> [ServiceNow] : Create Ticket on New Incident
-[Playbooks] -down-> (Email Notifications) : Send Email on New Incident
+[REST Endpoint] -right-> Producer : Fetch Data
+Producer -down-> Queue : Queue Alerts
+Producer <-right-> Redis : Cache Query Times
+Queue -right-> Consumer : Process Alerts
+Consumer -up-> Sentinel : Create Incidents
+Sentinel -down-> ServiceNow : Create Tickets
 
-note right of [REST Endpoint]
-  - Fetch alerts from Cohesity
+note top of [REST Endpoint]
+  Provides alerts and
+  security events data
+  PK: AlertID
+  Index: Timestamp
 end note
 
-note left of [Producer Function App with Timer Trigger]
-  - Data transformation
-  - Triggered by Timer
-  - Use Cached Time for Query
-  - Store data in Service Bus Queue
+note bottom of Producer
+  - Timer Triggered
+  - Transforms raw data
+  - Handles rate limiting
+  - Auto-scaling enabled
 end note
 
-note right of [Azure Cache for Redis]
-  - Store Current Query End Time
-  - Retrieve Start Time for Next Query
+note top of Redis
+  Stores:
+  - Last query timestamp
+  - Query performance metrics
+  Key: LastQueryTime
 end note
 
-note right of [Consumer Function App]
-  - Triggered by new data in Service Bus Queue
-  - Create incidents in Azure Sentinel
+note bottom of Consumer
+  - Event-driven
+  - Processes alerts in real-time
+  - Creates standardized incidents
+  - Auto-scaling based on queue length
 end note
 
-note right of [Playbooks]
-  - Automated execution on new incident
-  - Extract incident data using API
-  - Email notifications
-  - Create ServiceNow ticket
+note bottom of Queue
+  - FIFO order
+  - Deduplication
+  - Transactional support
+  - Long-polling for efficiency
+  - Partitioned for high throughput
 end note
 
-note left of [Sentinel API]
-  - Retrieve incident metadata
-  - Support data analysis and reporting
+note left of Sentinel
+  - Central security management
+  - Threat detection & response
+  - Utilizes Log Analytics
+  - Supports custom analytics rules
 end note
 
-note right of [Azure Sentinel]
-  - Utilized function apps
-  - Increased integration efficiency
-end note
-
-note right of [Service Bus Queue]
-  - FIFO Order Guarantee
-  - Automatic Duplication Detection
-  - Transactional Behavior
-  - Long-Polling Receive Operations
-end note
-
-note right of [ServiceNow]
-  - Integrated with Playbooks
+note right of ServiceNow
   - Automated ticket creation
+  - Integrates with Azure Sentinel
+  - Enables workflow automation
+  - Supports custom fields and rules
 end note
 
 @enduml
