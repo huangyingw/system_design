@@ -1,0 +1,126 @@
+@startuml Optimized HDFS Architecture V12
+!define RECTANGLE class
+
+' 使用更柔和的背景色
+skinparam backgroundColor #E0E0E0
+skinparam handwritten false
+skinparam monochrome false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam roundCorner 10
+skinparam ArrowThickness 1.5
+skinparam linetype ortho
+skinparam ArrowFontSize 11
+skinparam ArrowFontStyle italic
+skinparam NoteBackgroundColor #FFFAF0
+skinparam NoteBorderColor #D2B48C
+skinparam RectangleBackgroundColor #F5F5F5
+skinparam RectangleBorderColor #000000
+
+' 使用RECTANGLE替代class来定义组件
+RECTANGLE "Client" as Client
+RECTANGLE "Load Balancer\nCluster" as LB
+RECTANGLE "Caching Layer" as Cache
+RECTANGLE "NameNode\nCluster" as NameNode
+RECTANGLE "DataNode\nCluster" as DataNode
+RECTANGLE "Secondary\nNameNode" as SecondaryNN
+RECTANGLE "Admin Node" as AdminNode
+RECTANGLE "YARN Resource\nManager" as YARN
+
+' 保持连线和所有文字颜色匹配
+Client -[#FF6347]down-> LB : "<color:#FF6347>1. Client\nRequest</color>"
+LB -[#4682B4]right-> Cache : "<color:#4682B4>2a. Read:\nCheck Cache</color>"
+LB -[#4682B4]down-> NameNode : "<color:#4682B4>2b. Write:\nGet Metadata</color>"
+Cache -[#9370DB]down-> NameNode : "<color:#9370DB>3. Cache\nOperations</color>"
+NameNode -[#32CD32]right-> DataNode : "<color:#32CD32>4. Manage\nData</color>"
+Client -[#FF6347]right-> DataNode : "<color:#FF6347>5. Read/Write\nData</color>"
+AdminNode -[#CD5C5C]-> NameNode : "<color:#CD5C5C>6a. Manage\n& Monitor</color>"
+AdminNode -[#CD5C5C]-> LB : "<color:#CD5C5C>6b. Manage\n& Monitor</color>"
+AdminNode -[#CD5C5C]down-> DataNode : "<color:#CD5C5C>6c. Manage\n& Monitor</color>"
+NameNode <-[#4169E1]left- SecondaryNN : "<color:#4169E1>7. Periodic\nSync</color>"
+NameNode <-[#8A2BE2]-> YARN : "<color:#8A2BE2>8. Resource\nCoordination</color>"
+Client -[#FF6347]-> YARN : "<color:#FF6347>9. Submit\nJobs</color>"
+YARN -[#8A2BE2]-> DataNode : "<color:#8A2BE2>10. Allocate\nResources</color>"
+Cache <-[#9370DB]-> DataNode : "<color:#9370DB>11. Cache\nUpdates</color>"
+
+' 保持原有的注释
+note right of Client
+  + Read/Write files
+  + Interact with NameNode and DataNodes
+  + Handle file chunking
+  + Implement HDFS client protocol
+end note
+
+note right of LB
+  + Health Check
+  + Request Router
+  + SSL Termination
+  + Rate Limiting
+end note
+
+note left of Cache
+  Redis Cluster:
+  + Key: file_path:chunk_id
+  + Key: metadata:file_path
+  + Distributed caching
+  + Eviction policies
+end note
+
+note right of NameNode
+  + File System Namespace
+  + Block Management
+  + Replication Management
+  + DataNode Heartbeat Monitoring
+  + Access Control and Permissions
+  --
+  Metadata Storage (ZooKeeper):
+  + File system tree
+  + Block mappings
+  + Node status
+end note
+
+note left of DataNode
+  + Store and manage data blocks
+  + Serve read/write requests
+  + Perform block replication
+  + Send heartbeats and block reports
+  + Handle data integrity checks
+  --
+  Storage:
+  + Primary Storage
+  + Replica Storage
+end note
+
+note bottom of SecondaryNN
+  + Periodic checkpoints of FSImage
+  + Merge EditLog into FSImage
+  + Reduce NameNode startup time
+end note
+
+note top of AdminNode
+  + System Monitoring and Alerts
+  + Configuration Management
+  + Failure Detection and Recovery
+  + Performance Tuning
+  + Security Management
+end note
+
+note left of YARN
+  + Resource Allocation
+  + Job Scheduling
+  + Cluster Resource Management
+end note
+
+note as N1
+  Performance & Scalability:
+  + Data Locality
+  + Rack Awareness
+  + Small Files Optimization
+  + HDFS Federation
+  + Erasure Coding
+end note
+
+NameNode .. N1
+DataNode .. N1
+
+@enduml
