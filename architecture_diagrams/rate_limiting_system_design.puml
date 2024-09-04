@@ -1,47 +1,68 @@
 @startuml
 skinparam backgroundColor #ECECEC
 skinparam linetype ortho
+skinparam rectangle {
+  roundCorner 25
+}
 
-rectangle "API Gateway / Load Balancer" as LB
-rectangle "Rate Limiter Service" as RLS
-rectangle "Rules Engine" as RE
-rectangle "PostgreSQL\n<database>" as PG
-rectangle "Redis Cache\n<queue>" as RC
+rectangle "Client\nApplications" as CLIENT #LightBlue
+rectangle "API Gateway /\nLoad Balancer" as LB #LightGreen
+rectangle "Rate Limiter\nService" as RLS #Orange
+rectangle "Rules Engine" as RE #Yellow
+rectangle "Redis Cache" as RC #Pink
+rectangle "PostgreSQL" as PG #LightCyan
+rectangle "Admin Panel" as ADMIN #LightGray
 
-LB -down-> RLS : Requests
-RLS -right-> RE : Check Rules
-RLS -down-> RC : Check/Update Counters
-RE -down-> PG : Fetch/Update Rules
-RE -left-> RC : Cache Rules
+CLIENT -down-> LB : API Requests
+LB -down-> RLS : Route Requests
+RLS -right-> RE : 1. Check Rules
+RE -down-> RC : 2. Get/Set Counters
+RE <-up-> PG : 3. Sync Rules\n(Periodic)
+ADMIN -down-> PG : Manage Rules
+
+note right of CLIENT
+  Various client applications
+  making API requests
+end note
 
 note right of LB
-  Distributes incoming requests
-  across multiple instances
+  - Distributes requests
+  - Basic rate limiting (optional)
+  - SSL termination
 end note
 
 note right of RLS
-  Checks and enforces rate limits
-  Scales horizontally for high throughput
+  - Enforces rate limits
+  - Scales horizontally
+  - Stateless design
 end note
 
 note right of RE
-  Manages and applies rate limiting rules
-  Cached for performance
+  - Caches active rules
+  - Fast rule evaluation
+  - Periodic sync with PostgreSQL
 end note
 
 note right of RC
-  Stores: 
-  - Request counters
-  - Cached rules
-  Key structure:
-  user:{userID}:endpoint:{endpoint}:counter
+  Key structure examples:
+  - user:{userID}:endpoint:{endpoint}:counter
+  - ip:{ipAddress}:global:counter
+  TTL-based expiration for counters
 end note
 
 note right of PG
-  Stores:
-  - Rate limiting rules
-  - User data
-  - Request logs
+  Tables:
+  - rate_limit_rules
+  - user_data
+  - audit_logs
+  Indexes on frequently queried fields
+end note
+
+note left of ADMIN
+  Web interface for:
+  - Rule management
+  - Analytics dashboard
+  - System configuration
 end note
 
 @enduml
