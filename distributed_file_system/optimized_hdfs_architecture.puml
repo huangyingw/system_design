@@ -1,19 +1,13 @@
-@startuml Streamlined HDFS Architecture
+@startuml Updated HDFS Architecture with YARN
 !define RECTANGLE rectangle
 skinparam backgroundColor #FAFAFA
-skinparam handwritten false
-skinparam monochrome false
 skinparam defaultFontName Arial
 skinparam defaultFontSize 14
 skinparam roundCorner 15
 skinparam ArrowThickness 1.2
 skinparam Padding 10
-skinparam ParticipantPadding 30
-skinparam BoxPadding 30
 skinparam PackageStyle rectangle
 skinparam PackageBorderColor #A9A9A9
-skinparam PackageFontColor #000000
-skinparam shadowing false
 
 actor "Client" as Client
 
@@ -24,7 +18,7 @@ package "Front-End Layer" {
 
 package "Management Layer" {
     RECTANGLE "NameNode" as NameNode
-    RECTANGLE "YARN" as YARN
+    RECTANGLE "YARN\nResource Manager" as YARN
     RECTANGLE "Admin Node" as AdminNode
 }
 
@@ -36,22 +30,23 @@ package "Storage Layer" {
 Client -[#FF6347]down-> LB : 1. Request
 LB -[#4682B4]right-> Cache : 2. Check Cache
 LB -[#4682B4]down-> NameNode : 3. Get Metadata
-NameNode -[#32CD32]down-> DataNode : 4a. Manage Data
-NameNode -[#32CD32]down-> ReadReplica : 4b. Manage Replicas
-Client -[#FF6347]-> DataNode : 5a. Write
-Client -[#FF6347]-> ReadReplica : 5b. Read
-AdminNode -[#CD5C5C]-> NameNode : 6. Monitor
-NameNode <-[#8A2BE2]-> YARN : 7. Coordinate
-Client -[#FF6347]-> YARN : 8. Submit Jobs
-YARN -[#8A2BE2]down-> DataNode : 9. Allocate
+NameNode -[#32CD32]down-> DataNode : 4. Manage Data
+Client -[#FF6347]-> DataNode : 5. Read/Write Data
+AdminNode -[#CD5C5C]-> NameNode : 6. Monitor & Manage
+Client -[#FF6347]-> YARN : 7. Submit Job
+YARN -[#8A2BE2]down-> DataNode : 8. Allocate Resources
+YARN -[#8A2BE2]-> NameNode : 9. Coordinate
 
-note right of Client : Read/Write files\nSubmit jobs
-note bottom of LB : Distribute load\nRoute requests
-note bottom of Cache : Improve performance
-note right of NameNode : Manage file system\nCoordinate resources
-note left of YARN : Manage cluster resources\nSchedule jobs
-note bottom of DataNode : Store & serve data\nHandle writes
-note bottom of ReadReplica : Optimize reads\nServe replicated data
-note left of AdminNode : System management\nMonitoring
+note right of YARN
+  Resource Management:
+  • Allocate cluster resources
+  • Schedule jobs/tasks
+  • Manage application lifecycle
+  • Load balancing
+end note
+
+note right of Client : Submit jobs & data operations
+note bottom of NameNode : Manage file system metadata
+note bottom of DataNode : Store & process data
 
 @enduml
