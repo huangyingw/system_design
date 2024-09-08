@@ -1,0 +1,54 @@
+@startuml dfs-overview
+!define RECTANGLE rectangle
+!define DATABASE database
+skinparam backgroundColor #FAFAFA
+skinparam handwritten false
+skinparam monochrome false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam roundCorner 25
+skinparam Padding 40
+skinparam ParticipantPadding 60
+skinparam BoxPadding 60
+skinparam shadowing false
+skinparam ArrowThickness 1.5
+skinparam NoteBackgroundColor #FFFAB1
+skinparam NoteBorderColor #7F7F00
+skinparam linetype polyline
+skinparam ArrowColor #2C3E50
+
+!define BLUE #0066CC
+!define GREEN #00A86B
+!define YELLOW #FFD700
+!define RED #FF4500
+!define PURPLE #8A2BE2
+!define ORANGE #FF6600
+
+rectangle "Client" as Client #A9CCE3
+RECTANGLE "Load Balancer Cluster" as LB #F5B041
+RECTANGLE "Caching Layer" as CacheLayer #85C1E9
+RECTANGLE "Name Node Cluster" as NameNodeCluster #82E0AA
+RECTANGLE "Data Node Cluster 1" as DataNodeCluster1 #F1948A
+RECTANGLE "Data Node Cluster 2" as DataNodeCluster2 #F1948A
+RECTANGLE "Admin Node" as AdminNode #D7BDE2
+
+Client -[#0066CC]-> LB : <color:#0066CC>1. Client Request</color>
+LB .[#00A86B]..> CacheLayer : <color:#00A86B>2a. Read</color>
+LB -[#00A86B]right-> NameNodeCluster : <color:#00A86B>2b. Write</color>
+CacheLayer .[#FFD700].> NameNodeCluster : <color:#FFD700>3. Cache Miss</color>
+NameNodeCluster -[#FF4500]down-> DataNodeCluster1 : <color:#FF4500>4. Data Operations</color>
+NameNodeCluster -[#FF4500]down-> DataNodeCluster2 : <color:#FF4500>4. Data Operations</color>
+DataNodeCluster1 .[#8A2BE2].> CacheLayer : <color:#8A2BE2>5. Update Cache</color>
+DataNodeCluster2 .[#8A2BE2].> CacheLayer : <color:#8A2BE2>5. Update Cache</color>
+AdminNode -[#FF6600]up-> NameNodeCluster : <color:#FF6600>6. Manage & Monitor</color>
+AdminNode -[#FF6600]up-> LB : <color:#FF6600>6. Manage & Monitor</color>
+DataNodeCluster1 <-[#00A86B]right-> DataNodeCluster2 : <color:#00A86B>7. Replicate</color>
+
+note bottom of Client : Unified interface for read/write operations
+note bottom of LB : Distributes requests and ensures fault tolerance
+note right of CacheLayer : Improves read performance
+note right of NameNodeCluster : Manages metadata and ensures data consistency
+note bottom of DataNodeCluster1 : Stores file data with built-in replication
+note left of AdminNode : System health and configuration management
+
+@enduml

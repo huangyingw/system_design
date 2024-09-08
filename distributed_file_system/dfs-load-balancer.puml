@@ -1,0 +1,47 @@
+@startuml dfs-load-balancer
+!define RECTANGLE rectangle
+skinparam backgroundColor #FAFAFA
+skinparam handwritten false
+skinparam monochrome false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam roundCorner 25
+skinparam Padding 40
+skinparam ParticipantPadding 60
+skinparam BoxPadding 60
+skinparam shadowing false
+skinparam ArrowThickness 1.5
+skinparam NoteBackgroundColor #FFFAB1
+skinparam NoteBorderColor #7F7F00
+skinparam linetype polyline
+skinparam ArrowColor #2C3E50
+
+!define BLUE #0066CC
+!define GREEN #00A86B
+!define YELLOW #FFD700
+
+rectangle "Client" as Client #A9CCE3
+
+RECTANGLE "Load Balancer Cluster" as LB #F5B041 {
+    component "Health Check" as HealthCheck
+    component "Request Router" as RequestRouter
+    component "Session Persistence" as SessionPersistence
+    component "SSL Termination" as SSLTermination
+    component "Traffic Shaping" as TrafficShaping
+}
+
+Client -[#BLUE]-> SSLTermination : <color:#BLUE>1. HTTPS Request</color>
+SSLTermination -[#GREEN]-> RequestRouter : <color:#GREEN>2. Decrypted Request</color>
+RequestRouter -[#YELLOW]-> HealthCheck : <color:#YELLOW>3. Check Server Health</color>
+HealthCheck -[#YELLOW]-> RequestRouter : <color:#YELLOW>4. Health Status</color>
+RequestRouter -[#GREEN]-> SessionPersistence : <color:#GREEN>5. Route Request</color>
+SessionPersistence -[#GREEN]-> TrafficShaping : <color:#GREEN>6. Apply Session Rules</color>
+TrafficShaping -[#BLUE]-> [: <color:#BLUE>7. Forward to Backend</color>
+
+note bottom of HealthCheck : Continuously monitors backend server health
+note right of RequestRouter : Distributes requests based on various algorithms
+note bottom of SessionPersistence : Ensures related requests go to the same server
+note left of SSLTermination : Handles encryption/decryption to offload backend servers
+note bottom of TrafficShaping : Applies rate limiting and prioritization rules
+
+@enduml
