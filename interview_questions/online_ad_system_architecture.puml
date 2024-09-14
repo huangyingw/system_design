@@ -1,0 +1,57 @@
+@startuml
+skinparam backgroundColor white
+skinparam handwritten false
+skinparam roundcorner 10
+skinparam packageStyle rectangle
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam arrowColor #333333
+skinparam linetype ortho
+skinparam nodesep 80
+skinparam ranksep 100
+
+title 在线广告投放系统架构
+caption 优化广告投放效率和精准度
+
+package "广告主平台" {
+    [广告创建与管理] as AdCreation
+    [预算设置] as BudgetSetting
+    [目标受众定义] as TargetAudience
+}
+
+package "广告服务器" {
+    [广告检索引擎] as AdRetrieval
+    [实时竞价系统] as RTB
+    [广告排序算法] as AdRanking
+}
+
+package "用户行为分析" {
+    [用户画像系统] as UserProfile
+    [行为追踪] as BehaviorTracking
+}
+
+package "发布商平台" {
+    [广告位管理] as AdSpaceManagement
+    [收益报表] as RevenueReporting
+}
+
+package "数据处理与存储" {
+    database "用户数据" as UserData
+    database "广告数据" as AdData
+    [大数据处理平台] as BigDataPlatform
+}
+
+[实时监控与报告] as Monitoring
+
+AdCreation --> AdData : 存储广告信息
+TargetAudience --> UserProfile : 定义目标群体
+AdRetrieval --> AdData : 检索相关广告
+AdRetrieval --> UserProfile : 获取用户信息
+RTB --> AdRanking : 竞价结果输入
+AdRanking --> AdSpaceManagement : 投放广告
+BehaviorTracking --> UserData : 记录用户行为
+BigDataPlatform --> UserData : 分析处理
+BigDataPlatform --> AdData : 分析处理
+Monitoring --> BigDataPlatform : 生成报告
+
+@enduml
