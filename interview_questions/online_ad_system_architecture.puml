@@ -3,18 +3,22 @@ skinparam backgroundColor white
 skinparam defaultFontName Arial
 skinparam defaultFontSize 14
 skinparam componentStyle rectangle
-skinparam linetype polyline
+skinparam linetype ortho
 skinparam nodesep 80
-skinparam ranksep 80
+skinparam ranksep 100
 
-title Online Advertising System Architecture - Optimized Version
-caption Core Components, Key Processes, and Optimization Points
+title Online Advertising System Architecture - Optimized Layout
+caption Core Components, Key Processes, Optimization Points, and Potential Bottlenecks
 
 rectangle "Client Side" {
     [Advertiser] as Advertiser
     [User] as User
     [Website/App] as Publisher
 }
+
+cloud "CDN" as CDN
+
+rectangle "Load Balancer" as LoadBalancer
 
 rectangle "Core Services" {
     [Ad Management] as AdManagement
@@ -23,23 +27,45 @@ rectangle "Core Services" {
     [Real-Time Bidding] as RTB
 }
 
+rectangle "Caching Layer" as CacheLayer
+
 rectangle "Data Processing & Storage" {
     [Data Pipeline] as DataPipeline
     database "Data Storage" as DataStorage
 }
 
-Advertiser -[thickness=2]d-> AdManagement : "1. Create Ad"
+queue "Message Queue" as MessageQueue
+
+Advertiser -[thickness=2]d-> LoadBalancer : "1. Create Ad"
 User -[thickness=2]r-> Publisher : "2. Browse"
-Publisher -[thickness=2]d-> AdMatching : "3. Request Ad"
-AdMatching -[thickness=2]r-> RTB : "4. Trigger Bidding"
-RTB -[thickness=2]l-> AdMatching : "5. Select Ad"
-AdMatching -[thickness=2]u-> Publisher : "6. Serve Ad"
-User -[thickness=2]d-> DataPipeline : "7. User Behavior"
-DataPipeline -[thickness=2]r-> DataStorage : "8. Store Data"
-UserAnalysis <-[thickness=2]u- DataStorage : "9. Analyze Data"
-AdMatching <-[thickness=2]l- UserAnalysis : "10. Optimize Matching"
+Publisher -[thickness=2]d-> LoadBalancer : "3. Request Ad"
+LoadBalancer -[thickness=2]d-> AdMatching : "4. Route Request"
+AdMatching -[thickness=2]r-> RTB : "5. Trigger Bidding"
+RTB -[thickness=2]l-> AdMatching : "6. Select Ad"
+AdMatching -[thickness=2]u-> CDN : "7. Serve Ad"
+CDN -[thickness=2]u-> Publisher : "8. Deliver Ad"
+User -[thickness=2]d-> DataPipeline : "9. User Behavior"
+DataPipeline -[thickness=2]r-> DataStorage : "10. Store Data"
+DataPipeline -[thickness=2]d-> MessageQueue : "11. Queue Analytics Tasks"
+MessageQueue -[thickness=2]r-> UserAnalysis : "12. Process Analytics"
+UserAnalysis -[thickness=2]u-> CacheLayer : "13. Update Cache"
+AdMatching <-[thickness=2]u- CacheLayer : "14. Read Cache"
+
+note right of LoadBalancer
+  Optimization: 
+  - Distributes traffic
+  - Improves availability
+end note
+
+note right of CDN
+  Optimization:
+  - Faster ad content delivery
+  - Reduces latency for global users
+end note
 
 note right of RTB
+  Potential Bottleneck: 
+  - High-traffic situations
   Optimization: 
   - Use distributed system
   - Implement caching
@@ -47,9 +73,12 @@ note right of RTB
 end note
 
 note bottom of AdMatching
-  Key Component:
+  Potential Bottleneck:
+  - Complex matching in real-time
+  Optimization:
+  - Use high-performance in-memory
+    or graph databases
   - Implement ML models
-  - Use predictive analytics
   - Ensure low latency
 end note
 
@@ -61,10 +90,33 @@ note left of DataPipeline
 end note
 
 note top of UserAnalysis
-  Privacy & Security:
-  - Implement data anonymization
+  Potential Bottleneck:
+  - Processing large datasets
+  Optimization:
+  - Use incremental computation
+  - Implement approximate algorithms
   - Ensure GDPR compliance
-  - Use encryption for sensitive data
+end note
+
+note bottom of CacheLayer
+  Optimization:
+  - Reduces database load
+  - Improves response time
+  - Use Redis or Memcached
+end note
+
+note left of MessageQueue
+  Optimization:
+  - Enables asynchronous processing
+  - Improves system responsiveness
+end note
+
+note bottom of DataStorage
+  Potential Bottleneck:
+  - Handling increasing data volume
+  Optimization:
+  - Use distributed storage systems
+  - Implement data sharding
 end note
 
 @enduml
