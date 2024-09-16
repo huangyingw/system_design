@@ -48,8 +48,8 @@ User -[thickness=2]d-> DataPipeline : "9. User Behavior"
 DataPipeline -[thickness=2]r-> DataStorage : "10. Store Data"
 DataPipeline -[thickness=2]d-> MessageQueue : "11. Queue Analytics Tasks"
 MessageQueue -[thickness=2]r-> UserAnalysis : "12. Process Analytics"
-UserAnalysis -[thickness=2]u-> CacheLayer : "13. Update Cache"
-AdMatching <-[thickness=2]u- CacheLayer : "14. Read Cache"
+UserAnalysis -[#blue;thickness=2]u-> CacheLayer : "<color:blue>13. Update Cache</color>"
+AdMatching <-[#green;thickness=2]u- CacheLayer : "<color:green>14. Read Cache</color>"
 
 note right of LoadBalancer
   Optimization: 
