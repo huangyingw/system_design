@@ -37,20 +37,23 @@ rectangle "Data Processing & Storage" {
 queue "Message Queue" as MessageQueue
 
 Advertiser -[thickness=2]d-> LoadBalancer : "1. Create Ad"
-User -[thickness=2]r-> Publisher : "2. Browse"
-Publisher -[thickness=2]d-> LoadBalancer : "3. Request Ad"
-LoadBalancer -[thickness=2]d-> AdMatching : "4. Route Request"
-AdMatching -[#blue;thickness=2]r-> RTB : "<color:blue>5. Trigger Bidding</color>"
-RTB -[#red;thickness=2,dashed]d-> RTB : "<color:red>6. Process Bids</color>"
-RTB -[#red;thickness=2]l-> AdMatching : "<color:red>7. Return Selected Ad</color>"
-AdMatching -[thickness=2]u-> CDN : "8. Serve Ad"
-CDN -[thickness=2]u-> Publisher : "9. Deliver Ad"
-User -[thickness=2]d-> DataPipeline : "10. User Behavior"
-DataPipeline -[thickness=2]r-> DataStorage : "11. Store Data"
-DataPipeline -[thickness=2]d-> MessageQueue : "12. Queue Analytics Tasks"
-MessageQueue -[thickness=2]r-> UserAnalysis : "13. Process Analytics"
-UserAnalysis -[#blue;thickness=2]u-> CacheLayer : "<color:blue>14. Update Cache</color>"
-AdMatching <-[#green;thickness=2]u- CacheLayer : "<color:green>15. Read Cache</color>"
+LoadBalancer -[thickness=2]d-> AdManagement : "2. Store Ad"
+AdManagement -[thickness=2]r-> DataStorage : "3. Persist Ad Data"
+AdManagement -[thickness=2]-> AdMatching : "4. Update Ad Inventory"
+
+Publisher -[thickness=2]d-> LoadBalancer : "5. Request Ad"
+LoadBalancer -[thickness=2]d-> AdMatching : "6. Route Request"
+AdMatching -[#blue;thickness=2]r-> RTB : "<color:blue>7. Trigger Bidding</color>"
+RTB -[#red;thickness=2,dashed]d-> RTB : "<color:red>8. Process Bids</color>"
+RTB -[#red;thickness=2]l-> AdMatching : "<color:red>9. Return Selected Ad</color>"
+AdMatching -[thickness=2]u-> CDN : "10. Serve Ad"
+CDN -[thickness=2]u-> Publisher : "11. Deliver Ad"
+User -[thickness=2]d-> DataPipeline : "12. User Behavior"
+DataPipeline -[thickness=2]r-> DataStorage : "13. Store Data"
+DataPipeline -[thickness=2]d-> MessageQueue : "14. Queue Analytics Tasks"
+MessageQueue -[thickness=2]r-> UserAnalysis : "15. Process Analytics"
+UserAnalysis -[#blue;thickness=2]u-> CacheLayer : "<color:blue>16. Update Cache</color>"
+AdMatching <-[#green;thickness=2]u- CacheLayer : "<color:green>17. Read Cache</color>"
 
 note right of LoadBalancer
   Optimization: 
