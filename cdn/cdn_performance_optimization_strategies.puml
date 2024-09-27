@@ -1,0 +1,43 @@
+@startuml CDN Performance Optimization Strategies
+!define RECTANGLE class
+
+skinparam backgroundColor #FEFEFE
+skinparam handwritten false
+skinparam defaultFontName Arial
+
+title CDN Performance Optimization Strategies
+
+rectangle "Content Optimization" {
+    RECTANGLE "Compression" as compress
+    RECTANGLE "Minification" as minify
+    RECTANGLE "Image Optimization" as imgopt
+}
+
+rectangle "Delivery Optimization" {
+    RECTANGLE "HTTP/2 Support" as http2
+    RECTANGLE "TCP Optimization" as tcpopt
+    RECTANGLE "SSL/TLS Optimization" as sslopt
+}
+
+rectangle "Caching Strategies" {
+    RECTANGLE "Browser Caching" as browsercache
+    RECTANGLE "Edge Caching" as edgecache
+    RECTANGLE "Adaptive TTL" as adaptivettl
+}
+
+rectangle "Advanced Techniques" {
+    RECTANGLE "Prefetching" as prefetch
+    RECTANGLE "Load Balancing" as loadbalance
+    RECTANGLE "Real-time Purge" as purge
+}
+
+compress -[hidden]right- http2
+http2 -[hidden]right- browsercache
+browsercache -[hidden]right- prefetch
+
+note bottom of compress : Reduce file sizes
+note bottom of http2 : Faster connections
+note bottom of browsercache : Reduce server load
+note bottom of prefetch : Anticipate user needs
+
+@enduml

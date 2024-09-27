@@ -1,0 +1,51 @@
+@startuml CDN-Origin Interaction Sequence
+!define RECTANGLE class
+
+skinparam backgroundColor #FEFEFE
+skinparam handwritten false
+skinparam defaultFontName Arial
+
+title CDN-Origin Interaction Sequence
+
+actor User
+participant "Edge Node" as Edge
+participant "Regional Node" as Regional
+participant "Central Node" as Central
+participant "Origin Server" as Origin
+
+User -> Edge : Request content
+activate Edge
+
+alt Content in Edge Cache
+    Edge -> User : Serve content
+else Content not in Edge Cache
+    Edge -> Regional : Request content
+    activate Regional
+    
+    alt Content in Regional Cache
+        Regional -> Edge : Return content
+        Edge -> User : Serve content
+    else Content not in Regional Cache
+        Regional -> Central : Request content
+        activate Central
+        
+        alt Content in Central Cache
+            Central -> Regional : Return content
+            Regional -> Edge : Forward content
+            Edge -> User : Serve content
+        else Content not in Central Cache
+            Central -> Origin : Request content
+            activate Origin
+            Origin -> Central : Return content
+            Central -> Regional : Forward and cache content
+            Regional -> Edge : Forward and cache content
+            Edge -> User : Serve content
+            deactivate Origin
+        end
+        deactivate Central
+    end
+    deactivate Regional
+end
+deactivate Edge
+
+@enduml

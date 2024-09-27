@@ -1,0 +1,36 @@
+@startuml CDN Detailed Architecture
+!define RECTANGLE class
+
+skinparam backgroundColor #FEFEFE
+skinparam handwritten false
+skinparam defaultFontName Arial
+
+title CDN Detailed Architecture
+
+rectangle "User" as user
+rectangle "DNS" as dns
+
+package "CDN Network" {
+    rectangle "Edge Node" as edge
+    rectangle "Regional Node" as regional
+    rectangle "Central Node" as central
+}
+
+rectangle "Origin Server" as origin
+
+user --> dns : 1. DNS query
+dns --> user : 2. Return CDN edge node IP
+user --> edge : 3. Content request
+edge --> regional : 4. If not in edge cache
+regional --> central : 5. If not in regional cache
+central --> origin : 6. If not in central cache
+origin --> central : 7. Return content
+central --> regional : 8. Cache and forward
+regional --> edge : 9. Cache and forward
+edge --> user : 10. Serve content
+
+note right of edge : Closest to end users\nHandles most requests
+note right of regional : Aggregates multiple edge nodes\nLarger cache capacity
+note right of central : Connects to origin\nGlobal load balancing
+
+@enduml
