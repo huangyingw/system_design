@@ -1,43 +1,63 @@
 @startuml CDN Performance Optimization Strategies
-!define RECTANGLE class
 
-skinparam backgroundColor #FEFEFE
-skinparam handwritten false
-skinparam defaultFontName Arial
+skinparam {
+    BackgroundColor #FFFFFF
+    FontName Arial
+    FontSize 14
+    FontColor #333333
+    ArrowColor #666666
+    BorderColor #999999
+    RectangleBackgroundColor #F0F8FF
+    RectangleBorderColor #4682B4
+    NoteBorderColor #DAA520
+    NoteBackgroundColor #FFFACD
+}
 
-title CDN Performance Optimization Strategies
+title CDN Performance Optimization Strategies\n
 
 rectangle "Content Optimization" {
-    RECTANGLE "Compression" as compress
-    RECTANGLE "Minification" as minify
-    RECTANGLE "Image Optimization" as imgopt
+    rectangle "Compression" as compress
+    rectangle "Minification" as minify
+    rectangle "Image Optimization" as imgopt
 }
 
 rectangle "Delivery Optimization" {
-    RECTANGLE "HTTP/2 Support" as http2
-    RECTANGLE "TCP Optimization" as tcpopt
-    RECTANGLE "SSL/TLS Optimization" as sslopt
+    rectangle "HTTP/2 Support" as http2
+    rectangle "TCP Optimization" as tcpopt
+    rectangle "SSL/TLS Optimization" as sslopt
 }
 
 rectangle "Caching Strategies" {
-    RECTANGLE "Browser Caching" as browsercache
-    RECTANGLE "Edge Caching" as edgecache
-    RECTANGLE "Adaptive TTL" as adaptivettl
+    rectangle "Browser Caching" as browsercache
+    rectangle "Edge Caching" as edgecache
+    rectangle "Adaptive TTL" as adaptivettl
 }
 
 rectangle "Advanced Techniques" {
-    RECTANGLE "Prefetching" as prefetch
-    RECTANGLE "Load Balancing" as loadbalance
-    RECTANGLE "Real-time Purge" as purge
+    rectangle "Prefetching" as prefetch
+    rectangle "Load Balancing" as loadbalance
+    rectangle "Real-time Purge" as purge
 }
 
-compress -[hidden]right- http2
-http2 -[hidden]right- browsercache
-browsercache -[hidden]right- prefetch
+compress -[hidden]down- minify
+minify -[hidden]down- imgopt
 
-note bottom of compress : Reduce file sizes
-note bottom of http2 : Faster connections
-note bottom of browsercache : Reduce server load
-note bottom of prefetch : Anticipate user needs
+http2 -[hidden]down- tcpopt
+tcpopt -[hidden]down- sslopt
+
+browsercache -[hidden]down- edgecache
+edgecache -[hidden]down- adaptivettl
+
+prefetch -[hidden]down- loadbalance
+loadbalance -[hidden]down- purge
+
+"Content Optimization" -[hidden]right- "Delivery Optimization"
+"Delivery Optimization" -[hidden]right- "Caching Strategies"
+"Caching Strategies" -[hidden]right- "Advanced Techniques"
+
+note bottom of compress : 减小文件大小
+note bottom of http2 : 更快的连接
+note bottom of browsercache : 减少服务器负载
+note bottom of prefetch : 预测用户需求
 
 @enduml
