@@ -2,28 +2,20 @@
 !define RECTANGLE class
 !define DATABASE database
 
-' Enable mixing of elements
 allowmixing
-
-' Increase image resolution
 scale 2
 
-' Global style settings
 skinparam backgroundColor #FFFFFF
 skinparam packageStyle rectangle
 skinparam linetype ortho
 
-' Font settings
 skinparam defaultFontName Arial
-skinparam defaultFontSize 16
+skinparam defaultFontSize 14
 skinparam defaultFontColor #000000
-skinparam noteFontSize 14
+skinparam noteFontSize 12
 skinparam arrowColor #454545
-
-' Make fonts bold
 skinparam defaultFontStyle bold
 
-' Component colors
 skinparam rectangle {
     BackgroundColor #E0E0E0
     BorderColor #454545
@@ -53,29 +45,126 @@ package "Uber System" {
 
     package "Data Storage Layer" {
         package "Orders Database Cluster" {
-            DATABASE "Orders Primary DB" as OrdersPrimary
-            DATABASE "Orders Read Replica 1" as OrdersReplica1
-            DATABASE "Orders Read Replica 2" as OrdersReplica2
+            DATABASE "Orders DB" as OrdersDB {
+                entity "Orders" {
+                    + PK: order_id (UUID)
+                    --
+                    FK: user_id
+                    FK: driver_id
+                    order_status
+                    pickup_location
+                    dropoff_location
+                    created_at
+                    updated_at
+                }
+                note bottom of Orders
+                    Indexes: 
+                    - user_id
+                    - driver_id
+                    - order_status
+                    - created_at
+                    --
+                    Shard Key: order_id (hash)
+                    Partition: Range by created_at
+                end note
+            }
         }
         
         package "User Database Cluster" {
-            DATABASE "Users Primary DB" as UsersPrimary
-            DATABASE "Users Read Replica 1" as UsersReplica1
-            DATABASE "Users Read Replica 2" as UsersReplica2
+            DATABASE "Users DB" as UsersDB {
+                entity "Users" {
+                    + PK: user_id (UUID)
+                    --
+                    username
+                    email
+                    phone_number
+                    password_hash
+                    account_status
+                    created_at
+                    last_login
+                }
+                note bottom of Users
+                    Indexes:
+                    - email
+                    - phone_number
+                    - account_status
+                    --
+                    Shard Key: user_id (hash)
+                    Partition: List by account_status
+                end note
+            }
         }
         
-        package "Driver Location Database" {
-            DATABASE "Location Primary DB" as LocationPrimary
-            DATABASE "Location Read Replica 1" as LocationReplica1
+        package "Driver Database Cluster" {
+            DATABASE "Drivers DB" as DriversDB {
+                entity "Drivers" {
+                    + PK: driver_id (UUID)
+                    --
+                    name
+                    email
+                    phone_number
+                    license_number
+                    vehicle_info
+                    current_status
+                    current_location
+                    last_updated
+                }
+                note bottom of Drivers
+                    Indexes:
+                    - email
+                    - phone_number
+                    - current_status
+                    - last_updated
+                    --
+                    Shard Key: driver_id (hash)
+                    Partition: List by current_status
+                end note
+            }
         }
         
         package "Trip Records Database Cluster" {
-            DATABASE "Trip Primary DB" as TripPrimary
-            DATABASE "Trip Read Replica 1" as TripReplica1
-            DATABASE "Trip Read Replica 2" as TripReplica2
+            DATABASE "Trips DB" as TripsDB {
+                entity "Trips" {
+                    + PK: trip_id (UUID)
+                    --
+                    FK: user_id
+                    FK: driver_id
+                    start_location
+                    end_location
+                    start_time
+                    end_time
+                    fare
+                    payment_status
+                }
+                note bottom of Trips
+                    Indexes:
+                    - user_id
+                    - driver_id
+                    - start_time
+                    - payment_status
+                    --
+                    Shard Key: trip_id (hash)
+                    Partition: Range by start_time
+                end note
+            }
         }
         
-        RECTANGLE "Redis Cluster\n(Real-time Data Cache)" as RedisCluster
+        RECTANGLE "Redis Cluster" as RedisCluster {
+            User_Sessions
+            Driver_Locations
+            Active_Trips
+            Surge_Pricing
+        }
+        
+        note bottom of RedisCluster
+            User_Sessions: {user_id: session_data}
+            Driver_Locations: {driver_id: geo_coordinates}
+            Active_Trips: {trip_id: trip_status}
+            Surge_Pricing: {area_id: multiplier}
+            --
+            Shard Key: Key prefix
+            Partitioning: Hash-based sharding
+        end note
     }
     
     Backend -down-> "Data Storage Layer" : Queries/Updates
@@ -105,6 +194,14 @@ note bottom of "Data Storage Layer"
     • Message queues for async processing
     • Microservices architecture
     • CDNs for static content
+end note
+
+note right of RedisCluster
+    Redis Cluster Role:
+    • High-speed data access
+    • Reduce database load
+    • Real-time data processing
+    • Temporary data storage
 end note
 
 @enduml

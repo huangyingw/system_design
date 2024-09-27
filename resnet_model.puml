@@ -1,180 +1,105 @@
 @startuml
+package "Sequential" {
+  package "Sequential_1" {
+    Conv2d_0 : 3 -> 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False
+    BatchNorm2d_1 : 64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True
+    ReLU_2 : inplace=True
+    MaxPool2d_3 : kernel_size=3, stride=2, padding=1, dilation=1, ceil_mode=False
 
-package "ResNet Model" {
-    
-    package "Feature Extraction" {
-        node Conv2d_3_64_7x7_stride_2_padding_3 as Conv2d_3_64_7x7 {
-            Conv2d(3, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3))
-        }
-        node BatchNorm2d_64 as BatchNorm2d_64 {
-            BatchNorm2d(64)
-        }
-        node ReLU as ReLU {
-            ReLU()
-        }
-        node MaxPool2d_3x3_stride_2_padding_1 as MaxPool2d {
-            MaxPool2d(kernel_size=3, stride=2, padding=1)
-        }
-
-        Conv2d_3_64_7x7 --> BatchNorm2d_64
-        BatchNorm2d_64 --> ReLU
-        ReLU --> MaxPool2d
-
-        package "BasicBlock_0" {
-            node Conv2d_64_64_3x3 as Conv1 {
-                Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-            }
-            node BatchNorm2d_64_1 as BN1 {
-                BatchNorm2d(64)
-            }
-            node ReLU_1 as ReLU1 {
-                ReLU()
-            }
-            node Conv2d_64_64_3x3_2 as Conv2 {
-                Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-            }
-            node BatchNorm2d_64_2 as BN2 {
-                BatchNorm2d(64)
-            }
-
-            Conv1 --> BN1
-            BN1 --> ReLU1
-            ReLU1 --> Conv2
-            Conv2 --> BN2
-        }
-
-        MaxPool2d --> BasicBlock_0
-
-        package "BasicBlock_1" {
-            node Conv2d_64_64_3x3_1 as Conv1_1 {
-                Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-            }
-            node BatchNorm2d_64_3 as BN1_1 {
-                BatchNorm2d(64)
-            }
-            node ReLU_2 as ReLU2 {
-                ReLU()
-            }
-            node Conv2d_64_64_3x3_3 as Conv2_1 {
-                Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-            }
-            node BatchNorm2d_64_4 as BN2_1 {
-                BatchNorm2d(64)
-            }
-
-            Conv1_1 --> BN1_1
-            BN1_1 --> ReLU2
-            ReLU2 --> Conv2_1
-            Conv2_1 --> BN2_1
-        }
-
-        BasicBlock_0 --> BasicBlock_1
-
-        package "BasicBlock_2" {
-            node Conv2d_64_128_3x3_stride_2 as Conv1_2 {
-                Conv2d(64, 128, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1))
-            }
-            node BatchNorm2d_128_1 as BN1_2 {
-                BatchNorm2d(128)
-            }
-            node ReLU_3 as ReLU3 {
-                ReLU()
-            }
-            node Conv2d_128_128_3x3 as Conv2_2 {
-                Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-            }
-            node BatchNorm2d_128_2 as BN2_2 {
-                BatchNorm2d(128)
-            }
-            package "Downsample_0" {
-                node Conv2d_64_128_1x1_stride_2 as DownsampleConv {
-                    Conv2d(64, 128, kernel_size=(1, 1), stride=(2, 2))
-                }
-                node BatchNorm2d_128_3 as DownsampleBN {
-                    BatchNorm2d(128)
-                }
-
-                DownsampleConv --> DownsampleBN
-            }
-
-            Conv1_2 --> BN1_2
-            BN1_2 --> ReLU3
-            ReLU3 --> Conv2_2
-            Conv2_2 --> BN2_2
-            BasicBlock_1 --> Downsample_0
-        }
-
-        BasicBlock_1 --> BasicBlock_2
-
-        package "BasicBlock_3" {
-            node Conv2d_128_128_3x3 as Conv1_3 {
-                Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-            }
-            node BatchNorm2d_128_4 as BN1_3 {
-                BatchNorm2d(128)
-            }
-            node ReLU_4 as ReLU4 {
-                ReLU()
-            }
-            node Conv2d_128_128_3x3_2 as Conv2_3 {
-                Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-            }
-            node BatchNorm2d_128_5 as BN2_3 {
-                BatchNorm2d(128)
-            }
-
-            Conv1_3 --> BN1_3
-            BN1_3 --> ReLU4
-            ReLU4 --> Conv2_3
-            Conv2_3 --> BN2_3
-        }
-
-        BasicBlock_2 --> BasicBlock_3
-
-        // Repeat similar blocks for other BasicBlocks
-
+    package "Block_4" {
+      package "BasicBlock_0" {
+        Conv2d_0 : 64 -> 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False
+        BatchNorm2d_1 : 64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True
+        ReLU_2 : inplace=True
+        Conv2d_3 : 64 -> 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False
+        BatchNorm2d_4 : 64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True
+      }
+      package "BasicBlock_1" {
+        Conv2d_0 : 64 -> 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False
+        BatchNorm2d_1 : 64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True
+        ReLU_2 : inplace=True
+        Conv2d_3 : 64 -> 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False
+        BatchNorm2d_4 : 64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True
+      }
     }
 
-    package "Classification Head" {
-        node AdaptiveConcatPool2d as AdaptiveConcatPool2d {
-            AdaptiveConcatPool2d()
+    package "Block_5" {
+      package "BasicBlock_0" {
+        Conv2d_0 : 64 -> 128, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False
+        BatchNorm2d_1 : 128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True
+        ReLU_2 : inplace=True
+        Conv2d_3 : 128 -> 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False
+        BatchNorm2d_4 : 128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True
+        package "Downsample" {
+          Conv2d_0 : 64 -> 128, kernel_size=(1, 1), stride=(2, 2), bias=False
+          BatchNorm2d_1 : 128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True
         }
-        node Flatten as Flatten {
-            Flatten()
-        }
-        node BatchNorm1d_1024 as BatchNorm1d_1024 {
-            BatchNorm1d(1024)
-        }
-        node Dropout_0.25 as Dropout_0.25 {
-            Dropout(p=0.25)
-        }
-        node Linear_1024_512 as Linear_1024_512 {
-            Linear(in_features=1024, out_features=512)
-        }
-        node ReLU_5 as ReLU5 {
-            ReLU()
-        }
-        node BatchNorm1d_512 as BatchNorm1d_512 {
-            BatchNorm1d(512)
-        }
-        node Dropout_0.5 as Dropout_0.5 {
-            Dropout(p=0.5)
-        }
-        node Linear_512_2 as Linear_512_2 {
-            Linear(in_features=512, out_features=2)
-        }
-
-        AdaptiveConcatPool2d --> Flatten
-        Flatten --> BatchNorm1d_1024
-        BatchNorm1d_1024 --> Dropout_0.25
-        Dropout_0.25 --> Linear_1024_512
-        Linear_1024_512 --> ReLU5
-        ReLU5 --> BatchNorm1d_512
-        BatchNorm1d_512 --> Dropout_0.5
-        Dropout_0.5 --> Linear_512_2
+      }
+      package "BasicBlock_1" {
+        Conv2d_0 : 128 -> 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False
+        BatchNorm2d_1 : 128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True
+        ReLU_2 : inplace=True
+        Conv2d_3 : 128 -> 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False
+        BatchNorm2d_4 : 128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True
+      }
     }
 
-    Feature Extraction --> Classification Head
+    package "Block_6" {
+      package "BasicBlock_0" {
+        Conv2d_0 : 128 -> 256, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False
+        BatchNorm2d_1 : 256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True
+        ReLU_2 : inplace=True
+        Conv2d_3 : 256 -> 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False
+        BatchNorm2d_4 : 256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True
+        package "Downsample" {
+          Conv2d_0 : 128 -> 256, kernel_size=(1, 1), stride=(2, 2), bias=False
+          BatchNorm2d_1 : 256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True
+        }
+      }
+      package "BasicBlock_1" {
+        Conv2d_0 : 256 -> 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False
+        BatchNorm2d_1 : 256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True
+        ReLU_2 : inplace=True
+        Conv2d_3 : 256 -> 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False
+        BatchNorm2d_4 : 256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True
+      }
+    }
+
+    package "Block_7" {
+      package "BasicBlock_0" {
+        Conv2d_0 : 256 -> 512, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False
+        BatchNorm2d_1 : 512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True
+        ReLU_2 : inplace=True
+        Conv2d_3 : 512 -> 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False
+        BatchNorm2d_4 : 512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True
+        package "Downsample" {
+          Conv2d_0 : 256 -> 512, kernel_size=(1, 1), stride=(2, 2), bias=False
+          BatchNorm2d_1 : 512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True
+        }
+      }
+      package "BasicBlock_1" {
+        Conv2d_0 : 512 -> 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False
+        BatchNorm2d_1 : 512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True
+        ReLU_2 : inplace=True
+        Conv2d_3 : 512 -> 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False
+        BatchNorm2d_4 : 512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True
+      }
+    }
+  }
+
+  package "Sequential_2" {
+    package "AdaptiveConcatPool2d_0" {
+      AdaptiveAvgPool2d : output_size=1
+      AdaptiveMaxPool2d : output_size=1
+    }
+    Flatten_1 : full=False
+    BatchNorm1d_2 : 1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True
+    Dropout_3 : p=0.25, inplace=False
+    Linear_4 : in_features=1024, out_features=512, bias=False
+    ReLU_5 : inplace=True
+    BatchNorm1d_6 : 512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True
+    Dropout_7 : p=0.5, inplace=False
+    Linear_8 : in_features=512, out_features=2, bias=False
+  }
 }
-
 @enduml

@@ -1,69 +1,61 @@
 @startuml
-skinparam backgroundColor #D3D3D3
+!theme toy
+skinparam linetype ortho
+skinparam backgroundColor #F0F8FF
+skinparam ArrowColor #4B0082
+skinparam ArrowFontColor #4B0082
 
-skinparam rectangle {
-    BackgroundColor PaleGreen
-    BorderColor DarkSlateGray
+rectangle "数据生成层" {
+    [IoT设备] as IoT #LightCyan
 }
 
-class "IoT Device" as IoTDevice {
-    +Generate Logs
+rectangle "数据收集层" {
+    [日志收集器] as Collector #LightGreen
 }
 
-class "Log Collector" as LogCollector {
-    +Collect Logs
+rectangle "数据处理层" {
+    queue "Kafka队列" as Kafka #LightPink
+    [日志处理服务] as LogProcessor #LightYellow
+    [流处理(Flink/Spark)] as StreamProcessor #LightSalmon
 }
 
-class "Kafka Queue" as Kafka {
-    +Queue Logs
+database "数据存储层" {
+    database "主数据库" as MasterDB #PaleGoldenrod {
+        note right
+            复合分片策略:
+            - 按设备
+            - 按时间
+            PK, Index优化
+        end note
+    }
+    database "副本数据库" as ReplicaDB #PaleGoldenrod
+    database "统计数据库" as StatsDB #Thistle {
+        note right
+            Sharding Key: 
+            时间 + 设备类型
+        end note
+    }
 }
 
-class "Log Processing Service" as LogProcessing {
-    +Initial Log Processing
+rectangle "应用服务层" {
+    [查询服务] as QueryService #LightSteelBlue
+    [告警服务] as AlertService #LightCoral
+    [API服务器] as APIServer #LightSeaGreen
 }
 
-class "Master Database" as MasterDB {
-    +Store Processed Logs
-}
+IoT -[#4B0082]-> Collector : 发送日志
+Collector -[#4B0082]-> Kafka : 推送日志
+Kafka -[#4B0082]-> LogProcessor : 传输日志
+Kafka -[#4B0082]-> StreamProcessor : 流式处理
+LogProcessor -[#4B0082]-> MasterDB : 存储处理后的日志
+MasterDB -[#4B0082]-> ReplicaDB : 数据复制
+ReplicaDB -[#4B0082]-> QueryService : 查询日志
+ReplicaDB -[#4B0082]-> AlertService : 分析生成告警
+StreamProcessor -[#4B0082]-> StatsDB : 存储统计结果
+StatsDB -[#4B0082]-> APIServer : 获取统计数据
 
-class "Replica Database" as ReplicaDB {
-    +Handle Read Queries
-}
-
-class "Query Service" as QueryService {
-    +Handle Log Queries
-}
-
-class "Alert Service" as AlertService {
-    +Generate and Manage Alerts
-}
-
-class "Stream Processing\n(Flink/Spark)" as StreamProcessing {
-    +Real-time Log Analysis
-}
-
-class "Statistics Database" as StatsDB {
-    +Store Analysis Results
-}
-
-class "API Server" as APIServer {
-    +Provide Statistics Data
-}
-
-IoTDevice -right-> LogCollector : Send Logs
-LogCollector -down-> Kafka : Push Logs
-Kafka -down-> LogProcessing : Transfer Logs
-Kafka -right-> StreamProcessing : Stream Logs
-LogProcessing -down-> MasterDB : Store Logs
-MasterDB -left-> ReplicaDB : Replicate Data
-ReplicaDB -up-> QueryService : Retrieve Logs for Queries
-ReplicaDB -right-> AlertService : Analyze for Alerts
-StreamProcessing -down-> StatsDB : Store Statistics
-StatsDB -right-> APIServer : Fetch Statistics
-
-note right of MasterDB
-  Composite Sharding Strategy:
-  - By Device
-  - By Time
+note bottom of MasterDB
+    Redis缓存键设计:
+    device:{deviceId}:logs:{timestamp}
 end note
 @enduml
