@@ -7,7 +7,6 @@ skinparam defaultFontSize 12
 skinparam roundcorner 20
 skinparam shadowing true
 
-!define RECTANGLE class
 
 title 容器编排系统设计 (基于Kubernetes)
 
