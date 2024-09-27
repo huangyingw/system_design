@@ -1,53 +1,77 @@
 @startuml
-skinparam backgroundColor #D3D3D3
-skinparam rectangle {
-  BackgroundColor White
-  BorderColor Black
-  Shadowing false
+!define LIGHTBLUE
+!includeurl https://raw.githubusercontent.com/Drakemor/RedDress-PlantUML/master/style.puml
+
+skinparam backgroundColor #E8E8E8
+skinparam handwritten false
+skinparam defaultFontSize 14
+skinparam noteFontSize 16
+skinparam arrowFontSize 12
+
+rectangle "CDN System Architecture" as CDN #F0F0F0 {
+    actor "User" as User
+    
+    rectangle "DNS Server" as DNSServer #D0E0F0
+    rectangle "Global Load Balancer" as GLB #D0E0F0 {
+        database "Geo-Location DB" as GeoDB #F0E0D0
+    }
+    
+    rectangle "Origin Server" as Origin #D0E0F0
+    
+    together {
+        rectangle "Region 1" as Region1 #E0F0E0 {
+            rectangle "Regional Load Balancer 1" as RLB1 #D0E0F0
+            rectangle "Distribution Server 1" as DS1 #D0E0F0 {
+                database "Cache 1" as Cache1 #F0E0D0
+            }
+        }
+    }
+    
+    together {
+        rectangle "Region 2" as Region2 #E0F0E0 {
+            rectangle "Regional Load Balancer 2" as RLB2 #D0E0F0
+            rectangle "Distribution Server 2" as DS2 #D0E0F0 {
+                database "Cache 2" as Cache2 #F0E0D0
+            }
+        }
+    }
+    
+    rectangle "Cache Decision System" as CDS #D0E0F0
+    rectangle "Analytics & Monitoring" as Analytics #D0E0F0
 }
 
-package "CDN System Architecture" {
-    RECTANGLE "Origin Server" as Origin
-    
-    RECTANGLE "Global Load Balancer" as GLB {
-        RECTANGLE "Geo-Location Database" as GeoDB
-    }
-    
-    DATABASE "Regional Load Balancer 1" as RLB1
-    DATABASE "Regional Load Balancer 2" as RLB2
-    
-    DATABASE "Distribution Server 1" as DS1 {
-        DATABASE "Cache 1" as Cache1
-    }
-    
-    DATABASE "Distribution Server 2" as DS2 {
-        DATABASE "Cache 2" as Cache2
-    }
+User -[#green]right-> DNSServer : "1. User Request"
+DNSServer -[#blue]down-> GLB : "2. DNS Resolution"
+GLB -[#blue]down-> GeoDB : "3. Geo-location Query"
+GeoDB -[#purple]left-> RLB1 : "4. Route to Region 1"
+GeoDB -[#purple]right-> RLB2 : "4. Route to Region 2"
+RLB1 -[#orange]down-> DS1 : "5. Load Balance"
+RLB2 -[#orange]down-> DS2 : "5. Load Balance"
+DS1 -[#red]down-> Cache1 : "6. Check Cache"
+DS2 -[#red]down-> Cache2 : "6. Check Cache"
+Cache1 -[#brown]-> CDS : "7. Cache Query"
+Cache2 -[#brown]-> CDS : "7. Cache Query"
+CDS -[#brown]up-> Cache1 : "8. Cache Decision"
+CDS -[#brown]up-> Cache2 : "8. Cache Decision"
+Cache1 -[#gray]-> Origin : "9. Request Origin\n(if not cached)"
+Cache2 -[#gray]-> Origin : "9. Request Origin\n(if not cached)"
+Origin -[#gray]up-> Cache1 : "10. Update Cache"
+Origin -[#gray]up-> Cache2 : "10. Update Cache"
+DS1 -[#green]up-> User : "11. Response"
+DS2 -[#green]up-> User : "11. Response"
 
-    RECTANGLE "Cache Decision System" as CDS
-    RECTANGLE "DNS Server" as DNSServer
+CDS -[#darkblue]right-> Analytics : "12. Data Analysis"
+Analytics -[#darkblue]up-> GLB : "13. Optimize Decisions"
 
-    DNSServer -down-> GLB : "Step 2: DNS Resolution"
-    GLB -down-> GeoDB : "Step 3: Geo-Location Lookup"
-    GeoDB -left-> RLB1 : "Step 4: Route to Region 1"
-    GeoDB -right-> RLB2 : "Step 4: Route to Region 2"
-    RLB1 -down-> DS1 : "Step 5: Load Balance within Region"
-    RLB2 -down-> DS2
-    DS1 -down-> Cache1 : "Step 6: Check Cache"
-    DS2 -down-> Cache2
-    Cache1 -left-> CDS : "Cache Query"
-    Cache2 -right-> CDS : "Cache Query"
-    CDS -up-> Cache1 : "Cache Decision"
-    CDS -up-> Cache2 : "Cache Decision"
-    Cache1 -down-> Origin : "Step 7: Request Origin (if not cached)"
-    Cache2 -down-> Origin
-    Origin -up-> Cache1 : "Step 8: Update Cache and Deliver Content"
-    Origin -up-> Cache2
-}
-
-RECTANGLE "User" as User
-User -right-> DNSServer : "Step 1: User Request"
-DS1 -up-> User : "Step 9: Respond to User Request"
-DS2 -up-> User
+note right of CDN
+  System Optimization Plan:
+  1. Introduce Analytics & Monitoring system for real-time CDN performance and user behavior analysis
+  2. Utilize analytics data to optimize Global Load Balancer routing decisions
+  3. Implement intelligent pre-caching based on predicted popular content
+  4. Enhance Cache Decision System to improve cache hit rates
+  5. Introduce edge computing capabilities for processing simple requests at Distribution Servers
+  6. Implement multi-level caching strategy to improve content distribution efficiency
+  7. Strengthen security measures, such as DDoS protection and content encryption
+end note
 
 @enduml
