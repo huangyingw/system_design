@@ -1,0 +1,114 @@
+@startuml Microservices Architecture and Service Discovery
+
+skinparam {
+    backgroundColor #E0E0E0
+    handwritten false
+    defaultFontName Arial
+    defaultFontSize 18
+    roundcorner 20
+    shadowing true
+}
+
+title Microservices Architecture and Service Discovery Design
+
+rectangle "Clients" {
+    [Web Application]
+    [Mobile Application]
+    [Third-party Services]
+}
+
+rectangle "API Gateway" as APIGateway {
+    [Routing]
+    [Authentication]
+    [Rate Limiting]
+    [Caching]
+    [Protocol Conversion]
+}
+
+rectangle "Service Registry" as ServiceRegistry {
+    [Service Registry Center]
+    [Health Check]
+    [Load Balancing]
+}
+
+rectangle "Microservices Cluster" as Microservices {
+    RECTANGLE "User Service" as UserService {
+        [User Management]
+        [Authentication]
+    }
+    RECTANGLE "Order Service" as OrderService {
+        [Order Processing]
+        [Payment Integration]
+    }
+    RECTANGLE "Product Service" as ProductService {
+        [Product Management]
+        [Inventory]
+    }
+    RECTANGLE "Recommendation Service" as RecommendationService {
+        [Personalized Recommendations]
+        [Data Analysis]
+    }
+}
+
+' Data Storage
+database "Data Storage" as DataStorage {
+    [Relational Database]
+    [NoSQL Database]
+    [Cache]
+}
+
+' Message Queue
+queue "Message Queue" as MessageQueue {
+    [Event Bus]
+}
+
+' Monitoring and Logging
+RECTANGLE "Monitoring and Logging" as Monitoring {
+    [Distributed Tracing]
+    [Log Aggregation]
+    [Performance Monitoring]
+    [Alert System]
+}
+
+' Configuration Center
+RECTANGLE "Config Center" as ConfigCenter {
+    [Configuration Management]
+    [Dynamic Configuration]
+}
+
+' Connections
+Clients -down-> APIGateway : Request
+APIGateway -down-> ServiceRegistry : Service Discovery
+APIGateway -down-> Microservices : Route Requests
+Microservices <-right-> ServiceRegistry : Register/Discover
+Microservices -down-> DataStorage : Data Access
+Microservices <--> MessageQueue : Publish/Subscribe Events
+Monitoring -up-> Microservices : Monitor
+ConfigCenter -up-> Microservices : Manage Configurations
+
+note right of APIGateway
+  API Gateway Responsibilities:
+  1. Request Routing
+  2. Authentication and Authorization
+  3. Rate Limiting and Circuit Breaking
+  4. Request/Response Transformation
+  5. Caching
+end note
+
+note left of ServiceRegistry
+  Service Discovery Mechanisms:
+  1. Client-side Discovery
+  2. Server-side Discovery
+  3. Support for Multiple Registries
+     (e.g., Eureka, Consul, ZooKeeper)
+end note
+
+note bottom of Microservices
+  Microservices Characteristics:
+  1. Independent Deployment
+  2. Decentralized Data Management
+  3. Fault Isolation
+  4. Independent Scalability
+end note
+
+@enduml

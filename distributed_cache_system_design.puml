@@ -1,0 +1,94 @@
+@startuml Distributed Cache System Design
+
+skinparam backgroundColor #FAFAFA
+skinparam handwritten false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam roundcorner 20
+skinparam shadowing true
+
+!define RECTANGLE class
+
+title 高性能分布式缓存系统设计
+
+' 客户端
+RECTANGLE "客户端集群" as Clients {
+    [Client 1]
+    [Client 2]
+    [Client N]
+}
+
+' 负载均衡器
+RECTANGLE "负载均衡器" as LB {
+    [HAProxy]
+}
+
+' 缓存集群
+RECTANGLE "缓存集群" as CacheCluster {
+    RECTANGLE "主节点" as Master {
+        database "数据分片1" as Shard1_M
+        database "数据分片2" as Shard2_M
+    }
+    RECTANGLE "从节点1" as Slave1 {
+        database "数据分片1" as Shard1_S1
+        database "数据分片2" as Shard2_S1
+    }
+    RECTANGLE "从节点2" as Slave2 {
+        database "数据分片1" as Shard1_S2
+        database "数据分片2" as Shard2_S2
+    }
+}
+
+' 持久化存储
+database "持久化存储" as Storage {
+    [RDB快照]
+    [AOF日志]
+}
+
+' 集群管理
+RECTANGLE "集群管理" as ClusterManagement {
+    [Sentinel]
+    [配置管理]
+}
+
+' 监控系统
+RECTANGLE "监控系统" as Monitoring {
+    [性能监控]
+    [告警系统]
+}
+
+' 连接关系
+Clients -down-> LB : 请求
+LB -down-> CacheCluster : 分发请求
+Master -right-> Slave1 : 数据复制
+Master -right-> Slave2 : 数据复制
+CacheCluster -down-> Storage : 数据持久化
+ClusterManagement -up-> CacheCluster : 管理和监控
+Monitoring -up-> CacheCluster : 监控
+
+note right of CacheCluster
+  关键特性:
+  1. 数据分片: 提高存储容量和并发性能
+  2. 主从复制: 提高可用性和读性能
+  3. 数据一致性: 通过复制保证
+  4. 故障转移: Sentinel自动故障检测和转移
+  5. 数据持久化: RDB快照和AOF日志
+end note
+
+note left of LB
+  负载均衡策略:
+  1. 轮询
+  2. 最少连接
+  3. IP哈希
+  4. 一致性哈希
+end note
+
+note bottom of Clients
+  客户端特性:
+  1. 连接池管理
+  2. 失败重试
+  3. 数据压缩
+  4. 本地缓存
+end note
+
+@enduml

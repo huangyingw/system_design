@@ -1,0 +1,116 @@
+@startuml Blockchain System Design
+
+skinparam backgroundColor #FAFAFA
+skinparam handwritten false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam roundcorner 20
+skinparam shadowing true
+
+!define RECTANGLE class
+
+title 区块链系统设计
+
+' 用户层
+RECTANGLE "用户层" as UserLayer {
+    [轻节点]
+    [钱包应用]
+    [DApp]
+}
+
+' 应用层
+RECTANGLE "应用层" as ApplicationLayer {
+    [智能合约]
+    [链码]
+    [DApp后端]
+}
+
+' 网络层
+RECTANGLE "网络层" as NetworkLayer {
+    [P2P网络]
+    [节点发现]
+    [数据传播]
+}
+
+' 共识层
+RECTANGLE "共识层" as ConsensusLayer {
+    [PoW (工作量证明)]
+    [PoS (权益证明)]
+    [DPoS (委托权益证明)]
+    [PBFT (实用拜占庭容错)]
+}
+
+' 数据层
+RECTANGLE "数据层" as DataLayer {
+    database "区块链" as Blockchain {
+        [区块头]
+        [交易数据]
+        [状态树]
+    }
+    database "状态数据库" as StateDB {
+        [账户状态]
+        [合约状态]
+    }
+}
+
+' 密码学层
+RECTANGLE "密码学层" as CryptographyLayer {
+    [非对称加密]
+    [哈希函数]
+    [数字签名]
+    [零知识证明]
+}
+
+' 虚拟机
+RECTANGLE "虚拟机" as VirtualMachine {
+    [EVM (以太坊虚拟机)]
+    [WASM (WebAssembly)]
+}
+
+' 存储层
+database "存储层" as StorageLayer {
+    [分布式存储]
+    [IPFS]
+}
+
+' 监控和管理
+RECTANGLE "监控和管理" as MonitoringManagement {
+    [区块浏览器]
+    [网络监控]
+    [性能分析]
+}
+
+' 连接关系
+UserLayer -down-> ApplicationLayer : 使用
+ApplicationLayer -down-> NetworkLayer : 部署/调用
+NetworkLayer -down-> ConsensusLayer : 达成共识
+ConsensusLayer -down-> DataLayer : 写入/读取
+DataLayer -left-> CryptographyLayer : 使用
+ApplicationLayer -right-> VirtualMachine : 执行
+DataLayer -down-> StorageLayer : 存储数据
+MonitoringManagement -up-> DataLayer : 监控
+
+note right of ConsensusLayer
+  共识机制特点:
+  1. PoW: 高安全性，但能耗大
+  2. PoS: 节能，但可能导致中心化
+  3. DPoS: 高效，但代表性有限
+  4. PBFT: 高性能，但扩展性受限
+end note
+
+note left of DataLayer
+  数据结构:
+  1. 区块: 包含多个交易
+  2. 交易: 状态转换
+  3. Merkle树: 快速验证
+end note
+
+note bottom of CryptographyLayer
+  密码学保障:
+  1. 交易不可篡改
+  2. 身份认证
+  3. 数据完整性
+  4. 隐私保护
+end note
+
+@enduml
