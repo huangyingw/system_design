@@ -1,0 +1,50 @@
+@startuml Social Network Comment System Architecture
+!pragma useVerticalIf on
+allowmixing
+
+actor "User" as user
+
+rectangle "Client Applications" {
+    [Web App]
+    [Mobile App]
+}
+
+rectangle "API Layer" {
+    [API Gateway] as api
+}
+
+rectangle "Application Layer" {
+    [Comment Service] as commentService
+    [Notification Service] as notificationService
+    [User Service] as userService
+}
+
+database "Data Layer" {
+    [Comment DB] as commentDB
+    [User DB] as userDB
+}
+
+queue "Message Queue" {
+    [Comment Queue] as commentQueue
+}
+
+rectangle "Real-time Updates" {
+    [Stream Processor] as streamProcessor
+}
+
+user --> [Web App]
+user --> [Mobile App]
+[Web App] --> api
+[Mobile App] --> api
+api --> commentService
+api --> notificationService
+api --> userService
+commentService --> commentDB
+userService --> userDB
+commentService --> commentQueue
+commentQueue --> notificationService
+notificationService --> streamProcessor
+streamProcessor --> [Web App]
+streamProcessor --> [Mobile App]
+
+@enduml

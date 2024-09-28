@@ -1,0 +1,147 @@
+@startuml DynamoDB-based Distributed Data Storage System
+
+!define FONTNAME Roboto
+!define FONTSIZE 18
+!define TITLEFONTSIZE 20
+
+skinparam backgroundColor #E0E8F0
+skinparam handwritten false
+skinparam defaultFontName FONTNAME
+skinparam defaultFontSize FONTSIZE
+skinparam roundcorner 15
+skinparam shadowing false
+skinparam ArrowColor #2C3E50
+skinparam ArrowThickness 1.5
+skinparam rectangleBorderColor #34495E
+skinparam rectangleBackgroundColor #ECF0F1
+
+skinparam title {
+  FontSize TITLEFONTSIZE
+  FontColor #2C3E50
+}
+
+skinparam note {
+  BackgroundColor #F1C40F
+  BorderColor #F39C12
+  FontSize 20
+}
+
+title DynamoDB-based Distributed Data Storage System Design
+
+rectangle "Client" as Client {
+    [Web Application]
+    [Mobile Application]
+    [IoT Device]
+}
+
+rectangle "API Gateway" as APIGateway {
+    [Request Routing]
+    [Authentication]
+    [Traffic Control]
+}
+
+rectangle "Application Service" as AppService {
+    [Business Logic]
+    [Data Access Layer]
+}
+
+database "DynamoDB" as DynamoDB {
+    rectangle "Table Design" as TableDesign {
+        [Primary Key Design]
+        [Secondary Index]
+        [Sparse Index]
+    }
+    rectangle "Partition Strategy" as PartitionStrategy {
+        [Hash Partition]
+        [Range Partition]
+    }
+    rectangle "Consistency Model" as ConsistencyModel {
+        [Eventually Consistent Read]
+        [Strongly Consistent Read]
+    }
+}
+
+rectangle "DynamoDB Streams" as DynamoDBStreams {
+    [Change Capture]
+    [Event Processing]
+}
+
+rectangle "Lambda Functions" as LambdaFunctions {
+    [Stream Processing]
+    [Data Transformation]
+    [Triggers]
+}
+
+rectangle "Cache Layer" as CacheLayer {
+    database "ElastiCache" as ElastiCache
+    database "DAX" as DAX
+}
+
+rectangle "Data Analysis" as DataAnalysis {
+    [Athena]
+    [Redshift]
+}
+
+rectangle "Monitoring" as Monitoring {
+    [CloudWatch]
+    [AWS Config]
+}
+
+rectangle "Security" as Security {
+    [IAM]
+    [KMS]
+    [VPC]
+}
+
+Client -[#3498DB]down-> APIGateway
+APIGateway -[#3498DB]down-> AppService
+AppService -[#3498DB]down-> DynamoDB
+AppService -[#2ECC71]right-> CacheLayer
+DynamoDB -[#E74C3C]right-> DynamoDBStreams
+DynamoDBStreams -[#E74C3C]right-> LambdaFunctions
+DynamoDB -[#9B59B6]down-> DataAnalysis
+DynamoDB -[#F39C12]up-> Monitoring
+Security -[#1ABC9C]up-> DynamoDB
+
+note right of TableDesign
+  Table Design Considerations:
+  1. Avoid hot key issues
+  2. Optimize query efficiency
+  3. Support multiple access patterns
+end note
+
+note right of PartitionStrategy
+  Partition Strategy:
+  1. Distribute data evenly
+  2. Avoid partition skew
+  3. Support efficient queries
+end note
+
+note right of ConsistencyModel
+  Consistency Choice:
+  1. Balance performance and consistency
+  2. Choose based on business requirements
+end note
+
+note bottom of CacheLayer
+  Caching Strategy:
+  1. Read-intensive workloads
+  2. Reduce DynamoDB load
+  3. Lower latency
+end note
+
+note left of LambdaFunctions
+  Lambda Applications:
+  1. Real-time data processing
+  2. Data synchronization
+  3. Trigger notifications
+end note
+
+note bottom of Security
+  Security Considerations:
+  1. Fine-grained access control
+  2. Encrypt data in transit and at rest
+  3. Network isolation
+end note
+
+@enduml

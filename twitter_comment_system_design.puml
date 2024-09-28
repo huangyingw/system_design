@@ -1,0 +1,172 @@
+@startuml Twitter Comment System Design
+
+!define FONTNAME Roboto
+!define FONTSIZE 14
+!define TITLEFONTSIZE 20
+
+skinparam backgroundColor #E0E8F0
+skinparam handwritten false
+skinparam defaultFontName FONTNAME
+skinparam defaultFontSize FONTSIZE
+skinparam roundcorner 15
+skinparam shadowing false
+skinparam ArrowColor #2C3E50
+skinparam ArrowThickness 1.5
+skinparam rectangleBorderColor #34495E
+skinparam rectangleBackgroundColor #ECF0F1
+skinparam databaseBorderColor #16A085
+skinparam databaseBackgroundColor #D1F2EB
+skinparam queueBorderColor #8E44AD
+skinparam queueBackgroundColor #E8DAEF
+skinparam noteBorderColor #F39C12
+skinparam noteBackgroundColor #FCF3CF
+
+title <font size=TITLEFONTSIZE>Twitter Comment System Design</font>
+
+' User Interface
+rectangle "User Interface" as UI {
+    [Web Frontend]
+    [Mobile App]
+}
+
+' API Gateway
+rectangle "API Gateway" as APIGateway {
+    [Load Balancer]
+    [Request Routing]
+    [Auth & Authorization]
+    [Rate Limiting]
+}
+
+' Microservices
+rectangle "Microservices" as Microservices {
+    rectangle "Comment Service" as CommentService {
+        [Comment CRUD]
+        [Comment Tree]
+        [Comment Sorting]
+        [Sentiment Analysis]
+    }
+    rectangle "User Service" as UserService {
+        [User Info]
+        [User Permissions]
+    }
+    rectangle "Tweet Service" as TweetService {
+        [Tweet Info]
+        [Tweet Engagement]
+    }
+    rectangle "Notification Service" as NotificationService {
+        [Real-time Notifications]
+        [Push Notifications]
+    }
+    rectangle "Moderation Service" as ModerationService {
+        [Auto Moderation]
+        [Manual Review Queue]
+        [Spam Detection]
+    }
+}
+
+' Data Storage
+database "Data Storage" as DataStorage {
+    database "Comment Data" as CommentDB {
+        [Main Comments]
+        [Comment Relations]
+    }
+    database "User Data" as UserDB
+    database "Tweet Data" as TweetDB
+}
+
+' Cache Layer
+rectangle "Cache Layer" as CacheLayer {
+    database "Redis Cluster" as RedisCluster {
+        [Hot Comments Cache]
+        [User Info Cache]
+        [Tweet Cache]
+    }
+}
+
+' Message Queue
+queue "Message Queue" as MessageQueue {
+    [Kafka]
+}
+
+' Search Engine
+database "Search Engine" as SearchEngine {
+    [Elasticsearch]
+}
+
+' Real-time Processing
+rectangle "Real-time Processing" as RealTimeProcessing {
+    [Storm]
+    [Flink]
+}
+
+' Machine Learning
+rectangle "Machine Learning" as MachineLearning {
+    [Sentiment Analysis]
+    [Spam Detection]
+    [Content Recommendation]
+}
+
+' Monitoring and Logging
+rectangle "Monitoring & Logging" as Monitoring {
+    [Prometheus]
+    [ELK Stack]
+    [Distributed Tracing]
+}
+
+' Layout and Connections
+UI -[#3498DB]down-> APIGateway
+APIGateway -[#3498DB]down-> Microservices
+
+Microservices -[#2ECC71]right-> CacheLayer
+Microservices -[#E74C3C]down-> DataStorage
+Microservices -[#9B59B6]left-> MessageQueue
+CommentService -[#F39C12]right-> SearchEngine
+ModerationService -[#1ABC9C]right-> MachineLearning
+NotificationService -[#D35400]-> RealTimeProcessing
+Microservices -[#7F8C8D]up-> Monitoring
+
+' Notes and Additional Information
+note left of UI
+  Client-side Features:
+  1. Real-time comment updates
+  2. Infinite scrolling
+  3. Rich text editor
+  4. Emoji and GIF support
+  5. Threaded replies
+end note
+
+note right of APIGateway
+  API Gateway Features:
+  1. Rate limiting
+  2. API versioning
+  3. Request/Response transformation
+  4. Analytics and monitoring
+  5. OAuth 2.0 authentication
+end note
+
+note right of CommentService
+  Comment Service Features:
+  1. High concurrency R/W
+  2. Comment tree building
+  3. Pagination and sorting
+  4. Comment edit history
+  5. Mention and hashtag parsing
+end note
+
+note bottom of DataStorage
+  Data Storage Strategy:
+  1. Sharding by tweet_id
+  2. Denormalization for performance
+  3. Eventual consistency model
+  4. Backup and disaster recovery
+end note
+
+note bottom of MachineLearning
+  ML Applications:
+  1. Toxic comment detection
+  2. Language translation
+  3. Trending topics analysis
+  4. User engagement prediction
+end note
+
+@enduml

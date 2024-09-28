@@ -1,0 +1,73 @@
+@startuml E-commerce System Architecture
+!theme toy
+allowmixing
+
+' Color definitions
+!define BACKGROUND_COLOR #E6E6FA
+!define MICROSERVICES_COLOR #FFF0F5
+!define API_GATEWAY_COLOR #98FB98
+!define DATABASE_COLOR #B0E0E6
+!define EXTERNAL_SERVICES_COLOR #FFE4B5
+
+skinparam backgroundColor #E6E6FA
+skinparam shadowing false
+skinparam RoundCorner 10
+skinparam ArrowColor #454645
+skinparam DefaultFontName Arial
+skinparam DefaultFontSize 12
+
+' Components
+rectangle "API Gateway" as APIGateway #98FB98
+rectangle "Microservices" as Microservices #MICROSERVICES_COLOR {
+    rectangle "User Service" as UserService
+    rectangle "Product Service" as ProductService
+    rectangle "Cart Service" as CartService
+    rectangle "Order Service" as OrderService
+    rectangle "Inventory Service" as InventoryService
+    rectangle "Search Service" as SearchService
+    rectangle "Recommendation Service" as RecommendationService
+}
+database "Database" as Database #DATABASE_COLOR
+rectangle "External Services" as ExternalServices #EXTERNAL_SERVICES_COLOR {
+    rectangle "Payment Gateway" as PaymentGateway
+    rectangle "Shipping Service" as ShippingService
+    rectangle "Email Service" as EmailService
+}
+rectangle "Monitoring" as Monitoring
+rectangle "Search Engine" as SearchEngine
+rectangle "Data Analysis" as DataAnalysis
+
+' Relationships
+APIGateway -[#4169E1]down-> Microservices : Route requests
+Microservices -[#228B22]down-> Database : CRUD operations
+Microservices -[#CD853F]up-> Monitoring : Log/Metrics
+SearchService -[#FFD700]right-> SearchEngine : Index/Query
+RecommendationService -[#A9A9A9]left-> DataAnalysis : Process Data
+OrderService -[#FF69B4]right-> ExternalServices : Integrate
+
+' Notes
+note right of APIGateway #API_GATEWAY_COLOR
+  API Gateway:
+  1. Request routing
+  2. Load balancing
+  3. Auth & authorization
+  4. Rate limiting
+  5. Response caching
+end note
+
+note bottom of CartService #MICROSERVICES_COLOR
+  Cart Service:
+  1. High concurrency
+  2. Data consistency
+  3. Cart merging
+  4. Product validation
+end note
+
+note bottom of Database #DATABASE_COLOR
+  Database:
+  1. Scalable
+  2. Redundant
+  3. Backup & Recovery
+end note
+
+@enduml

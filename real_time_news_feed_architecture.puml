@@ -1,0 +1,33 @@
+@startuml
+actor User
+
+package "Feed Producer" {
+  [Content Management System] as CMS
+  [Producer] as Producer
+}
+
+package "Message Queue" {
+  [Message Queue] as MQ
+}
+
+package "Backend Services" {
+  [Feed Service] as FeedService
+  [Cache] as Cache
+  [Database] as Database
+}
+
+package "Feed Consumer" {
+  [Consumer] as Consumer
+  User --> Consumer : "Get Feed"
+}
+
+CMS --> Producer : "Publish News"
+Producer --> MQ : "Push News Feed"
+MQ --> FeedService : "Deliver Feed"
+FeedService --> Cache : "Store Hot Feeds"
+FeedService --> Database : "Store Feeds"
+Consumer --> FeedService : "Request Latest Feeds"
+FeedService --> Cache : "Fetch Hot Feeds"
+FeedService --> Database : "Fetch Other Feeds"
+
+@enduml
