@@ -5,75 +5,93 @@
 allowmixing
 
 skinparam {
-    backgroundColor #FAFAFA
+    backgroundColor #F0F8FF
     handwritten false
-    defaultFontName Arial
+    defaultFontName "Roboto"
     defaultFontSize 12
-    roundcorner 20
-    shadowing true
+    roundcorner 15
+    shadowing false
+    
+    rectangleBackgroundColor #E6F3FF
+    rectangleBorderColor #4682B4
+    
+    queueBackgroundColor #FFE4B5
+    queueBorderColor #DEB887
+    
+    databaseBackgroundColor #E6E6FA
+    databaseBorderColor #9370DB
+    
+    actorBackgroundColor #F0FFF0
+    actorBorderColor #98FB98
+    
+    arrowColor #4682B4
     
     note {
-        fontName Helvetica
+        fontName "Roboto Condensed"
         fontSize 11
-        borderColor #A9DCDF
-        backgroundColor #E8F6F7
+        borderColor #20B2AA
+        backgroundColor #E0FFFF
     }
+    
+    titleFontName "Roboto Slab"
+    titleFontSize 20
+    titleFontColor #2F4F4F
 }
 
 title Centralized Logging System Design
 
-' 日志源
-RECTANGLE "Log Sources" as Sources #D0E9C6 {
+' Log Sources
+RECTANGLE "Log Sources" as Sources {
     [Application Logs]
     [System Logs]
     [Network Logs]
 }
 
-' 日志收集
+' Log Collection
 RECTANGLE "Log Shipper" as Shipper {
-    [File Beat]
+    [FileBeat]
     [Fluentd]
 }
 
-' 日志传输
+' Log Transport
 queue "Kafka" as Kafka
 
-' 日志处理
+' Log Processing
 RECTANGLE "Log Processor" as Processor {
     [Logstash]
     [Stream Processor]
 }
 
-' 日志存储
+' Log Storage
 database "Elasticsearch" as ES
 database "Cold Storage" as ColdStorage
 
-' 日志分析和搜索
+' Log Analysis and Search
 RECTANGLE "Kibana" as Kibana {
     [Search Interface]
     [Visualization]
 }
 
-' 日志管理
+' Log Management
 RECTANGLE "Log Management" as Management {
     [Retention Policy]
     [Access Control]
     [Encryption]
 }
 
-' 用户界面
+' User Interface
 actor "Admin/User" as User
 
-' 关系
-Sources -down-> Shipper : Collect
-Shipper -down-> Kafka : Ship
-Kafka -down-> Processor : Consume
-Processor -down-> ES : Index
-ES -down-> ColdStorage : Archive
-ES -right-> Kibana : Query
-Kibana -up-> User : Provide UI
-Management -up-> ES : Manage
-Management -up-> ColdStorage : Manage
+' Relationships
+Sources -[#4682B4]-> Shipper : Collect
+Shipper -[#4682B4]-> Kafka : Ship
+Kafka -[#4682B4]-> Processor : Consume
+Processor -[#4682B4]-> ES : Index
+ES -[#4682B4]-> ColdStorage : Archive
+ES -[#4682B4]right-> Kibana : Query
+Kibana -[#4682B4]up-> User : Provide UI
+Management -[#4682B4]up-> ES : Manage
+Management -[#4682B4]up-> ColdStorage : Manage
 
 note right of Shipper
   Lightweight agents deployed on each node
@@ -87,13 +105,13 @@ note right of Processor
   Handles log format standardization
 end note
 
-note right of ES
+note left of ES
   Provides fast full-text search
   Supports structured and unstructured data
   Enables real-time log analysis
 end note
 
-note right of Management
+note left of Management
   Implements log retention policies
   Manages access control and encryption
   Ensures compliance with data regulations
