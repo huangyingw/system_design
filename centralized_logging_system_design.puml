@@ -4,17 +4,26 @@
 
 allowmixing
 
-skinparam backgroundColor #FAFAFA
-skinparam handwritten false
-skinparam defaultFontName Arial
-skinparam defaultFontSize 12
-skinparam roundcorner 20
-skinparam shadowing true
+skinparam {
+    backgroundColor #FAFAFA
+    handwritten false
+    defaultFontName Arial
+    defaultFontSize 12
+    roundcorner 20
+    shadowing true
+    
+    note {
+        fontName Helvetica
+        fontSize 11
+        borderColor #A9DCDF
+        backgroundColor #E8F6F7
+    }
+}
 
 title Centralized Logging System Design
 
 ' 日志源
-RECTANGLE "Log Sources" as Sources {
+RECTANGLE "Log Sources" as Sources #D0E9C6 {
     [Application Logs]
     [System Logs]
     [Network Logs]
