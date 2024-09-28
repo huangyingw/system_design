@@ -1,0 +1,84 @@
+@startuml Distributed System Monitoring Architecture
+
+!define RECTANGLE class
+
+skinparam backgroundColor #FAFAFA
+skinparam handwritten false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam roundcorner 20
+skinparam shadowing true
+allowmixing
+
+title Distributed System Monitoring Architecture
+
+' 监控代理
+RECTANGLE "Monitoring Agent" as Agent {
+    [Metric Collector]
+    [Log Collector]
+    [Health Checker]
+}
+
+' 数据收集和传输
+queue "Message Queue" as MQ
+RECTANGLE "Data Ingestion Service" as Ingestion
+
+' 数据存储
+database "Time Series DB" as TSDB
+database "Log Storage" as LogDB
+
+' 数据处理和分析
+RECTANGLE "Data Processing" as Processing {
+    [Stream Processing]
+    [Batch Processing]
+}
+
+' 告警系统
+RECTANGLE "Alert Manager" as AlertManager {
+    [Rule Engine]
+    [Notification Service]
+}
+
+' 可视化
+RECTANGLE "Visualization" as Viz {
+    [Dashboard]
+    [Report Generator]
+}
+
+' API网关
+RECTANGLE "API Gateway" as Gateway
+
+' 用户界面
+actor "Admin/User" as User
+
+' 关系
+Agent -down-> MQ : Send data
+MQ -down-> Ingestion : Consume data
+Ingestion -down-> TSDB : Store metrics
+Ingestion -down-> LogDB : Store logs
+TSDB -right-> Processing
+LogDB -right-> Processing
+Processing -up-> AlertManager : Trigger alerts
+Processing -down-> Viz : Provide processed data
+AlertManager -up-> User : Send notifications
+Viz -up-> Gateway : Serve data
+Gateway -up-> User : Provide UI access
+
+note right of Agent
+  Deployed on each node/service
+  Collects metrics, logs, and health status
+end note
+
+note right of AlertManager
+  Configurable alert rules
+  Multiple notification channels
+  (Email, SMS, Slack, etc.)
+end note
+
+note right of Viz
+  Real-time and historical data visualization
+  Customizable dashboards
+  Automated reporting
+end note
+
+@enduml
