@@ -1,6 +1,6 @@
 @startuml dfs-load-balancer
 !define RECTANGLE rectangle
-skinparam backgroundColor #FAFAFA
+skinparam backgroundColor #E0E0E0
 skinparam handwritten false
 skinparam monochrome false
 skinparam defaultFontName Arial
@@ -30,13 +30,13 @@ RECTANGLE "Load Balancer Cluster" as LB #F5B041 {
     component "Traffic Shaping" as TrafficShaping
 }
 
-Client -[#BLUE]-> SSLTermination : <color:#BLUE>1. HTTPS Request</color>
-SSLTermination -[#GREEN]-> RequestRouter : <color:#GREEN>2. Decrypted Request</color>
-RequestRouter -[#YELLOW]-> HealthCheck : <color:#YELLOW>3. Check Server Health</color>
-HealthCheck -[#YELLOW]-> RequestRouter : <color:#YELLOW>4. Health Status</color>
-RequestRouter -[#GREEN]-> SessionPersistence : <color:#GREEN>5. Route Request</color>
-SessionPersistence -[#GREEN]-> TrafficShaping : <color:#GREEN>6. Apply Session Rules</color>
-TrafficShaping -[#BLUE]-> [: <color:#BLUE>7. Forward to Backend</color>
+Client -[#0066CC]-> SSLTermination : <color:#0066CC>1. HTTPS Request</color>
+SSLTermination -[#00A86B]-> RequestRouter : <color:#00A86B>2. Decrypted Request</color>
+RequestRouter -[#8B4513]-> HealthCheck : <color:#8B4513>3. Check Server Health</color>
+HealthCheck -[#8B4513]-> RequestRouter : <color:#8B4513>4. Health Status</color>
+RequestRouter -[#4B0082]-> SessionPersistence : <color:#4B0082>5. Route Request</color>
+SessionPersistence -[#00A86B]-> TrafficShaping : <color>#00A86B>6. Apply Session Rules</color>
+TrafficShaping -[#0066CC]-> [Backend] : <color:#0066CC>7. Forward to Backend</color>
 
 note bottom of HealthCheck : Continuously monitors backend server health
 note right of RequestRouter : Distributes requests based on various algorithms
