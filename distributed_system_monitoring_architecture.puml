@@ -24,13 +24,15 @@ queue "Message Queue" as MQ
 RECTANGLE "Data Ingestion Service" as Ingestion
 
 ' 数据存储
-database "Time Series DB" as TSDB
-database "Log Storage" as LogDB
+database "Time Series DB\n(Metrics)" as TSDB #lightblue
+database "Log Storage\n(Event Logs)" as LogDB #lightgreen
 
 ' 数据处理和分析
 RECTANGLE "Data Processing" as Processing {
     [Stream Processing]
     [Batch Processing]
+    [Log Analyzer]
+    [Metric Analyzer]
 }
 
 ' 告警系统
@@ -56,13 +58,29 @@ Agent -down-> MQ : Send data
 MQ -down-> Ingestion : Consume data
 Ingestion -down-> TSDB : Store metrics
 Ingestion -down-> LogDB : Store logs
-TSDB -right-> Processing
-LogDB -right-> Processing
+TSDB -right-> Processing : Query metrics
+LogDB -right-> Processing : Query logs
 Processing -up-> AlertManager : Trigger alerts
 Processing -down-> Viz : Provide processed data
-AlertManager -up-> User : Send notifications
-Viz -up-> Gateway : Serve data
-Gateway -up-> User : Provide UI access
+
+' 数据存储之间的关系
+LogDB ..> TSDB : Extract metrics
+
+note right of TSDB
+  Stores time-based numerical data
+  E.g., CPU usage, memory usage, request count
+end note
+
+note right of LogDB
+  Stores detailed event logs
+  E.g., error messages, access logs, system events
+end note
+
+note bottom of LogDB
+  Some log data can be 
+  transformed into metrics
+  and stored in Time Series DB
+end note
 
 note right of Agent
   Deployed on each node/service
