@@ -38,29 +38,29 @@ package "Feed Consumer" {
 }
 
 ' API Gateway manages incoming requests
-User --> APIGW : "Request Feed / Publish News"
-APIGW --> AuthService : "Authenticate & Authorize"
-APIGW --> Producer : "Publish News (Authorized)"
-Producer --> MQ : "Push News Feed"
+User --> APIGW : "1. Request Feed / Publish News"
+APIGW --> AuthService : "2. Authenticate & Authorize"
+APIGW --> Producer : "3. Publish News (Authorized)"
+Producer --> MQ : "4. Push News Feed"
 
 ' Backend services manage feed generation, personalization, and storage
-MQ --> FeedService : "Deliver Feed"
-FeedService --> RecEngine : "Generate Personalized Feed"
-FeedService --> PrefService : "Fetch User Preferences"
-FeedService --> Logging : "Log Feed Generation"
-FeedService --> Cache : "Store Hot Feeds"
-FeedService --> Database : "Store All Feeds"
+MQ --> FeedService : "5. Deliver Feed"
+FeedService --> RecEngine : "6. Generate Personalized Feed"
+FeedService --> PrefService : "7. Fetch User Preferences"
+FeedService --> Logging : "8. Log Feed Generation"
+FeedService --> Cache : "9. Store Hot Feeds"
+FeedService --> Database : "10. Store All Feeds"
 
 ' Consumer fetches or receives feeds
-Consumer --> APIGW : "Request Latest Feeds (Authenticated)"
-APIGW --> FeedService : "Request Feeds"
-FeedService --> Cache : "Fetch Hot Feeds"
-FeedService --> Database : "Fetch Older Feeds"
+Consumer --> APIGW : "11. Request Latest Feeds (Authenticated)"
+APIGW --> FeedService : "12. Request Feeds"
+FeedService --> Cache : "13. Fetch Hot Feeds"
+FeedService --> Database : "14. Fetch Older Feeds"
 
 ' Push and real-time updates to consumers
-FeedService --> WSService : "Push Feed to WebSocket"
-FeedService --> PushService : "Send Push Notification"
-WSService --> Consumer : "Receive Real-time Feed"
-PushService --> Consumer : "Receive Feed Notification"
+FeedService --> WSService : "15. Push Feed to WebSocket"
+FeedService --> PushService : "16. Send Push Notification"
+WSService --> Consumer : "17. Receive Real-time Feed"
+PushService --> Consumer : "18. Receive Feed Notification"
 
 @enduml
