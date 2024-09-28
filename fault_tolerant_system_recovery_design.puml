@@ -1,0 +1,121 @@
+@startuml Fault Tolerant System Recovery Design
+
+!define RECTANGLE class
+allowmixing
+
+skinparam {
+    backgroundColor #F0F0F0
+    handwritten false
+    defaultFontName Arial
+    defaultFontSize 12
+    roundcorner 20
+    shadowing false
+    ArrowColor #2C3E50
+    ActorBorderColor #2C3E50
+    LifeLineBorderColor #2C3E50
+    LifeLineBackgroundColor #A9DCDF
+    
+    ParticipantBorderColor #2C3E50
+    ParticipantBackgroundColor #A9DCDF
+    ParticipantFontName Arial
+    ParticipantFontSize 12
+    ParticipantFontColor #2C3E50
+    
+    ActorBackgroundColor #A9DCDF
+    ActorFontColor #2C3E50
+    ActorFontSize 12
+    ActorFontName Arial
+    
+    RectangleBackgroundColor #FFFFFF
+    
+    NoteFontName Arial
+    NoteFontSize 11
+    NoteFontColor #333333
+    NoteBackgroundColor #FFFDE7
+    NoteBorderColor #FFC107
+}
+
+title Fault Tolerant System Recovery Design
+
+' 主要系统组件
+RECTANGLE "Primary System" as Primary #E1F5FE {
+    [Service A]
+    [Service B]
+    [Service C]
+}
+
+' 备份系统
+RECTANGLE "Backup System" as Backup #E8F5E9 {
+    [Service A']
+    [Service B']
+    [Service C']
+}
+
+' 健康检查
+RECTANGLE "Health Checker" as HealthChecker #FFF3E0
+
+' 故障检测
+RECTANGLE "Fault Detector" as FaultDetector #FFEBEE
+
+' 自动故障转移
+RECTANGLE "Failover Manager" as FailoverManager #F3E5F5
+
+' 数据复制
+RECTANGLE "Data Replication" as DataReplication #E0F2F1
+
+' 负载均衡器
+RECTANGLE "Load Balancer" as LoadBalancer #FFF8E1
+
+' 备份存储
+database "Backup Storage" as BackupStorage #FAFAFA
+
+' 恢复管理器
+RECTANGLE "Recovery Manager" as RecoveryManager #E8EAF6
+
+' 监控和告警
+RECTANGLE "Monitoring & Alerting" as Monitoring #EFEBE9
+
+' 用户界面
+actor "Admin" as Admin
+
+' 关系
+Primary -[#4CAF50]right-> Backup : <color:#4CAF50>1. Replicate</color>
+Primary -[#FF5722]down-> HealthChecker : <color:#FF5722>2. Report status</color>
+Backup -[#FF5722]down-> HealthChecker : <color:#FF5722>3. Report status</color>
+HealthChecker -right-> FaultDetector : Provide health data
+FaultDetector -right-> FailoverManager : Trigger failover
+FailoverManager -up-> LoadBalancer : Update routing
+Primary -down-> DataReplication : Replicate data
+DataReplication -right-> Backup : Sync data
+Primary -down-> BackupStorage : Periodic backup
+RecoveryManager -up-> Primary : Restore data
+RecoveryManager -up-> Backup : Restore data
+Monitoring -up-> Admin : Send alerts
+Admin -down-> RecoveryManager : Manage recovery
+
+note bottom of HealthChecker
+  • Regularly checks system components
+  • Monitors resource usage and performance
+end note
+
+note bottom of FaultDetector
+  • Analyzes health check data
+  • Identifies potential system failures
+end note
+
+note bottom of FailoverManager
+  • Manages automatic failover process
+  • Ensures minimal downtime during failures
+end note
+
+note bottom of DataReplication
+  • Ensures data consistency between primary and backup
+  • Supports both synchronous and asynchronous replication
+end note
+
+note bottom of RecoveryManager
+  • Coordinates system recovery process
+  • Manages data restoration from backups
+end note
+
+@enduml
