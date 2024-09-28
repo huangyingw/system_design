@@ -1,0 +1,49 @@
+1. 系统架构
+    blockchain_system_design.puml
+    container_orchestration_system_design.puml
+    distributed_cache_system_design.puml
+    message_queue_system_design.puml
+    distributed_file_system/system_architecture.puml
+    big_file_upload_system/big_file_upload_system_architecture.puml
+    google_docs_architecture/google_docs_architecture.puml
+    itutorgroup_h2h_platform_architecture.puml
+    distributed_file_system/dfs-overview.puml
+2. 数据库设计
+    distributed_file_system/dfs_database_schema.puml
+    flight_booking/flight_booking_system_database.puml
+    big_file_upload_system/database_schema.puml
+    twitter/twitter_database_schema.puml
+3. 数据流
+    architecture_diagrams/kafka_data_flow_detailed_process.puml
+    architecture_diagrams/kafka_producer_consumer_detailed_structure.puml
+缓存
+    architecture_diagrams/cache_consistency_strategies.puml
+消息队列
+    architecture_diagrams/kafka_architecture_overview.puml
+    architecture_diagrams/kafka_cluster_architecture_overview.puml
+    architecture_diagrams/kafka_monitoring_management_tools.puml
+6. 文件传输
+    telegram/uml_diagrams/Telegram_File_Transfer_And_Storage.puml
+实时协作
+    google_docs_architecture/real_time_collaborative_editing_flow.puml
+IoT
+    interview_questions/iot_log_alert_system_architecture.puml
+推荐系统
+    twitter/twitter_recommendation_system.puml
+视频处理
+    YouTube/YouTube_Video_Upload_and_Processing_Schema.puml
+    YouTube/YouTube_Video_Playback_and_Interaction_Schema.puml
+机器学习
+    resnet_model.puml
+分布式系统理论
+    architecture_diagrams/cap_theory_diagram.puml
+13. 数据存储
+    architecture_diagrams/data_storage_options.puml
+14. 消息优先级
+    telegram/uml_diagrams/Telegram_Message_Prioritization_Architecture.puml
+15. 持久化存储
+    architecture_diagrams/kubernetes_persistent_storage_process.puml
+16. 搜索引擎
+    imvu_system_architecture/imvu_elasticsearch_architecture_diagram.puml
+数据分片
+    architecture_diagrams/database_sharding_analysis.puml
