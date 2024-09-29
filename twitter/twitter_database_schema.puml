@@ -1,30 +1,30 @@
 @startuml
 
-skinparam backgroundColor #FAFAFA
-skinparam handwritten false
-skinparam shadowing false
-
-skinparam class {
-  BackgroundColor #FFFFFF
-  BorderColor #333333
-  ArrowColor #333333
-  FontName "Arial"
-  FontSize 20  ' 增加默认字体大小
-  AttributeFontSize 20  ' 设置属性字体大小
-}
-
-skinparam title {
-  FontSize 20
-  FontStyle bold
-}
-
-skinparam legend {
-  FontSize 20
-}
-
 !define MAIN_ENTITY #E2F0D9
 !define SECONDARY_ENTITY #FFF2CC
 !define ASSOCIATION_ENTITY #DEEBF7
+
+' Skin parameters
+skinparam {
+  backgroundColor #F0F0F0
+  handwritten false
+  shadowing false
+  class {
+    BackgroundColor #FFFFFF
+    BorderColor #333333
+    ArrowColor #333333
+    FontName Arial
+    FontSize 16
+    AttributeFontSize 14
+  }
+  title {
+    FontSize 20
+    FontStyle bold
+  }
+  legend {
+    FontSize 14
+  }
+}
 
 title Twitter Database Schema - Optimized Layout
 
@@ -32,37 +32,31 @@ legend right
   |<#E2F0D9>| Main Entity |
   |<#FFF2CC>| Secondary Entity |
   |<#DEEBF7>| Association Entity |
-  |= | One-to-Many Relationship |
-  |== | Many-to-Many Relationship |
+  |= | One-to-Many |
+  |== | Many-to-Many |
   |..| Weak Relationship |
 endlegend
 
 together {
-  rectangle "Core Entities" {
+  rectangle "Core" {
     entity "User" as user MAIN_ENTITY {
-      +user_id : integer <<PK>>
+      +user_id : int <<PK>>
       --
       username : varchar(15)
-      name : varchar(50)
       email : varchar(255)
       password : varchar(255)
       bio : varchar(160)
-      location : varchar(30)
-      website : varchar(100)
       join_date : datetime
       ..
       Indexes: username, email
     }
     
     entity "Tweet" as tweet MAIN_ENTITY {
-      +tweet_id : integer <<PK>>
+      +tweet_id : int <<PK>>
       --
-      user_id : integer <<FK>>
+      user_id : int <<FK>>
       text : varchar(280)
       created_at : datetime
-      updated_at : datetime
-      retweet_count : integer
-      like_count : integer
       ..
       NoSQL: Yes
       Shard Key: tweet_id
@@ -72,9 +66,9 @@ together {
 }
 
 together {
-  rectangle "User-Related Entities" {
+  rectangle "User-Related" {
     entity "UserStatus" as userstatus SECONDARY_ENTITY {
-      +user_id : integer <<PK, FK>>
+      +user_id : int <<PK, FK>>
       --
       last_login : datetime
       is_online : boolean
@@ -83,10 +77,10 @@ together {
     }
 
     entity "Followers" as followers SECONDARY_ENTITY {
-      +follow_id : integer <<PK>>
+      +follow_id : int <<PK>>
       --
-      follower_id : integer <<FK>>
-      followed_id : integer <<FK>>
+      follower_id : int <<FK>>
+      followed_id : int <<FK>>
       follow_date : datetime
       ..
       NoSQL: Yes
@@ -97,12 +91,12 @@ together {
 }
 
 together {
-  rectangle "Tweet-Related Entities" {
+  rectangle "Tweet-Related" {
     entity "Comments" as comments SECONDARY_ENTITY {
-      +comment_id : integer <<PK>>
+      +comment_id : int <<PK>>
       --
-      user_id : integer <<FK>>
-      tweet_id : integer <<FK>>
+      user_id : int <<FK>>
+      tweet_id : int <<FK>>
       text : varchar(280)
       created_at : datetime
       ..
@@ -112,10 +106,10 @@ together {
     }
 
     entity "Likes" as likes ASSOCIATION_ENTITY {
-      +like_id : integer <<PK>>
+      +like_id : int <<PK>>
       --
-      user_id : integer <<FK>>
-      tweet_id : integer <<FK>>
+      user_id : int <<FK>>
+      tweet_id : int <<FK>>
       like_date : datetime
       ..
       NoSQL: Yes
@@ -124,10 +118,10 @@ together {
     }
 
     entity "Retweets" as retweets ASSOCIATION_ENTITY {
-      +retweet_id : integer <<PK>>
+      +retweet_id : int <<PK>>
       --
-      user_id : integer <<FK>>
-      tweet_id : integer <<FK>>
+      user_id : int <<FK>>
+      tweet_id : int <<FK>>
       retweet_date : datetime
       ..
       NoSQL: Yes
@@ -135,11 +129,11 @@ together {
       Indexes: user_id
     }
 
-    entity "Media Files" as media_files SECONDARY_ENTITY {
-      +media_id : integer <<PK>>
+    entity "MediaFiles" as media_files SECONDARY_ENTITY {
+      +media_id : int <<PK>>
       --
-      user_id : integer <<FK>>
-      tweet_id : integer <<FK>>
+      user_id : int <<FK>>
+      tweet_id : int <<FK>>
       file_path : varchar(255)
       file_type : varchar(50)
       created_at : datetime
@@ -152,28 +146,28 @@ together {
 }
 
 together {
-  rectangle "Hashtag and Timeline" {
+  rectangle "Hashtag & Timeline" {
     entity "Hashtags" as hashtags SECONDARY_ENTITY {
-      +hashtag_id : integer <<PK>>
+      +hashtag_id : int <<PK>>
       --
       hashtag_text : varchar(140)
       ..
       Indexes: hashtag_text
     }
 
-    entity "Tweet_Hashtags" as tweet_hashtags ASSOCIATION_ENTITY {
-      tweet_id : integer <<FK, PK>>
-      hashtag_id : integer <<FK, PK>>
+    entity "TweetHashtags" as tweet_hashtags ASSOCIATION_ENTITY {
+      tweet_id : int <<FK, PK>>
+      hashtag_id : int <<FK, PK>>
       ..
       NoSQL: Yes
       Shard Key: (tweet_id, hashtag_id)
     }
 
     entity "Timeline" as timeline SECONDARY_ENTITY {
-      +timeline_id : integer <<PK>>
+      +timeline_id : int <<PK>>
       --
-      user_id : integer <<FK>>
-      tweet_id : integer <<FK>>
+      user_id : int <<FK>>
+      tweet_id : int <<FK>>
       timestamp : datetime
       ..
       NoSQL: Yes
@@ -186,10 +180,10 @@ together {
 together {
   rectangle "Communication" {
     entity "Messages" as messages SECONDARY_ENTITY {
-      +message_id : integer <<PK>>
+      +message_id : int <<PK>>
       --
-      sender_id : integer <<FK>>
-      receiver_id : integer <<FK>>
+      sender_id : int <<FK>>
+      receiver_id : int <<FK>>
       content : text
       created_at : datetime
       ..
@@ -199,9 +193,9 @@ together {
     }
 
     entity "Notifications" as notifications SECONDARY_ENTITY {
-      +notification_id : integer <<PK>>
+      +notification_id : int <<PK>>
       --
-      user_id : integer <<FK>>
+      user_id : int <<FK>>
       type : varchar(50)
       message : text
       created_at : datetime
@@ -214,11 +208,11 @@ together {
 }
 
 together {
-  rectangle "Logging and Analytics" {
-    entity "Activity Logs" as activity_logs SECONDARY_ENTITY {
-      +log_id : integer <<PK>>
+  rectangle "Logging & Analytics" {
+    entity "ActivityLogs" as activity_logs SECONDARY_ENTITY {
+      +log_id : int <<PK>>
       --
-      user_id : integer <<FK>>
+      user_id : int <<FK>>
       action : varchar(255)
       created_at : datetime
       ..
@@ -228,10 +222,10 @@ together {
     }
 
     entity "Reports" as reports SECONDARY_ENTITY {
-      +report_id : integer <<PK>>
+      +report_id : int <<PK>>
       --
-      reporter_id : integer <<FK>>
-      reported_id : integer <<FK>>
+      reporter_id : int <<FK>>
+      reported_id : int <<FK>>
       reason : text
       created_at : datetime
       ..
@@ -241,10 +235,10 @@ together {
     }
 
     entity "TrendingTopics" as trending_topics SECONDARY_ENTITY {
-      +topic_id : integer <<PK>>
+      +topic_id : int <<PK>>
       --
       topic : varchar(140)
-      tweet_count : integer
+      tweet_count : int
       last_updated : datetime
       ..
       NoSQL: Yes
@@ -277,5 +271,19 @@ tweet "1" -- "*" media_files : includes >
 tweet "*" -- "*" timeline : appears in >
 
 hashtags "*" -- "*" trending_topics : may be >
+
+note as N1
+  Performance bottlenecks:
+  1. User timeline generation
+  2. Tweet search and indexing
+  3. Hashtag trending calculation
+endnote
+
+note as N2
+  Optimization suggestions:
+  1. Use caching for user timelines
+  2. Implement sharding for tweets
+  3. Use distributed processing for trending topics
+endnote
 
 @enduml
