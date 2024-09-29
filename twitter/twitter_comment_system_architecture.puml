@@ -1,0 +1,79 @@
+@startuml
+!define RECTANGLE class
+skinparam backgroundColor #F3F3F3
+
+RECTANGLE UserService {
+    :Authenticate Users;
+    :Manage User Info;
+}
+
+RECTANGLE TweetService {
+    :Manage Tweets;
+}
+
+RECTANGLE CommentService {
+    :CRUD Comments;
+    :Link to Tweets;
+}
+
+RECTANGLE NotificationService {
+    :Send Notifications;
+    :Async Processing;
+}
+
+RECTANGLE CacheService <<Redis>> {
+    :Cache Hot Comments;
+    :Cache Tweets;
+}
+
+RECTANGLE RateLimiter <<Redis>> {
+    :Rate Limit User Requests;
+}
+
+RECTANGLE SQLDatabase <<PostgreSQL>> {
+    :Store Users;
+    :Store Tweets;
+    :Store Comments;
+}
+
+RECTANGLE NoSQLDatabase <<Cassandra>> {
+    :High Concurrency Comments;
+}
+
+RECTANGLE SearchService <<Elasticsearch>> {
+    :Full-Text Search;
+}
+
+RECTANGLE APIGateway {
+    :Handle Requests;
+    :Route to Services;
+    :Rate Limiting;
+}
+
+RECTANGLE LoadBalancer {
+    :Distribute Traffic;
+}
+
+RECTANGLE MonitoringService <<Prometheus/ELK>> {
+    :Track Performance;
+    :Log Errors;
+}
+
+APIGateway --> LoadBalancer
+LoadBalancer --> CommentService
+LoadBalancer --> UserService
+LoadBalancer --> TweetService
+CommentService --> SQLDatabase
+CommentService --> NoSQLDatabase
+CommentService --> CacheService
+CommentService --> NotificationService
+UserService --> SQLDatabase
+TweetService --> SQLDatabase
+NotificationService --> SQLDatabase
+NotificationService --> NoSQLDatabase
+CacheService --> RateLimiter
+SearchService --> CommentService
+APIGateway --> RateLimiter
+MonitoringService --> CommentService
+MonitoringService --> UserService
+@enduml
