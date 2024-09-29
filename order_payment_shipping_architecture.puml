@@ -1,0 +1,28 @@
+@startuml Order_Payment_Shipping
+!theme toy
+skinparam backgroundColor E6E6FA
+skinparam shadowing false
+skinparam RoundCorner 10
+skinparam ArrowColor 454645
+skinparam DefaultFontName Arial
+skinparam DefaultFontSize 12
+
+component "Order Service" as OrderService #FFF0F5
+component "Payment Gateway" as PaymentGateway #FFE4B5
+component "Shipping Service" as ShippingService #FFE4B5
+component "Email Service" as EmailService #FFE4B5
+
+' Relationships
+OrderService -[#FF69B4]right-> PaymentGateway : "Process payment"
+OrderService -[#FF69B4]right-> ShippingService : "Arrange shipping"
+OrderService -[#FF69B4]down-> EmailService : "Send confirmation"
+
+' Notes
+note right of OrderService
+  Order Service:
+  - Handle orders
+  - Process payments
+  - Arrange shipments
+  - Send order confirmation
+end note
+@enduml

@@ -1,0 +1,33 @@
+@startuml Cart_Inventory_Architecture
+!theme toy
+skinparam backgroundColor E6E6FA
+skinparam shadowing false
+skinparam RoundCorner 10
+skinparam ArrowColor 454645
+skinparam DefaultFontName Arial
+skinparam DefaultFontSize 12
+
+component "Cart Service" as CartService #FFF0F5
+component "Inventory Service" as InventoryService #FFF0F5
+database "Database" as Database #B0E0E6
+
+' Relationships
+CartService -[#228B22]right-> InventoryService : "Check stock"
+CartService -[#228B22]down-> Database : "Update cart"
+
+' Notes
+note bottom of CartService
+  Cart Service:
+  - High concurrency
+  - Data consistency
+  - Cart merging
+  - Product validation
+end note
+
+note bottom of Database
+  Database:
+  - Scalable
+  - Redundant
+  - Backup & Recovery
+end note
+@enduml

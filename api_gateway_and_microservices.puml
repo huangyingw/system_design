@@ -1,0 +1,41 @@
+@startuml API_Gateway_Microservices
+!theme toy
+skinparam backgroundColor E6E6FA
+skinparam shadowing false
+skinparam RoundCorner 10
+skinparam ArrowColor 454645
+skinparam DefaultFontName Arial
+skinparam DefaultFontSize 12
+
+component "API Gateway" as APIGateway #98FB98
+rectangle "Microservices" as Microservices #FFF0F5 {
+    component "User Service" as UserService
+    component "Product Service" as ProductService
+    component "Cart Service" as CartService
+    component "Order Service" as OrderService
+    component "Inventory Service" as InventoryService
+    component "Search Service" as SearchService
+    component "Recommendation Service" as RecommendationService
+}
+database "Database" as Database #B0E0E6
+
+' Relationships
+APIGateway -[#4169E1]down-> UserService : "1. Authenticate user"
+APIGateway -[#4169E1]down-> ProductService : "2. Browse products"
+APIGateway -[#4169E1]down-> SearchService : "3. Search products"
+APIGateway -[#4169E1]down-> CartService : "5. Add to cart"
+APIGateway -[#4169E1]down-> OrderService : "7. Place order"
+
+Microservices -[#228B22]down-> Database : "CRUD operations"
+
+' Notes
+note right of APIGateway
+  API Gateway:
+  - Request routing
+  - Load balancing
+  - Auth & authorization
+  - Rate limiting
+  - Response caching
+end note
+
+@enduml
