@@ -1,0 +1,70 @@
+@startuml API Gateway Design
+
+allowmixing
+
+skinparam {
+    backgroundColor #E0E0E0
+    handwritten false
+    defaultFontName Arial
+    defaultFontSize 12
+    roundcorner 10
+    shadowing false
+    ArrowColor #2C3E50
+    ComponentBorderColor #2C3E50
+    ComponentBackgroundColor #FFFFFF
+}
+
+title API Gateway Design
+
+component "Client Applications" as Client #E1F5FE
+
+rectangle "API Gateway" as Gateway #FFF3E0 {
+    component "Request Routing" as Routing
+    component "Authentication" as Auth
+    component "Rate Limiting" as RateLimit
+    component "Caching" as Cache
+    component "Load Balancing" as LoadBalance
+    component "Protocol Translation" as Protocol
+    component "Logging & Monitoring" as Logging
+}
+
+rectangle "Microservices" as Services #E8F5E9 {
+    component "Service A" as ServiceA
+    component "Service B" as ServiceB
+    component "Service C" as ServiceC
+}
+
+cloud "External Services" as External #FFEBEE {
+    component "Auth Service" as AuthService
+    database "Cache" as CacheDB
+    component "Monitoring Service" as MonitorService
+}
+
+Client -down-> Gateway : 1. API Request
+Gateway -down-> Services : 2. Route Request
+Gateway -right-> External : 3. Utilize External Services
+Services -up-> Gateway : 4. Service Response
+Gateway -up-> Client : 5. API Response
+
+note right of Gateway
+  Performance bottlenecks:
+  1. Authentication: Consider caching tokens
+  2. Rate Limiting: Implement distributed rate limiting
+  3. Caching: Use in-memory cache for frequently accessed data
+end note
+
+note bottom of Services
+  Scalability:
+  1. Use auto-scaling for microservices
+  2. Implement service discovery
+  3. Consider using event-driven architecture
+end note
+
+note left of External
+  External dependencies:
+  1. Implement circuit breakers
+  2. Use fallback mechanisms
+  3. Monitor SLAs of external services
+end note
+
+@enduml
