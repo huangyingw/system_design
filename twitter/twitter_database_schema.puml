@@ -278,14 +278,14 @@ hashtags "*" -- "*" trending_topics : may be >
 
 note as N1 #lightblue
   <size:18>Performance bottlenecks:</size>
-  <size:16>1. User timeline generation
+  <size:18>1. User timeline generation
   2. Tweet search and indexing
   3. Hashtag trending calculation</size>
 endnote
 
 note as N2 #lightgreen
   <size:18>Optimization suggestions:</size>
-  <size:16>1. Use caching for user timelines
+  <size:18>1. Use caching for user timelines
   2. Implement sharding for tweets
   3. Use distributed processing for trending topics</size>
 endnote
