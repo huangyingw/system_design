@@ -9,6 +9,7 @@
     减少空白，避免线条和文字重叠、交叉
     使用 allowmixing 指令
     不要使用PlantUML主题
+    遵循 'component "描述" as 标识符 #颜色代码' 的格式定义组件，确保颜色代码不带引号
 注释说明：
     使用note添加注释
     缓存组件标注key: value配对
