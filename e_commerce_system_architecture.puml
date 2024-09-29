@@ -3,71 +3,82 @@
 allowmixing
 
 ' Color definitions
-!define BACKGROUND_COLOR #E6E6FA
-!define MICROSERVICES_COLOR #FFF0F5
-!define API_GATEWAY_COLOR #98FB98
-!define DATABASE_COLOR #B0E0E6
-!define EXTERNAL_SERVICES_COLOR #FFE4B5
+!define BACKGROUND_COLOR E6E6FA
+!define MICROSERVICES_COLOR FFF0F5
+!define API_GATEWAY_COLOR 98FB98
+!define DATABASE_COLOR B0E0E6
+!define EXTERNAL_SERVICES_COLOR FFE4B5
 
-skinparam backgroundColor #E6E6FA
+skinparam backgroundColor BACKGROUND_COLOR
 skinparam shadowing false
 skinparam RoundCorner 10
-skinparam ArrowColor #454645
+skinparam ArrowColor 454645
 skinparam DefaultFontName Arial
 skinparam DefaultFontSize 12
 
 ' Components
-rectangle "API Gateway" as APIGateway #98FB98
+component "API Gateway" as APIGateway #API_GATEWAY_COLOR
 rectangle "Microservices" as Microservices #MICROSERVICES_COLOR {
-    rectangle "User Service" as UserService
-    rectangle "Product Service" as ProductService
-    rectangle "Cart Service" as CartService
-    rectangle "Order Service" as OrderService
-    rectangle "Inventory Service" as InventoryService
-    rectangle "Search Service" as SearchService
-    rectangle "Recommendation Service" as RecommendationService
+    component "User Service" as UserService
+    component "Product Service" as ProductService
+    component "Cart Service" as CartService
+    component "Order Service" as OrderService
+    component "Inventory Service" as InventoryService
+    component "Search Service" as SearchService
+    component "Recommendation Service" as RecommendationService
 }
 database "Database" as Database #DATABASE_COLOR
 rectangle "External Services" as ExternalServices #EXTERNAL_SERVICES_COLOR {
-    rectangle "Payment Gateway" as PaymentGateway
-    rectangle "Shipping Service" as ShippingService
-    rectangle "Email Service" as EmailService
+    component "Payment Gateway" as PaymentGateway
+    component "Shipping Service" as ShippingService
+    component "Email Service" as EmailService
 }
-rectangle "Monitoring" as Monitoring
-rectangle "Search Engine" as SearchEngine
-rectangle "Data Analysis" as DataAnalysis
+component "Monitoring" as Monitoring
+component "Search Engine" as SearchEngine
+component "Data Analysis" as DataAnalysis
 
 ' Relationships
-APIGateway -[#4169E1]down-> Microservices : Route requests
-Microservices -[#228B22]down-> Database : CRUD operations
-Microservices -[#CD853F]up-> Monitoring : Log/Metrics
-SearchService -[#FFD700]right-> SearchEngine : Index/Query
-RecommendationService -[#A9A9A9]left-> DataAnalysis : Process Data
-OrderService -[#FF69B4]right-> ExternalServices : Integrate
+APIGateway -[#4169E1]down-> UserService : "1. Authenticate user"
+APIGateway -[#4169E1]down-> ProductService : "2. Browse products"
+APIGateway -[#4169E1]down-> SearchService : "3. Search products"
+SearchService -[#FFD700]right-> SearchEngine : "4. Index/Query"
+APIGateway -[#4169E1]down-> CartService : "5. Add to cart"
+CartService -[#228B22]right-> InventoryService : "6. Check stock"
+APIGateway -[#4169E1]down-> OrderService : "7. Place order"
+OrderService -[#FF69B4]right-> PaymentGateway : "8. Process payment"
+OrderService -[#FF69B4]right-> ShippingService : "9. Arrange shipping"
+OrderService -[#FF69B4]down-> EmailService : "10. Send confirmation"
+RecommendationService -[#A9A9A9]left-> DataAnalysis : "11. Generate recommendations"
+
+Microservices -[#228B22]down-> Database : "CRUD operations"
+Microservices -[#CD853F]up-> Monitoring : "Log/Metrics"
 
 ' Notes
-note right of APIGateway #API_GATEWAY_COLOR
+note right of APIGateway
   API Gateway:
-  1. Request routing
-  2. Load balancing
-  3. Auth & authorization
-  4. Rate limiting
-  5. Response caching
+  - Request routing
+  - Load balancing
+  - Auth & authorization
+  - Rate limiting
+  - Response caching
 end note
 
-note bottom of CartService #MICROSERVICES_COLOR
+note bottom of CartService
   Cart Service:
-  1. High concurrency
-  2. Data consistency
-  3. Cart merging
-  4. Product validation
+  - High concurrency
+  - Data consistency
+  - Cart merging
+  - Product validation
 end note
 
-note bottom of Database #DATABASE_COLOR
+note bottom of Database
   Database:
-  1. Scalable
-  2. Redundant
-  3. Backup & Recovery
+  - Scalable
+  - Redundant
+  - Backup & Recovery
 end note
+
+note "Performance bottleneck:\nOptimize database queries\nand implement caching" as PerformanceNote
+Database .. PerformanceNote
 
 @enduml
