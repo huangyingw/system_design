@@ -1,42 +1,41 @@
-@startuml
-!define RECTANGLE class
+@startuml Real-time News Feed Architecture
 
-skinparam backgroundColor #EEEBDC
+!define RECTANGLE class
+skinparam backgroundColor #F0F0F0
 skinparam handwritten false
 skinparam defaultFontName Arial
-skinparam defaultFontSize 14
+skinparam defaultFontSize 12
 skinparam arrowColor #033277
-skinparam arrowThickness 2
-skinparam packageBackgroundColor #F0F8FF
+skinparam arrowThickness 1.5
+skinparam packageBackgroundColor #E0E0E0
 
 allowmixing
 
 actor "User" as user
 
 rectangle "Client" {
-    component "Consumer" as consumer
+    component "Consumer App" as consumer
     component "Push Notification\nService" as push
     component "WebSocket Service" as websocket
 }
 
-rectangle "API Gateway" as api_gateway #LightGreen
-
-rectangle "Auth Service" as auth #Yellow
-
-rectangle "Feed Producer" as producer #Orange
-
-queue "Message Queue" as mq #Pink
-
-rectangle "Backend Services" {
-    component "Feed Service" as feed
-    component "Recommendation\nEngine" as rec
-    component "User Preferences\nService" as pref
-    component "Logging &\nMonitoring" as log
-}
-
-database "Storage" {
-    component "Distributed Cache" as cache
-    component "NoSQL Database" as db
+rectangle "Server" {
+    component "API Gateway" as api_gateway
+    component "Auth Service" as auth
+    component "Feed Producer" as producer
+    queue "Message Queue" as mq
+    
+    rectangle "Backend Services" {
+        component "Feed Service" as feed
+        component "Recommendation\nEngine" as rec
+        component "User Preferences\nService" as pref
+        component "Logging &\nMonitoring" as log
+    }
+    
+    database "Storage" {
+        component "Distributed Cache" as cache
+        component "NoSQL Database" as db
+    }
 }
 
 user -[#red]-> consumer : 1. Request/Publish
@@ -70,13 +69,21 @@ end note
 
 note bottom of mq
   Potential bottleneck
-  Consider scaling
+  Consider horizontal scaling
+  or using a distributed queue system
 end note
 
 note right of rec
   CPU intensive
-  Consider caching
-  recommendations
+  Consider caching recommendations
+  and using machine learning models
+end note
+
+note bottom of Server
+  Scalability:
+  - Use load balancers for API Gateway and services
+  - Implement microservices architecture
+  - Use containerization (e.g., Docker) for easy scaling
 end note
 
 @enduml
