@@ -62,6 +62,10 @@ rectangle "Microservices" as Microservices {
         [Manual Review Queue]
         [Spam Detection]
     }
+    rectangle "Analytics Service" as AnalyticsService {
+        [User Analytics]
+        [Engagement Metrics]
+    }
 }
 
 ' Data Storage
@@ -72,6 +76,7 @@ database "Data Storage" as DataStorage {
     }
     database "User Data" as UserDB
     database "Tweet Data" as TweetDB
+    database "Analytics Data" as AnalyticsDB
 }
 
 ' Cache Layer
@@ -124,6 +129,7 @@ CommentService -[#F39C12]right-> SearchEngine
 ModerationService -[#1ABC9C]right-> MachineLearning
 NotificationService -[#D35400]-> RealTimeProcessing
 Microservices -[#7F8C8D]up-> Monitoring
+AnalyticsService -[#2980B9]down-> DataStorage
 
 ' Notes and Additional Information
 note left of UI
@@ -167,6 +173,14 @@ note bottom of MachineLearning
   2. Language translation
   3. Trending topics analysis
   4. User engagement prediction
+end note
+
+note right of AnalyticsService
+  Analytics Service Features:
+  1. User behavior tracking
+  2. Engagement metrics calculation
+  3. Real-time analytics
+  4. Historical data analysis
 end note
 
 @enduml
