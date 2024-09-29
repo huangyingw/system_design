@@ -1,66 +1,82 @@
 @startuml
-actor User
+!define RECTANGLE class
 
-package "API Gateway" {
-  [API Gateway] as APIGW
+skinparam backgroundColor #EEEBDC
+skinparam handwritten false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam arrowColor #033277
+skinparam arrowThickness 2
+skinparam packageBackgroundColor #F0F8FF
+
+allowmixing
+
+actor "User" as user
+
+rectangle "Client" {
+    component "Consumer" as consumer
+    component "Push Notification\nService" as push
+    component "WebSocket Service" as websocket
 }
 
-package "Authentication & Authorization" {
-  [Auth Service] as AuthService
+rectangle "API Gateway" as api_gateway #LightGreen
+
+rectangle "Auth Service" as auth #Yellow
+
+rectangle "Feed Producer" as producer #Orange
+
+queue "Message Queue" as mq #Pink
+
+rectangle "Backend Services" {
+    component "Feed Service" as feed
+    component "Recommendation\nEngine" as rec
+    component "User Preferences\nService" as pref
+    component "Logging &\nMonitoring" as log
 }
 
-package "Feed Producer" {
-  [Content Management System] as CMS
-  [Producer] as Producer
+database "Storage" {
+    component "Distributed Cache" as cache
+    component "NoSQL Database" as db
 }
 
-package "Message Queue" {
-  [Message Queue] as MQ
-}
+user -[#red]-> consumer : 1. Request/Publish
+consumer -[#red]-> api_gateway : 2. Send Request
+api_gateway -[#orange]-> auth : 3. Authenticate
+auth -[#orange]-> api_gateway : 4. Auth Result
+api_gateway -[#green]-> producer : 5. Forward
+producer -[#green]-> mq : 6. Send to Queue
 
-package "Backend Services" {
-  [Feed Service] as FeedService
-  [User Preferences Service] as PrefService
-  [Recommendation Engine] as RecEngine
-  [Logging & Monitoring] as Logging
-}
+mq -[#blue]-> feed : 7. Deliver
+feed -[#blue]-> rec : 8. Personalize
+feed -[#blue]-> pref : 9. Get Preferences
+feed -[#purple]-> log : 10. Log
+feed -[#purple]-> cache : 11. Cache Hot Feeds
+feed -[#purple]-> db : 12. Store Feeds
 
-package "Storage" {
-  [Distributed Cache] as Cache
-  [NoSQL Database] as Database
-}
+consumer -[#red]-> api_gateway : 13. Request Latest
+api_gateway -[#green]-> feed : 14. Request Feeds
+feed -[#blue]-> cache : 15. Get Hot Feeds
+feed -[#blue]-> db : 16. Get Older Feeds
 
-package "Feed Consumer" {
-  [WebSocket Service] as WSService
-  [Push Notification Service] as PushService
-  [Consumer] as Consumer
-  User --> Consumer : "Get Feed"
-}
+feed -[#orange]-> websocket : 17. Push via WebSocket
+feed -[#orange]-> push : 18. Send Push
+websocket -[#orange]-> consumer : 19. Real-time Feed
+push -[#orange]-> consumer : 20. Notify
 
-' API Gateway manages incoming requests
-User --> APIGW : "1. Request Feed / Publish News"
-APIGW --> AuthService : "2. Authenticate & Authorize"
-APIGW --> Producer : "3. Publish News (Authorized)"
-Producer --> MQ : "4. Push News Feed"
+note right of cache
+  key: value pairs
+  for quick access
+end note
 
-' Backend services manage feed generation, personalization, and storage
-MQ --> FeedService : "5. Deliver Feed"
-FeedService --> RecEngine : "6. Generate Personalized Feed"
-FeedService --> PrefService : "7. Fetch User Preferences"
-FeedService --> Logging : "8. Log Feed Generation"
-FeedService --> Cache : "9. Store Hot Feeds"
-FeedService --> Database : "10. Store All Feeds"
+note bottom of mq
+  Potential bottleneck
+  Consider scaling
+end note
 
-' Consumer fetches or receives feeds
-Consumer --> APIGW : "11. Request Latest Feeds (Authenticated)"
-APIGW --> FeedService : "12. Request Feeds"
-FeedService --> Cache : "13. Fetch Hot Feeds"
-FeedService --> Database : "14. Fetch Older Feeds"
-
-' Push and real-time updates to consumers
-FeedService --> WSService : "15. Push Feed to WebSocket"
-FeedService --> PushService : "16. Send Push Notification"
-WSService --> Consumer : "17. Receive Real-time Feed"
-PushService --> Consumer : "18. Receive Feed Notification"
+note right of rec
+  CPU intensive
+  Consider caching
+  recommendations
+end note
 
 @enduml
