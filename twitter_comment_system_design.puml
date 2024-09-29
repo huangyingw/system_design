@@ -20,7 +20,9 @@ skinparam queueBackgroundColor #E8DAEF
 skinparam noteBorderColor #F39C12
 skinparam noteBackgroundColor #FCF3CF
 
-title <font size=TITLEFONTSIZE>Optimized Twitter Comment System Design</font>
+title <font size=TITLEFONTSIZE>Twitter Comment System Design: Comment Flow</font>
+
+actor User
 
 rectangle "User Interface" as UI {
     [Web & Mobile Apps]
@@ -61,23 +63,24 @@ database "Search Engine" as SearchEngine {
 
 rectangle "ML & Analytics" as MLAnalytics {
     [Sentiment Analysis]
-    [Content Recommendation]
+    [Content Moderation]
 }
 
-rectangle "Monitoring" as Monitoring {
-    [Prometheus]
-    [ELK Stack]
-}
-
-UI -down-> CDN
-CDN -down-> APIGateway
-APIGateway -down-> Microservices
-Microservices -right-> CacheLayer
-Microservices -down-> DataStorage
-Microservices -left-> MessageQueue
-Microservices -right-> SearchEngine
-Microservices -up-> MLAnalytics
-Microservices --> Monitoring
+User -[#3498DB]right-> UI : "1. Post comment"
+UI -[#3498DB]down-> CDN
+CDN -[#3498DB]down-> APIGateway
+APIGateway -[#3498DB]down-> Microservices : "2. Route request"
+Microservices -[#3498DB]right-> CacheLayer : "3. Check cache"
+Microservices -[#3498DB]down-> DataStorage : "4. Store comment"
+Microservices -[#3498DB]left-> MessageQueue : "5. Publish event"
+MessageQueue -[#3498DB]-> Microservices : "6. Process event"
+Microservices -[#3498DB]-> MLAnalytics : "7. Analyze content"
+MLAnalytics -[#3498DB]-> Microservices : "8. Return analysis"
+Microservices -[#3498DB]right-> SearchEngine : "9. Index comment"
+Microservices -[#3498DB]up-> APIGateway : "10. Return response"
+APIGateway -[#3498DB]up-> CDN
+CDN -[#3498DB]up-> UI
+UI -[#3498DB]left-> User : "11. Display comment"
 
 note right of UI
   Features:
@@ -113,7 +116,7 @@ end note
 note bottom of MLAnalytics
   - Spam detection
   - Content moderation
-  - Trend analysis
+  - Sentiment analysis
 end note
 
 @enduml
