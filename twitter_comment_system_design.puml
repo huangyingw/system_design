@@ -20,7 +20,7 @@ skinparam queueBackgroundColor #E8DAEF
 skinparam noteBorderColor #F39C12
 skinparam noteBackgroundColor #FCF3CF
 
-title <font size=TITLEFONTSIZE>Twitter Comment System Design: Comment Flow</font>
+title <font size=TITLEFONTSIZE>Twitter Comment System: Comment Flow</font>
 
 actor User
 
@@ -35,18 +35,14 @@ rectangle "API Gateway" as APIGateway {
     [Auth & Rate Limiting]
 }
 
-rectangle "Microservices" as Microservices {
-    [Comment Service]
-    [User Service]
-    [Tweet Service]
-    [Notification Service]
-    [Moderation Service]
+rectangle "Comment Service" as CommentService {
+    [Comment CRUD]
+    [Tree Structure]
+    [Sorting & Pagination]
 }
 
 database "Data Storage" as DataStorage {
     [Comment DB]
-    [User DB]
-    [Tweet DB]
 }
 
 rectangle "Cache Layer" as CacheLayer {
@@ -57,30 +53,27 @@ queue "Message Queue" as MessageQueue {
     [Kafka]
 }
 
-database "Search Engine" as SearchEngine {
-    [Elasticsearch]
-}
-
 rectangle "ML & Analytics" as MLAnalytics {
     [Sentiment Analysis]
     [Content Moderation]
 }
 
+rectangle "Notification Service" as NotificationService
+
 User -[#3498DB]right-> UI : "1. Post comment"
-UI -[#3498DB]down-> CDN
-CDN -[#3498DB]down-> APIGateway
-APIGateway -[#3498DB]down-> Microservices : "2. Route request"
-Microservices -[#3498DB]right-> CacheLayer : "3. Check cache"
-Microservices -[#3498DB]down-> DataStorage : "4. Store comment"
-Microservices -[#3498DB]left-> MessageQueue : "5. Publish event"
-MessageQueue -[#3498DB]-> Microservices : "6. Process event"
-Microservices -[#3498DB]-> MLAnalytics : "7. Analyze content"
-MLAnalytics -[#3498DB]-> Microservices : "8. Return analysis"
-Microservices -[#3498DB]right-> SearchEngine : "9. Index comment"
-Microservices -[#3498DB]up-> APIGateway : "10. Return response"
-APIGateway -[#3498DB]up-> CDN
-CDN -[#3498DB]up-> UI
-UI -[#3498DB]left-> User : "11. Display comment"
+UI -[#3498DB]down-> CDN : "2. Send request"
+CDN -[#3498DB]down-> APIGateway : "3. Route request"
+APIGateway -[#3498DB]down-> CommentService : "4. Process comment"
+CommentService -[#3498DB]right-> CacheLayer : "5. Check cache"
+CommentService -[#3498DB]down-> DataStorage : "6. Store comment"
+CommentService -[#3498DB]left-> MessageQueue : "7. Publish event"
+MessageQueue -[#3498DB]-> MLAnalytics : "8. Analyze content"
+MLAnalytics -[#3498DB]-> CommentService : "9. Return analysis"
+MessageQueue -[#3498DB]-> NotificationService : "10. Send notifications"
+CommentService -[#3498DB]up-> APIGateway : "11. Return response"
+APIGateway -[#3498DB]up-> CDN : "12. Send response"
+CDN -[#3498DB]up-> UI : "13. Update UI"
+UI -[#3498DB]left-> User : "14. Display comment"
 
 note right of UI
   Features:
@@ -90,33 +83,37 @@ note right of UI
 end note
 
 note right of APIGateway
-  - Rate limiting
-  - Authentication
-  - Load balancing
+  - Rate limiting: 100 req/min
+  - JWT Authentication
 end note
 
-note right of Microservices
-  Comment Service:
-  - CRUD operations
-  - Tree structure
-  - Sorting & pagination
+note right of CommentService
+  - Tree structure for replies
+  - Sorting: Latest, Most liked
+  - Pagination: 20 comments/page
 end note
 
 note bottom of DataStorage
   - Sharding by tweet_id
   - Multi-region replication
-  - Data encryption
 end note
 
 note bottom of CacheLayer
   key: tweet_id
-  value: {comments, user_info}
+  value: {
+    comments: [...],
+    user_info: {...}
+  }
+  TTL: 1 hour
 end note
 
 note bottom of MLAnalytics
-  - Spam detection
-  - Content moderation
-  - Sentiment analysis
+  Performance bottleneck:
+  High volume of comments
+  
+  Optimization:
+  - Batch processing
+  - Asynchronous analysis
 end note
 
 @enduml
