@@ -46,6 +46,18 @@ Gateway -right-> External : 3. Utilize External Services
 Services -up-> Gateway : 4. Service Response
 Gateway -up-> Client : 5. API Response
 
+note top of Gateway
+  API Gateway serves as:
+  1. Single entry point for all client requests
+  2. Request router to appropriate microservices
+  3. Protocol translator between clients and services
+  4. Security enforcer (authentication, authorization)
+  5. Rate limiter to prevent overload
+  6. Cache manager for improved performance
+  7. Load balancer for even distribution of requests
+  8. Monitoring and logging centralization point
+end note
+
 note right of Gateway
   Performance bottlenecks:
   1. Authentication: Consider caching tokens
