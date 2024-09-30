@@ -7,7 +7,7 @@ skinparam backgroundColor #F0F0F0
 skinparam handwritten false
 skinparam monochrome false
 skinparam defaultFontName Arial
-skinparam defaultFontSize 12
+skinparam defaultFontSize 18
 skinparam roundCorner 10
 skinparam ArrowColor #2C3E50
 skinparam ArrowThickness 1.5
@@ -70,36 +70,49 @@ RECTANGLE "Data Center 1" as DC1 #FDEBD0 {
             note right: "Replica of DC2"
         }
     }
+
+    ' Read Coordinator
+    component "Read Coordinator" as ReadCoord1 #FFA07A
 }
 
-' Data Center 2 (simplified for brevity)
+' Data Center 2 (more detailed now)
 RECTANGLE "Data Center 2" as DC2 #FDEBD0 {
     rectangle "Client" as Client2 #A9CCE3
     RECTANGLE "Load Balancer Cluster" as LB2 #F5B041
     RECTANGLE "Caching Layer" as CacheLayer2 #85C1E9
-    RECTANGLE "Name Node Cluster" as NameNodeCluster2 #82E0AA
-    RECTANGLE "Data Node Cluster" as DataNodeCluster2 #F1948A
+    RECTANGLE "Name Node Cluster" as NameNodeCluster2 #82E0AA {
+        DATABASE "Metadata Storage\n(ZooKeeper)" as MetadataStorage2
+    }
+    RECTANGLE "Data Node Cluster" as DataNodeCluster2 #F1948A {
+        DATABASE "Primary Storage" as PrimaryStorage2 {
+            note left: "Sharding Key: file_id % 2 == 1"
+        }
+        DATABASE "Replica Storage" as ReplicaStorage2 {
+            note left: "Replica of DC1"
+        }
+    }
+    component "Read Coordinator" as ReadCoord2 #FFA07A
 }
-
-' CDN / Edge Cache
-CLOUD "CDN / Edge Cache" as CDN #D2B4DE
 
 ' Connections
 Client1 --> GLB : "1. Client Request"
 Client2 --> GLB : "1. Client Request"
 GLB --> LB1 : "2. Route to nearest DC"
 GLB --> LB2 : "2. Route to nearest DC"
-LB1 --> CacheLayer1 : "3a. Read: Check Cache"
-LB1 --> NameNodeCluster1 : "3b. Write: Get Metadata"
-CacheLayer1 --> NameNodeCluster1 : "4. Cache Miss"
-NameNodeCluster1 --> DataNodeCluster1 : "5. Read/Write Data"
-DataNodeCluster1 --> CacheLayer1 : "6. Update Cache"
-NameNodeCluster1 <--> GMM : "7. Sync Metadata"
-DataNodeCluster1 <--> DataNodeCluster2 : "8. Cross-DC Replication"
-GAM --> DC1 : "9. Monitor & Manage"
-GAM --> DC2 : "9. Monitor & Manage"
-CDN <--> DC1 : "10. Cache Static Content"
-CDN <--> DC2 : "10. Cache Static Content"
+LB1 --> ReadCoord1 : "3a. Read Request"
+LB1 --> NameNodeCluster1 : "3b. Write Request"
+ReadCoord1 --> CacheLayer1 : "4a. Check Cache"
+ReadCoord1 --> NameNodeCluster1 : "4b. Get Metadata"
+NameNodeCluster1 --> PrimaryStorage1 : "5a. Write Data"
+ReadCoord1 --> ReplicaStorage1 : "5b. Read Data"
+CacheLayer1 --> NameNodeCluster1 : "6. Cache Miss"
+PrimaryStorage1 --> ReplicaStorage2 : "7. Replicate Data"
+NameNodeCluster1 <--> GMM : "8a. Sync Metadata"
+NameNodeCluster2 <--> GMM : "8b. Sync Metadata"
+NameNodeCluster1 <--> NameNodeCluster2 : "9. Cross-DC Metadata Sync"
+DataNodeCluster1 <--> DataNodeCluster2 : "10. Cross-DC Data Replication"
+GAM --> DC1 : "11. Monitor & Manage"
+GAM --> DC2 : "11. Monitor & Manage"
 
 ' Additional notes for explanation
 note top of GLB
@@ -123,16 +136,11 @@ note bottom of GAM
   disaster recovery
 end note
 
-note bottom of CDN
-  CDN / Edge Cache improves 
-  read performance for static 
-  content across regions
-end note
-
 note right of DataNodeCluster1
-  Cross-DC replication ensures 
-  data availability and disaster 
-  recovery capabilities
+  Read-Write Separation:
+  - Write requests go to Primary Storage
+  - Read requests are served by Replica Storage
+  - Cross-DC replication ensures data consistency
 end note
 
 @enduml
