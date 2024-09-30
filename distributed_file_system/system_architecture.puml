@@ -1,6 +1,7 @@
-@startuml Optimized Distributed File System Architecture
+@startuml Optimized Cross-Datacenter Distributed File System Architecture
 !define RECTANGLE rectangle
 !define DATABASE database
+!define CLOUD cloud
 
 skinparam backgroundColor #F0F0F0
 skinparam handwritten false
@@ -12,107 +13,126 @@ skinparam ArrowColor #2C3E50
 skinparam ArrowThickness 1.5
 skinparam linetype ortho
 
-' Client
-rectangle "Client" as Client #A9CCE3
+allowmixing
 
-' Load Balancer Cluster
-RECTANGLE "Load Balancer Cluster" as LB #F5B041 {
-    component "Health Check" as HealthCheck
-    component "Request Router" as RequestRouter
+' Global Components
+CLOUD "Global Load Balancer" as GLB #D6EAF8 {
+    component "Geo-aware Routing" as GeoRouting
+    component "Request Distribution" as ReqDist
 }
 
-' Caching Layer
-RECTANGLE "Caching Layer" as CacheLayer #85C1E9 {
-    DATABASE "Redis Cluster" as RedisCache {
-        note right: "Keys:\n- file_path:chunk_id\n- metadata:file_path"
+RECTANGLE "Global Metadata Management" as GMM #AED6F1 {
+    component "Cross-DC Metadata Sync" as MetaSync
+    component "Global Namespace" as GlobalNS
+}
+
+RECTANGLE "Global Admin & Monitoring" as GAM #D5F5E3 {
+    component "Cross-DC Monitoring" as CrossDCMon
+    component "Disaster Recovery" as DR
+    component "Configuration Management" as ConfigMgmt
+}
+
+' Data Center 1
+RECTANGLE "Data Center 1" as DC1 #FDEBD0 {
+    ' Client
+    rectangle "Client" as Client1 #A9CCE3
+
+    ' Load Balancer Cluster
+    RECTANGLE "Load Balancer Cluster" as LB1 #F5B041 {
+        component "Health Check" as HealthCheck1
+        component "Request Router" as RequestRouter1
+    }
+
+    ' Caching Layer
+    RECTANGLE "Caching Layer" as CacheLayer1 #85C1E9 {
+        DATABASE "Redis Cluster" as RedisCache1 {
+            note right: "Keys:\n- file_path:chunk_id\n- metadata:file_path"
+        }
+    }
+
+    ' Name Node Cluster
+    RECTANGLE "Name Node Cluster" as NameNodeCluster1 #82E0AA {
+        DATABASE "Metadata Storage\n(ZooKeeper)" as MetadataStorage1 {
+            note right: "Data:\n- File system tree\n- Block mappings\n- Node status"
+        }
+        component "File System Manager" as FSManager1
+        component "Block Manager" as BlockManager1
+        component "Replication Manager" as ReplicationManager1
+        component "Data Node Manager" as DataNodeManager1
+    }
+
+    ' Data Node Clusters
+    RECTANGLE "Data Node Cluster" as DataNodeCluster1 #F1948A {
+        DATABASE "Primary Storage" as PrimaryStorage1 {
+            note right: "Sharding Key: file_id % 2 == 0"
+        }
+        DATABASE "Replica Storage" as ReplicaStorage1 {
+            note right: "Replica of DC2"
+        }
     }
 }
 
-' Name Node Cluster
-RECTANGLE "Name Node Cluster" as NameNodeCluster #82E0AA {
-    DATABASE "Metadata Storage\n(ZooKeeper)" as MetadataStorage {
-        note right: "Data:\n- File system tree\n- Block mappings\n- Node status"
-    }
-    component "File System Manager" as FSManager
-    component "Block Manager" as BlockManager
-    component "Replication Manager" as ReplicationManager
-    component "Data Node Manager" as DataNodeManager
+' Data Center 2 (simplified for brevity)
+RECTANGLE "Data Center 2" as DC2 #FDEBD0 {
+    rectangle "Client" as Client2 #A9CCE3
+    RECTANGLE "Load Balancer Cluster" as LB2 #F5B041
+    RECTANGLE "Caching Layer" as CacheLayer2 #85C1E9
+    RECTANGLE "Name Node Cluster" as NameNodeCluster2 #82E0AA
+    RECTANGLE "Data Node Cluster" as DataNodeCluster2 #F1948A
 }
 
-' Data Node Clusters
-RECTANGLE "Data Node Cluster 1" as DataNodeCluster1 #F1948A {
-    DATABASE "Primary Storage 1" as PrimaryStorage1 {
-        note right: "Sharding Key: file_id % 2 == 0"
-    }
-    DATABASE "Replica Storage 2" as ReplicaStorage2 {
-        note right: "Replica of Cluster 2"
-    }
-}
+' CDN / Edge Cache
+CLOUD "CDN / Edge Cache" as CDN #D2B4DE
 
-RECTANGLE "Data Node Cluster 2" as DataNodeCluster2 #F1948A {
-    DATABASE "Primary Storage 2" as PrimaryStorage2 {
-        note right: "Sharding Key: file_id % 2 == 1"
-    }
-    DATABASE "Replica Storage 1" as ReplicaStorage1 {
-        note right: "Replica of Cluster 1"
-    }
-}
-
-' Admin Node
-RECTANGLE "Admin Node" as AdminNode #D7BDE2 {
-    component "Monitoring" as Monitoring
-    component "Configuration" as Config
-    component "Failure Handler" as FailureHandler
-}
-
-' Layout and Connections
-Client -down-> LB : "1. Client Request"
-LB -down-> CacheLayer : "2a. Read: Check Cache"
-LB -right-> NameNodeCluster : "2b. Write: Get Metadata"
-CacheLayer -right-> NameNodeCluster : "3. Cache Miss"
-NameNodeCluster -down-> DataNodeCluster1 : "4a. Write: Primary"
-NameNodeCluster -down-> DataNodeCluster2 : "4a. Write: Primary"
-NameNodeCluster -down-> DataNodeCluster1 : "4b. Read: Replica"
-NameNodeCluster -down-> DataNodeCluster2 : "4b. Read: Replica"
-DataNodeCluster1 -up-> CacheLayer : "5. Update Cache"
-DataNodeCluster2 -up-> CacheLayer : "5. Update Cache"
-AdminNode -up-> NameNodeCluster : "6. Manage & Monitor"
-AdminNode -up-> LB : "6. Manage & Monitor"
-DataNodeCluster1 -[#green]right-> DataNodeCluster2 : "7. Replicate"
-DataNodeCluster2 -[#green]left-> DataNodeCluster1 : "7. Replicate"
-NameNodeCluster -[#blue]down-> DataNodeCluster1 : "8. Manage Data Nodes"
-NameNodeCluster -[#blue]down-> DataNodeCluster2 : "8. Manage Data Nodes"
+' Connections
+Client1 --> GLB : "1. Client Request"
+Client2 --> GLB : "1. Client Request"
+GLB --> LB1 : "2. Route to nearest DC"
+GLB --> LB2 : "2. Route to nearest DC"
+LB1 --> CacheLayer1 : "3a. Read: Check Cache"
+LB1 --> NameNodeCluster1 : "3b. Write: Get Metadata"
+CacheLayer1 --> NameNodeCluster1 : "4. Cache Miss"
+NameNodeCluster1 --> DataNodeCluster1 : "5. Read/Write Data"
+DataNodeCluster1 --> CacheLayer1 : "6. Update Cache"
+NameNodeCluster1 <--> GMM : "7. Sync Metadata"
+DataNodeCluster1 <--> DataNodeCluster2 : "8. Cross-DC Replication"
+GAM --> DC1 : "9. Monitor & Manage"
+GAM --> DC2 : "9. Monitor & Manage"
+CDN <--> DC1 : "10. Cache Static Content"
+CDN <--> DC2 : "10. Cache Static Content"
 
 ' Additional notes for explanation
-note top of Client
-  Clients interact with the system through 
-  a unified interface, handling both 
-  read and write operations
+note top of GLB
+  Global Load Balancer provides 
+  geo-aware routing and ensures 
+  even distribution of requests 
+  across data centers
 end note
 
-note bottom of LB
-  Load Balancer ensures even distribution 
-  of requests and provides fault tolerance
+note bottom of GMM
+  Global Metadata Management 
+  ensures consistency of metadata 
+  across data centers and manages 
+  the global namespace
 end note
 
-note bottom of CacheLayer
-  Caching layer improves read performance 
-  by storing frequently accessed data
+note bottom of GAM
+  Global Admin & Monitoring oversees 
+  system health across all data centers, 
+  manages configuration, and handles 
+  disaster recovery
 end note
 
-note bottom of NameNodeCluster
-  Name Node Cluster manages metadata, 
-  ensuring data consistency and availability
+note bottom of CDN
+  CDN / Edge Cache improves 
+  read performance for static 
+  content across regions
 end note
 
-note bottom of DataNodeCluster1
-  Data Nodes store actual file data,
-  with built-in replication for fault tolerance
-end note
-
-note bottom of AdminNode
-  Admin Node oversees system health,
-  configuration, and handles failures
+note right of DataNodeCluster1
+  Cross-DC replication ensures 
+  data availability and disaster 
+  recovery capabilities
 end note
 
 @enduml
