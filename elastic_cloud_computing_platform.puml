@@ -1,0 +1,106 @@
+@startuml Elastic Cloud Computing Platform
+
+skinparam backgroundColor #FAFAFA
+skinparam handwritten false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam roundcorner 20
+skinparam shadowing false
+skinparam linetype ortho
+
+title Elastic Cloud Computing Platform
+
+' User Interface
+rectangle "User Interface" as UI #D6EAF8 {
+    [Web Console]
+    [CLI]
+    [API]
+}
+
+' Resource Management
+rectangle "Resource Management" as RM #AED6F1 {
+    [Resource Allocator]
+    [Resource Monitor]
+    [Capacity Planner]
+}
+
+' Virtualization Layer
+rectangle "Virtualization Layer" as VL #D5F5E3 {
+    [Hypervisor]
+    [Container Orchestrator]
+}
+
+' Physical Infrastructure
+rectangle "Physical Infrastructure" as PI #FDEBD0 {
+    [Compute Nodes]
+    [Storage Nodes]
+    [Network Devices]
+}
+
+' Elasticity Engine
+rectangle "Elasticity Engine" as EE #F5B041 {
+    [Auto Scaler]
+    [Load Balancer]
+    [Fault Tolerator]
+}
+
+' Billing and Metering
+rectangle "Billing and Metering" as BM #85C1E9 {
+    [Usage Tracker]
+    [Cost Calculator]
+    [Billing Service]
+}
+
+' Security and Compliance
+rectangle "Security and Compliance" as SC #F1948A {
+    [Identity Manager]
+    [Access Controller]
+    [Compliance Checker]
+}
+
+' Monitoring and Analytics
+rectangle "Monitoring and Analytics" as MA #82E0AA {
+    [Performance Monitor]
+    [Log Analyzer]
+    [Predictive Analytics]
+}
+
+' Data Flow
+UI --> RM : Request resources
+RM --> VL : Allocate resources
+VL --> PI : Manage physical resources
+EE --> RM : Trigger scaling
+EE --> VL : Adjust resource allocation
+BM --> RM : Track resource usage
+SC --> RM : Enforce security policies
+MA --> RM : Provide insights
+MA --> EE : Inform scaling decisions
+
+' Notes
+note right of RM
+  Key Features:
+  - Dynamic resource allocation
+  - Multi-tenancy support
+  - Resource isolation
+end note
+
+note right of EE
+  Elasticity Mechanisms:
+  - Horizontal scaling (add/remove instances)
+  - Vertical scaling (resize instances)
+  - Migration (move workloads)
+end note
+
+note right of VL
+  Supports:
+  - Virtual Machines
+  - Containers
+  - Serverless Functions
+end note
+
+note bottom of PI
+  Distributed across multiple data centers
+  for high availability and disaster recovery
+end note
+
+@enduml
