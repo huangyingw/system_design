@@ -61,7 +61,19 @@ RECTANGLE "Data Center 1" as DC1 #FDEBD0 {
     ' Name Node Cluster
     RECTANGLE "Name Node Cluster" as NameNodeCluster1 #82E0AA {
         DATABASE "Metadata Storage\n(ZooKeeper)" as MetadataStorage1 {
-            note right: "Data:\n- File system tree\n- Block mappings\n- Node status"
+            note right
+                Stored Metadata:
+                1. File system tree:
+                   - Directory structure
+                   - File names and attributes
+                2. Block mappings:
+                   - File to data block mapping
+                   - Data block to storage node mapping
+                3. Node status:
+                   - Health status of data nodes
+                   - Storage capacity and usage
+                   - Current load information
+            end note
         }
         component "File System Manager" as FSManager1
         component "Block Manager" as BlockManager1
