@@ -7,7 +7,7 @@ skinparam backgroundColor #F0F0F0
 skinparam handwritten false
 skinparam monochrome false
 skinparam defaultFontName Arial
-skinparam defaultFontSize 18
+skinparam defaultFontSize 20
 skinparam roundCorner 10
 skinparam ArrowColor #2C3E50
 skinparam ArrowThickness 1.5
@@ -46,7 +46,15 @@ RECTANGLE "Data Center 1" as DC1 #FDEBD0 {
     ' Caching Layer
     RECTANGLE "Caching Layer" as CacheLayer1 #85C1E9 {
         DATABASE "Redis Cluster" as RedisCache1 {
-            note right: "Keys:\n- file_path:chunk_id\n- metadata:file_path"
+            note right
+                Cache Structure:
+                1. File chunk location:
+                   Key: "chunk:{file_path}:{chunk_id}"
+                   Value: Node ID storing the chunk
+                2. File metadata:
+                   Key: "metadata:{file_path}"
+                   Value: Serialized file metadata
+            end note
         }
     }
 
