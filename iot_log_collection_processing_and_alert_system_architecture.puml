@@ -5,57 +5,57 @@ skinparam backgroundColor #F0F8FF
 skinparam ArrowColor #4B0082
 skinparam ArrowFontColor #4B0082
 
-rectangle "数据生成层" {
-    [IoT设备] as IoT #LightCyan
+rectangle "Data Generation Layer" {
+    [IoT Devices] as IoT #LightCyan
 }
 
-rectangle "数据收集层" {
-    [日志收集器] as Collector #LightGreen
+rectangle "Data Collection Layer" {
+    [Log Collector] as Collector #LightGreen
 }
 
-rectangle "数据处理层" {
-    queue "Kafka队列" as Kafka #LightPink
-    [日志处理服务] as LogProcessor #LightYellow
-    [流处理(Flink/Spark)] as StreamProcessor #LightSalmon
+rectangle "Data Processing Layer" {
+    queue "Kafka Queue" as Kafka #LightPink
+    [Log Processing Service] as LogProcessor #LightYellow
+    [Stream Processing (Flink/Spark)] as StreamProcessor #LightSalmon
 }
 
-database "数据存储层" {
-    database "主数据库" as MasterDB #PaleGoldenrod {
+database "Data Storage Layer" {
+    database "Master Database" as MasterDB #PaleGoldenrod {
         note right
-            复合分片策略:
-            - 按设备
-            - 按时间
-            PK, Index优化
+            Composite Sharding Strategy:
+            - By Device
+            - By Time
+            PK, Index Optimization
         end note
     }
-    database "副本数据库" as ReplicaDB #PaleGoldenrod
-    database "统计数据库" as StatsDB #Thistle {
+    database "Replica Database" as ReplicaDB #PaleGoldenrod
+    database "Statistics Database" as StatsDB #Thistle {
         note right
             Sharding Key: 
-            时间 + 设备类型
+            Time + Device Type
         end note
     }
 }
 
-rectangle "应用服务层" {
-    [查询服务] as QueryService #LightSteelBlue
-    [告警服务] as AlertService #LightCoral
-    [API服务器] as APIServer #LightSeaGreen
+rectangle "Application Service Layer" {
+    [Query Service] as QueryService #LightSteelBlue
+    [Alert Service] as AlertService #LightCoral
+    [API Server] as APIServer #LightSeaGreen
 }
 
-IoT -[#4B0082]-> Collector : 发送日志
-Collector -[#4B0082]-> Kafka : 推送日志
-Kafka -[#4B0082]-> LogProcessor : 传输日志
-Kafka -[#4B0082]-> StreamProcessor : 流式处理
-LogProcessor -[#4B0082]-> MasterDB : 存储处理后的日志
-MasterDB -[#4B0082]-> ReplicaDB : 数据复制
-ReplicaDB -[#4B0082]-> QueryService : 查询日志
-ReplicaDB -[#4B0082]-> AlertService : 分析生成告警
-StreamProcessor -[#4B0082]-> StatsDB : 存储统计结果
-StatsDB -[#4B0082]-> APIServer : 获取统计数据
+IoT -[#4B0082]-> Collector : Send logs
+Collector -[#4B0082]-> Kafka : Push logs
+Kafka -[#4B0082]-> LogProcessor : Transmit logs
+Kafka -[#4B0082]-> StreamProcessor : Stream processing
+LogProcessor -[#4B0082]-> MasterDB : Store processed logs
+MasterDB -[#4B0082]-> ReplicaDB : Data replication
+ReplicaDB -[#4B0082]-> QueryService : Query logs
+ReplicaDB -[#4B0082]-> AlertService : Analyze and generate alerts
+StreamProcessor -[#4B0082]-> StatsDB : Store statistical results
+StatsDB -[#4B0082]-> APIServer : Retrieve statistical data
 
 note bottom of MasterDB
-    Redis缓存键设计:
+    Redis cache key design:
     device:{deviceId}:logs:{timestamp}
 end note
 @enduml
