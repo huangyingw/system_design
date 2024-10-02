@@ -18,7 +18,7 @@ skinparam rectangle {
 skinparam note {
     BackgroundColor FFF9C4
     BorderColor FBC02D
-    FontSize 12
+    FontSize 16
     FontColor 000000
 }
 
