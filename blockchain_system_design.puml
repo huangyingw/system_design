@@ -7,108 +7,108 @@ skinparam defaultFontSize 12
 skinparam roundcorner 20
 skinparam shadowing true
 
-title 区块链系统设计
+title Blockchain System Design
 
-' 用户层
-RECTANGLE "用户层" as UserLayer {
-    [轻节点]
-    [钱包应用]
+' User Layer
+rectangle "User Layer" as UserLayer {
+    [Light Node]
+    [Wallet Application]
     [DApp]
 }
 
-' 应用层
-RECTANGLE "应用层" as ApplicationLayer {
-    [智能合约]
-    [链码]
-    [DApp后端]
+' Application Layer
+rectangle "Application Layer" as ApplicationLayer {
+    [Smart Contract]
+    [Chaincode]
+    [DApp Backend]
 }
 
-' 网络层
-RECTANGLE "网络层" as NetworkLayer {
-    [P2P网络]
-    [节点发现]
-    [数据传播]
+' Network Layer
+rectangle "Network Layer" as NetworkLayer {
+    [P2P Network]
+    [Node Discovery]
+    [Data Propagation]
 }
 
-' 共识层
-RECTANGLE "共识层" as ConsensusLayer {
-    [PoW (工作量证明)]
-    [PoS (权益证明)]
-    [DPoS (委托权益证明)]
-    [PBFT (实用拜占庭容错)]
+' Consensus Layer
+rectangle "Consensus Layer" as ConsensusLayer {
+    [PoW (Proof of Work)]
+    [PoS (Proof of Stake)]
+    [DPoS (Delegated Proof of Stake)]
+    [PBFT (Practical Byzantine Fault Tolerance)]
 }
 
-' 数据层
-RECTANGLE "数据层" as DataLayer {
-    database "区块链" as Blockchain {
-        [区块头]
-        [交易数据]
-        [状态树]
+' Data Layer
+rectangle "Data Layer" as DataLayer {
+    database "Blockchain" as Blockchain {
+        [Block Header]
+        [Transaction Data]
+        [State Tree]
     }
-    database "状态数据库" as StateDB {
-        [账户状态]
-        [合约状态]
+    database "State Database" as StateDB {
+        [Account State]
+        [Contract State]
     }
 }
 
-' 密码学层
-RECTANGLE "密码学层" as CryptographyLayer {
-    [非对称加密]
-    [哈希函数]
-    [数字签名]
-    [零知识证明]
+' Cryptography Layer
+rectangle "Cryptography Layer" as CryptographyLayer {
+    [Asymmetric Encryption]
+    [Hash Function]
+    [Digital Signature]
+    [Zero-Knowledge Proof]
 }
 
-' 虚拟机
-RECTANGLE "虚拟机" as VirtualMachine {
-    [EVM (以太坊虚拟机)]
+' Virtual Machine
+rectangle "Virtual Machine" as VirtualMachine {
+    [EVM (Ethereum Virtual Machine)]
     [WASM (WebAssembly)]
 }
 
-' 存储层
-database "存储层" as StorageLayer {
-    [分布式存储]
+' Storage Layer
+database "Storage Layer" as StorageLayer {
+    [Distributed Storage]
     [IPFS]
 }
 
-' 监控和管理
-RECTANGLE "监控和管理" as MonitoringManagement {
-    [区块浏览器]
-    [网络监控]
-    [性能分析]
+' Monitoring and Management
+rectangle "Monitoring and Management" as MonitoringManagement {
+    [Block Explorer]
+    [Network Monitoring]
+    [Performance Analysis]
 }
 
-' 连接关系
-UserLayer -down-> ApplicationLayer : 使用
-ApplicationLayer -down-> NetworkLayer : 部署/调用
-NetworkLayer -down-> ConsensusLayer : 达成共识
-ConsensusLayer -down-> DataLayer : 写入/读取
-DataLayer -left-> CryptographyLayer : 使用
-ApplicationLayer -right-> VirtualMachine : 执行
-DataLayer -down-> StorageLayer : 存储数据
-MonitoringManagement -up-> DataLayer : 监控
+' Connections
+UserLayer -down-> ApplicationLayer : Use
+ApplicationLayer -down-> NetworkLayer : Deploy/Call
+NetworkLayer -down-> ConsensusLayer : Reach Consensus
+ConsensusLayer -down-> DataLayer : Write/Read
+DataLayer -left-> CryptographyLayer : Use
+ApplicationLayer -right-> VirtualMachine : Execute
+DataLayer -down-> StorageLayer : Store Data
+MonitoringManagement -up-> DataLayer : Monitor
 
 note right of ConsensusLayer
-  共识机制特点:
-  1. PoW: 高安全性，但能耗大
-  2. PoS: 节能，但可能导致中心化
-  3. DPoS: 高效，但代表性有限
-  4. PBFT: 高性能，但扩展性受限
+  Consensus Mechanism Features:
+  1. PoW: High security, but energy-intensive
+  2. PoS: Energy-efficient, but may lead to centralization
+  3. DPoS: Efficient, but limited representation
+  4. PBFT: High performance, but limited scalability
 end note
 
 note left of DataLayer
-  数据结构:
-  1. 区块: 包含多个交易
-  2. 交易: 状态转换
-  3. Merkle树: 快速验证
+  Data Structure:
+  1. Block: Contains multiple transactions
+  2. Transaction: State transition
+  3. Merkle Tree: Fast verification
 end note
 
 note bottom of CryptographyLayer
-  密码学保障:
-  1. 交易不可篡改
-  2. 身份认证
-  3. 数据完整性
-  4. 隐私保护
+  Cryptographic Guarantees:
+  1. Immutable transactions
+  2. Identity authentication
+  3. Data integrity
+  4. Privacy protection
 end note
 
 @enduml
