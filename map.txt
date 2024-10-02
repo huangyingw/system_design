@@ -40,10 +40,10 @@
     YouTube/YouTube_Video_Playback_and_Interaction_Schema.puml
 
 10. 物联网系统
-    interview_questions/iot_log_alert_system_architecture.puml
+    iot_log_collection_processing_and_alert_system_architecture.puml
 
 11. 在线广告系统
-    interview_questions/online_ad_system_architecture.puml
+    online_advertising_system_architecture_with_optimizations.puml
 
 12. 分布式计算
     distributed_computing_system_for_password_cracking.puml
