@@ -52,70 +52,65 @@ RECTANGLE "Backup System" as Backup #E8F5E9 {
 }
 
 ' 健康检查
-RECTANGLE "Health Checker" as HealthChecker #FFF3E0
+RECTANGLE "Health Checker" as HealthChecker #FFF3E0 {
+    [Heartbeat Monitor]
+    [Performance Monitor]
+    [Log Analyzer]
+}
 
 ' 故障检测
-RECTANGLE "Fault Detector" as FaultDetector #FFEBEE
+RECTANGLE "Fault Detector" as FaultDetector #FFEBEE {
+    [Anomaly Detection]
+    [Error Pattern Recognition]
+    [Threshold Analyzer]
+}
 
-' 自动故障转移
-RECTANGLE "Failover Manager" as FailoverManager #F3E5F5
+' 数据一致性管理
+RECTANGLE "Consistency Manager" as ConsistencyManager #E8EAF6 {
+    [Data Synchronization]
+    [Conflict Resolution]
+    [Version Control]
+}
 
-' 数据复制
-RECTANGLE "Data Replication" as DataReplication #E0F2F1
+' 自动恢复控制器
+RECTANGLE "Recovery Controller" as RecoveryController #F3E5F5 {
+    [Failover Orchestrator]
+    [State Transfer]
+    [Service Restart]
+}
 
-' 负载均衡器
-RECTANGLE "Load Balancer" as LoadBalancer #FFF8E1
+' 连接
+Primary --> HealthChecker : Send health data
+HealthChecker --> FaultDetector : Report anomalies
+FaultDetector --> RecoveryController : Trigger recovery
+RecoveryController --> Backup : Activate backup
+RecoveryController --> ConsistencyManager : Ensure data consistency
+ConsistencyManager --> Primary : Sync data
+ConsistencyManager --> Backup : Sync data
 
-' 备份存储
-database "Backup Storage" as BackupStorage #FAFAFA
-
-' 恢复管理器
-RECTANGLE "Recovery Manager" as RecoveryManager #E8EAF6
-
-' 监控和告警
-RECTANGLE "Monitoring & Alerting" as Monitoring #EFEBE9
-
-' 用户界面
-actor "Admin" as Admin
-
-' 关系
-Primary -[#4CAF50]right-> Backup : <color:#4CAF50>1. Replicate</color>
-Primary -[#FF5722]down-> HealthChecker : <color:#FF5722>2. Report status</color>
-Backup -[#FF5722]down-> HealthChecker : <color:#FF5722>3. Report status</color>
-HealthChecker -right-> FaultDetector : Provide health data
-FaultDetector -right-> FailoverManager : Trigger failover
-FailoverManager -up-> LoadBalancer : Update routing
-Primary -down-> DataReplication : Replicate data
-DataReplication -right-> Backup : Sync data
-Primary -down-> BackupStorage : Periodic backup
-RecoveryManager -up-> Primary : Restore data
-RecoveryManager -up-> Backup : Restore data
-Monitoring -up-> Admin : Send alerts
-Admin -down-> RecoveryManager : Manage recovery
-
-note bottom of HealthChecker
-  • Regularly checks system components
-  • Monitors resource usage and performance
+' 注释
+note right of HealthChecker
+  Continuously monitors system health
+  using various metrics and log analysis
 end note
 
-note bottom of FaultDetector
-  • Analyzes health check data
-  • Identifies potential system failures
+note right of FaultDetector
+  Uses ML algorithms to detect anomalies
+  and predict potential failures
 end note
 
-note bottom of FailoverManager
-  • Manages automatic failover process
-  • Ensures minimal downtime during failures
+note right of ConsistencyManager
+  Implements eventual consistency
+  with conflict resolution strategies
 end note
 
-note bottom of DataReplication
-  • Ensures data consistency between primary and backup
-  • Supports both synchronous and asynchronous replication
-end note
-
-note bottom of RecoveryManager
-  • Coordinates system recovery process
-  • Manages data restoration from backups
+note right of RecoveryController
+  Automated recovery process:
+  1. Detect failure
+  2. Activate backup system
+  3. Transfer state and traffic
+  4. Verify system integrity
+  5. Notify administrators
 end note
 
 @enduml
