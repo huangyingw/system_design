@@ -5,7 +5,7 @@ allowmixing
 
 skinparam backgroundColor #F0F0F0
 skinparam defaultFontName Arial
-skinparam defaultFontSize 12
+skinparam defaultFontSize 18
 skinparam roundCorner 10
 skinparam componentStyle uml2
 
@@ -17,7 +17,7 @@ skinparam component {
 skinparam note {
   BackgroundColor #FFFACD
   BorderColor #DAA520
-  FontSize 11
+  FontSize 18
 }
 
 title Timeline Update Service Detailed Architecture
