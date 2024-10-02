@@ -77,37 +77,37 @@ LBWS -up-> Client : Returns Data/Updates Timeline
 CDN -[hidden]right-> SSrv
 
 note right of LB
-  **负载均衡优化**:
-  - 高性能负载均衡器
-  - 多实例部署
+  **Load Balancer Optimization**:
+  - High-performance load balancer
+  - Multiple instance deployment
 end note
 
 note right of Cache
-  **缓存优化**:
-  - Redis缓存热点数据
-  - CDN缓存静态资源
+  **Cache Optimization**:
+  - Redis for caching hot data
+  - CDN for caching static resources
 end note
 
 note right of DB
-  **数据库优化**:
-  - 分片和读写分离
-  - 索引优化查询
+  **Database Optimization**:
+  - Sharding and read-write separation
+  - Index optimization for queries
 end note
 
 note right of APQ
-  **异步处理**:
-  - 使用消息队列
-  - 增加消费者数量
+  **Asynchronous Processing**:
+  - Use message queues
+  - Increase number of consumers
 end note
 
 note right of AMS
-  **自动扩展**:
-  - 配置自动扩展策略
+  **Auto Scaling**:
+  - Configure auto-scaling strategies
 end note
 
 note right of CDN
-  使用CDN加速静态内容和媒体文件的传输，
-  提高全球用户的访问速度
+  Use CDN to accelerate static content and media file delivery,
+  improving global user access speed
 end note
 
 @enduml
