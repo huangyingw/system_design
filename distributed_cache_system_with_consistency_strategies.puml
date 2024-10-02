@@ -1,0 +1,86 @@
+@startuml Distributed Cache System with Consistency Strategies
+!define RECTANGLE class
+skinparam backgroundColor #EEEBDC
+skinparam handwritten false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam roundcorner 20
+skinparam shadowing false
+allowmixing
+
+' Client Layer
+rectangle "Client Layer" #E0F2F1 {
+    component "Client 1" as C1
+    component "Client 2" as C2
+    component "Client N" as CN
+}
+
+' Load Balancer
+component "HAProxy" as LB #FFF59D
+
+' Cache Cluster
+rectangle "Cache Cluster (Redis)" #FFCCBC {
+    rectangle "Master Node" as MN {
+        component "Master 1" as M1
+        component "Master 2" as M2
+    }
+    rectangle "Slave Nodes" as SN {
+        component "Slave 1" as S1
+        component "Slave 2" as S2
+    }
+    interface "Cluster Communication" as CC
+    
+    interface "Consistency Strategies" as CS
+    rectangle "Strategy Implementation" #E1BEE7 {
+        component "Invalidate Cache" as IC
+        component "Update on Write" as UW
+        component "Versioning" as VS
+        component "Async Update" as AU
+    }
+}
+
+' Persistent Storage
+database "Persistent Storage" as PS #BBDEFB {
+    component "RDB Snapshot" as RDB
+    component "AOF Log" as AOF
+}
+
+' Relationships
+C1 -down-> LB : 1. Request
+C2 -down-> LB : 1. Request
+CN -down-> LB : 1. Request
+LB -down-> MN : 2. Distribute
+MN -right-> SN : 3. Replicate
+MN -down-> PS : 4. Persist
+M1 -[#8B4513]-> CC : Heartbeat
+M2 -[#8B4513]-> CC : Heartbeat
+S1 -[#8B4513]-> CC : Heartbeat
+S2 -[#8B4513]-> CC : Heartbeat
+
+' Consistency Strategy Application
+MN .down.> IC : Apply
+MN .down.> UW : Apply
+MN .down.> VS : Apply
+MN .down.> AU : Apply
+
+note right of LB
+  Load balancing and
+  request distribution
+end note
+
+note bottom of PS
+  Ensures data durability
+  and supports recovery
+end note
+
+note right of CC
+  Manages cluster state
+  and node communication
+end note
+
+note right of CS
+  Ensures data consistency
+  across cluster and clients
+end note
+
+@enduml
