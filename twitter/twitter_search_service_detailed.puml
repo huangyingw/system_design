@@ -1,0 +1,63 @@
+@startuml Twitter_Search_Service_Detailed
+
+!define LIGHTYELLOW #FFFACD
+!define LIGHTGREEN #90EE90
+!define LIGHTRED #FFB6C1
+
+skinparam backgroundColor #E6F3FF
+skinparam shadowing false
+skinparam RoundCorner 8
+skinparam ArrowColor 454645
+skinparam DefaultFontName Arial
+skinparam DefaultFontSize 11
+
+allowmixing
+
+component "Search Service" as SearchService #90EE90 {
+    component "Request Handler" as RH
+    component "Query Parser" as QP
+    component "Spell Check & Auto-complete" as SCAC
+    component "Cache Query" as CQ
+    component "Index Query" as IQ
+    component "Result Handler" as RHdl {
+        component "Result Sorting & Filtering" as RSF
+        component "Result Caching" as RC
+    }
+}
+
+component "Search Engine" as SearchEngine #FFB6C1
+component "Cache" as Cache #FFFACD {
+    component "Search Result Cache" as SRC
+}
+
+' Search Service Flow
+RH -down-> QP : Parse query
+QP -down-> SCAC : Check spelling & suggest
+SCAC -down-> CQ : Query cache
+CQ -right-> SRC : Read from cache
+SRC -left-> CQ : Return results (Hit/Miss)
+CQ -down-> IQ : Query index (if Cache Miss)
+IQ -right-> SearchEngine : Query search engine
+SearchEngine -left-> IQ : Return search results
+IQ -up-> RSF : Sort & filter results
+RSF -right-> RC : Cache results
+RC -up-> SRC : Store in cache
+
+note right of SearchService
+  性能优化:
+  - 使用缓存（Redis）减少重复查询
+  - 使用Elasticsearch提高搜索查询速度
+  - 查询解析和结果排序优化
+end note
+
+note right of SCAC
+  提供拼写纠正和自动补全功能，
+  改善用户搜索体验
+end note
+
+note right of SearchEngine
+  Performance bottleneck:
+  Optimize query processing
+end note
+
+@enduml

@@ -1,0 +1,92 @@
+@startuml Twitter_Recommendation_Service_Architecture
+
+!define LIGHTYELLOW #FFFACD
+!define LIGHTGREEN #90EE90
+!define LIGHTRED #FFB6C1
+
+skinparam backgroundColor #E6F3FF
+skinparam shadowing false
+skinparam RoundCorner 8
+skinparam ArrowColor 454645
+skinparam DefaultFontName Arial
+skinparam DefaultFontSize 11
+
+allowmixing
+
+' Overview Section
+rectangle "System Overview" {
+    component "Geo-Load Balancer" as GeoLoadBalancer #FFFACD
+    component "API Gateway" as APIGateway #FFFACD
+    component "Auth Service" as AuthService #90EE90
+    component "Search Service" as SearchService #90EE90
+    component "Recommendation Service" as RecommendationServiceOverview #90EE90
+    component "Data Analysis" as DataAnalysisOverview #90EE90
+    component "Cache" as CacheOverview #FFFACD
+    component "Database" as DatabaseOverview #FFFACD
+    component "Message Queue" as MessageQueue #FFFACD
+    component "Logging Service" as LoggingService #90EE90
+    component "Monitoring Service" as MonitoringService #90EE90
+    component "Batch Processing" as BatchProcessing #90EE90
+}
+
+GeoLoadBalancer -down-> APIGateway : "1. Global routing"
+APIGateway -down-> AuthService : "2. Auth check"
+APIGateway -down-> RecommendationServiceOverview : "3. Recommendation request"
+RecommendationServiceOverview -left-> DataAnalysisOverview : "4. Generate"
+RecommendationServiceOverview -left-> CacheOverview : "5. Cache access"
+DataAnalysisOverview -down-> DatabaseOverview : "6. User data"
+DataAnalysisOverview -down-> MessageQueue : "7. Async tasks"
+MessageQueue -down-> RecommendationServiceOverview : "8. Process tasks"
+RecommendationServiceOverview -down-> BatchProcessing : "9. Trigger batch"
+RecommendationServiceOverview -down-> LoggingService : "10. Log recommendations"
+MonitoringService -up-> RecommendationServiceOverview : "11. Monitor"
+
+' Detailed Recommendation Service
+rectangle "Detailed Recommendation Service" {
+    component "Recommendation Service" as RecommendationService #90EE90 {
+        component "Recommendation Engine" as RE
+        component "Result Caching" as REC
+        component "Push Notification Service" as PNS
+        component "Real-time Recommendation Engine" as RRE
+    }
+
+    component "Data Analysis" as DataAnalysis #90EE90
+    component "Cache" as Cache #FFFACD {
+        component "Recommendation Cache" as RCache
+    }
+    component "Database" as Database #FFFACD {
+        component "User Interaction Data" as UID
+        component "Content Data" as CD
+    }
+}
+
+' Recommendation Service Flow
+RE -down-> UID : Fetch user data
+RE -down-> CD : Fetch content data
+RE -up-> REC : Cache recommendations
+REC -down-> RCache : Store recommendations in cache
+PNS -down-> RCache : Fetch recommendations from cache
+PNS -right-> APIGateway : Push recommendations
+RRE -down-> UID : Analyze real-time data
+RRE -up-> REC : Update recommendations
+
+DataAnalysis -down-> Database : Analyze user behavior
+
+note right of RecommendationService
+  性能优化:
+  - 使用缓存减少推荐计算
+  - 优化推荐算法
+  - 增加推荐引擎计算资源
+end note
+
+note right of RRE
+  基于用户实时行为进行推荐，
+  提高推荐的时效性和准确性
+end note
+
+note right of Database
+  Scalability concern:
+  Implement sharding
+end note
+
+@enduml
