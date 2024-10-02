@@ -1,27 +1,26 @@
 1. 分布式系统
-    blockchain_system_design.puml
-    container_orchestration_system_design.puml
+    blockchain_system_detailed_architecture_with_components.puml
+    kubernetes_based_container_orchestration_system_architecture.puml
     distributed_cache_system_design.puml
     distributed_cache_system_with_consistency_strategies.puml
     distributed_file_system/system_architecture.puml
     distributed_system_cap_theorem_illustration.puml
     distributed_system_monitoring_architecture.puml
 
-2. 数据库和存储
-    database_vs_elasticsearch_comparison.puml
-    architecture_diagrams/database_performance_optimization.puml
-    dynamodb_distributed_storage_system.puml
+2. 微服务架构
+    microservices_architecture_design.puml
+    api_gateway_design.puml
+    service_discovery_and_registration_design.puml
 
-3. 消息队列和流处理
-    architecture_diagrams/kafka_data_flow_detailed_process.puml
-    architecture_diagrams/kafka_producer_consumer_detailed_structure.puml
-    message_queue_system_design.puml
+3. 数据处理和分析
+    real_time_data_stream_processing_system.puml
+    distributed_tracing_system_design.puml
 
-4. 缓存系统
-    architecture_diagrams/cache_consistency_strategies.puml
+4. 全球化部署
+    global_deployment_architecture_design.puml
 
-5. 搜索引擎
-    imvu_system_architecture/imvu_elasticsearch_architecture_diagram.puml
+5. 分布式协调
+    distributed_lock_service_design.puml
 
 6. 内容分发网络
     cdn/cdn_performance_optimization_strategies.puml
