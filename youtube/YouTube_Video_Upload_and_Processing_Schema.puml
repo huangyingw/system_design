@@ -1,5 +1,7 @@
 @startuml YouTube_Video_Upload_Architecture
 
+allowmixing
+
 ' 设置整体主题
 skinparam backgroundColor #1E1E1E
 skinparam defaultFontName Arial
@@ -8,68 +10,25 @@ skinparam defaultFontColor #FFFFFF
 skinparam padding 5
 skinparam roundCorner 10
 
-' 定制组件样式
-skinparam component {
-  BackgroundColor #2C2C2C
-  BorderColor #4EC9B0
-  FontColor #FFFFFF
-}
-
-' 定制数据库样式
-skinparam database {
-  BackgroundColor #2C2C2C
-  BorderColor #FF6B6B
-  FontColor #FFFFFF
-}
-
-' 定制队列样式
-skinparam queue {
-  BackgroundColor #2C2C2C
-  BorderColor #DCDCAA
-  FontColor #FFFFFF
-}
-
-' 定制接口样式
-skinparam interface {
-  BackgroundColor #2C2C2C
-  BorderColor #4EC9B0
-  FontColor #FFFFFF
-}
-
-' 定制箭头样式
-skinparam arrow {
-  Color #DCDCAA
-  FontColor #FFFFFF
-  Thickness 1.5
-}
-
-' 定制注释样式
-skinparam note {
-  BackgroundColor #252526
-  BorderColor #CE9178
-  FontColor #FFFFFF
-}
-
 ' 定义主要组件
-actor "User" as user #9CDCFE
-component "Web Server" as webserver
-component "Upload Service" as uploadservice
-queue "Upload Queue" as uploadqueue
-component "Transcoding Service" as transcodingservice
-database "Original Video Storage" as originalstorage
-database "Transcoded Video Storage" as transcodedStorage
-database "Metadata DB" as metadatadb
+component "User" as user #9CDCFE
+component "Web Server" as webserver #4EC9B0
+component "Upload Service" as uploadservice #FF6B6B
+queue "Upload Queue" as uploadqueue #DCDCAA
+component "Transcoding Service" as transcodingservice #CE9178
+database "Original Video Storage" as originalstorage #FF6B6B
+database "Transcoded Video Storage" as transcodedStorage #FF6B6B
+database "Metadata DB" as metadatadb #FF6B6B
 
-' 定义交互流程
-user -down-> webserver : 1. Upload video
-webserver -right-> uploadservice : 2. Process upload
-uploadservice -down-> originalstorage : 3. Store original
-uploadservice -right-> uploadqueue : 4. Queue for transcoding
-uploadservice -down-> metadatadb : 5. Store metadata
-uploadqueue -down-> transcodingservice : 6. Fetch job
-transcodingservice -left-> originalstorage : 7. Fetch original
-transcodingservice -right-> transcodedStorage : 8. Store transcoded versions
-transcodingservice -down-> metadatadb : 9. Update metadata
+' 定义流程
+user -[#DCDCAA]-> webserver : 1. Upload video
+webserver -[#DCDCAA]-> uploadservice : 2. Process upload
+uploadservice -[#DCDCAA]-> uploadqueue : 3. Queue for processing
+uploadservice -[#DCDCAA]-> originalstorage : 4. Store original
+uploadservice -[#DCDCAA]-> metadatadb : 5. Store metadata
+uploadqueue -[#DCDCAA]-> transcodingservice : 6. Dequeue for transcoding
+transcodingservice -[#DCDCAA]-> transcodedStorage : 7. Store transcoded versions
+transcodingservice -[#DCDCAA]-> metadatadb : 8. Update metadata
 
 ' 添加注释
 note right of transcodingservice
