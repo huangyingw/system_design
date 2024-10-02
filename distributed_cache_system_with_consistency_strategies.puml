@@ -4,6 +4,7 @@ skinparam backgroundColor #EEEBDC
 skinparam handwritten false
 skinparam defaultFontName Arial
 skinparam defaultFontSize 12
+skinparam noteFontSize 13
 skinparam roundcorner 20
 skinparam shadowing false
 allowmixing
@@ -36,6 +37,9 @@ rectangle "Cache Cluster (Redis)" #FFCCBC {
         component "Update on Write" as UW
         component "Versioning" as VS
         component "Async Update" as AU
+        component "Read-Through" as RT
+        component "Write-Through" as WT
+        component "Write-Behind" as WB
     }
 }
 
@@ -81,6 +85,41 @@ end note
 note right of CS
   Ensures data consistency
   across cluster and clients
+end note
+
+note bottom of IC
+  Invalidate: Delete cached item when updated in DB.
+  Pros: Simple. Cons: Can lead to cache misses.
+end note
+
+note bottom of UW
+  Update on Write: Update both cache and DB simultaneously.
+  Pros: Strong consistency. Cons: Higher write latency.
+end note
+
+note bottom of VS
+  Versioning: Use version numbers to track updates.
+  Pros: Detects conflicts. Cons: Requires extra metadata.
+end note
+
+note bottom of AU
+  Async Update: Update cache asynchronously after DB write.
+  Pros: Lower write latency. Cons: Temporary inconsistency.
+end note
+
+note bottom of RT
+  Read-Through: Cache fetches missing items from DB.
+  Pros: Simplifies client logic. Cons: Initial read delay.
+end note
+
+note bottom of WT
+  Write-Through: Write to DB through the cache.
+  Pros: Data safety. Cons: Higher write latency.
+end note
+
+note bottom of WB
+  Write-Behind: Cache acknowledges write, updates DB later.
+  Pros: Faster writes. Cons: Risk of data loss.
 end note
 
 @enduml
