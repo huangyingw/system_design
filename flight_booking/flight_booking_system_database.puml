@@ -17,7 +17,7 @@ skinparam class {
   AttributeIconColor<<shardingKey>> #FF4500
 }
 
-rectangle "用户服务" {
+rectangle "User Service" {
   entity "User [SQL]" as user <<SQL>> {
     * user_id : INT <<PK>> <<shardingKey>>
     --
@@ -29,10 +29,10 @@ rectangle "用户服务" {
     * created_at : DATETIME
     * updated_at : DATETIME
   }
-  note bottom of user : 分片键: user_id
+  note bottom of user : Sharding Key: user_id
 }
 
-rectangle "航班服务" {
+rectangle "Flight Service" {
   entity "Flight [SQL]" as flight <<SQL>> {
     * flight_id : INT <<PK>>
     --
@@ -49,10 +49,10 @@ rectangle "航班服务" {
     * created_at : DATETIME
     * updated_at : DATETIME
   }
-  note bottom of flight : 分片键: departure_date
+  note bottom of flight : Sharding Key: departure_date
 }
 
-rectangle "预订服务" {
+rectangle "Booking Service" {
   entity "Booking [NoSQL]" as booking <<NoSQL>> {
     * booking_id : STRING <<PK>> <<shardingKey>>
     --
@@ -64,10 +64,10 @@ rectangle "预订服务" {
     * created_at : DATETIME
     * updated_at : DATETIME
   }
-  note bottom of booking : 分片键: user_id + booking_id（复合键）
+  note bottom of booking : Sharding Key: user_id + booking_id (Composite Key)
 }
 
-rectangle "支付服务" {
+rectangle "Payment Service" {
   entity "Payment [SQL]" as payment <<SQL>> {
     * payment_id : INT <<PK>>
     --
@@ -82,7 +82,7 @@ rectangle "支付服务" {
   }
 }
 
-rectangle "通知服务" {
+rectangle "Notification Service" {
   entity "Notification [NoSQL]" as notification <<NoSQL>> {
     * notification_id : STRING <<PK>>
     --
@@ -94,10 +94,10 @@ rectangle "通知服务" {
     * created_at : DATETIME
     * updated_at : DATETIME
   }
-  note bottom of notification : 分片键: user_id
+  note bottom of notification : Sharding Key: user_id
 }
 
-rectangle "缓存服务" {
+rectangle "Cache Service" {
   entity "Cache [Redis]" as cache <<NoSQL>> {
     * key : STRING <<PK>>
     * value : BLOB
@@ -105,7 +105,7 @@ rectangle "缓存服务" {
     --
     * created_at : DATETIME
   }
-  note bottom of cache : 键格式: entity:id:field\n例如: user:1234:profile
+  note bottom of cache : Key format: entity:id:field\nExample: user:1234:profile
 }
 
 user ||--o{ booking : "has"
