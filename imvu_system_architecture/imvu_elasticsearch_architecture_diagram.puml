@@ -8,31 +8,31 @@ component "Beats" as Beats
 
 component "Apache Kafka" as Kafka {
     note right of Kafka
-      实时数据流处理
-      高吞吐量数据传输
-      连接数据源和目标
+      Real-time data stream processing
+      High-throughput data transfer
+      Connecting data sources and targets
     end note
 }
 component "Apache Spark" as Spark {
     note right of Spark
-      数据处理和分析
-      批处理和流处理能力
-      大规模数据集处理
+      Data processing and analysis
+      Batch and stream processing capabilities
+      Large-scale dataset processing
     end note
 }
 
 component "TensorFlow" as TensorFlow {
     note right of TensorFlow
-      深度学习和机器学习库
-      图像识别、自然语言处理
-      推荐系统、异常检测
+      Deep learning and machine learning library
+      Image recognition, natural language processing
+      Recommendation systems, anomaly detection
     end note
 }
 component "Elasticsearch SQL" as ESSQL {
     note right of ESSQL
-      使用SQL查询Elasticsearch
-      日志分析、商业智能报告
-      安全分析、实时监控
+      Use SQL to query Elasticsearch
+      Log analysis, business intelligence reporting
+      Security analysis, real-time monitoring
     end note
 }
 component "Kibana" as Kibana
