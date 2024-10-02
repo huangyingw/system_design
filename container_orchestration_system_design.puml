@@ -7,119 +7,118 @@ skinparam defaultFontSize 12
 skinparam roundcorner 20
 skinparam shadowing true
 
+title Container Orchestration System Design (Based on Kubernetes)
 
-title 容器编排系统设计 (基于Kubernetes)
-
-' 用户交互
-RECTANGLE "用户交互" as UserInteraction {
-    [kubectl CLI]
-    [Web UI]
-    [API客户端]
+' User Interaction
+rectangle "User Interaction" as UserInteraction {
+    component "kubectl CLI"
+    component "Web UI"
+    component "API Client"
 }
 
-' 控制平面
-RECTANGLE "控制平面" as ControlPlane {
-    RECTANGLE "API服务器" as APIServer {
-        [认证]
-        [授权]
-        [准入控制]
+' Control Plane
+rectangle "Control Plane" as ControlPlane {
+    rectangle "API Server" as APIServer {
+        component "Authentication"
+        component "Authorization"
+        component "Admission Control"
     }
-    RECTANGLE "调度器" as Scheduler {
-        [节点选择]
-        [资源分配]
+    rectangle "Scheduler" as Scheduler {
+        component "Node Selection"
+        component "Resource Allocation"
     }
-    RECTANGLE "控制器管理器" as ControllerManager {
-        [副本控制器]
-        [节点控制器]
-        [服务控制器]
+    rectangle "Controller Manager" as ControllerManager {
+        component "Replication Controller"
+        component "Node Controller"
+        component "Service Controller"
     }
     database "etcd" as ETCD {
-        [集群状态]
-        [配置数据]
+        component "Cluster State"
+        component "Configuration Data"
     }
 }
 
-' 工作节点
-RECTANGLE "工作节点" as WorkerNodes {
-    RECTANGLE "节点1" as Node1 {
-        [kubelet]
-        [容器运行时]
-        [kube-proxy]
+' Worker Nodes
+rectangle "Worker Nodes" as WorkerNodes {
+    rectangle "Node 1" as Node1 {
+        component "kubelet"
+        component "Container Runtime"
+        component "kube-proxy"
     }
-    RECTANGLE "节点2" as Node2 {
-        [kubelet]
-        [容器运行时]
-        [kube-proxy]
+    rectangle "Node 2" as Node2 {
+        component "kubelet"
+        component "Container Runtime"
+        component "kube-proxy"
     }
-    RECTANGLE "节点N" as NodeN {
-        [kubelet]
-        [容器运行时]
-        [kube-proxy]
+    rectangle "Node N" as NodeN {
+        component "kubelet"
+        component "Container Runtime"
+        component "kube-proxy"
     }
 }
 
-' 网络
-RECTANGLE "网络" as Networking {
-    [CNI插件]
-    [服务网络]
-    [Pod网络]
+' Networking
+rectangle "Networking" as Networking {
+    component "CNI Plugin"
+    component "Service Network"
+    component "Pod Network"
 }
 
-' 存储
-RECTANGLE "存储" as Storage {
-    [CSI插件]
-    [持久卷]
-    [存储类]
+' Storage
+rectangle "Storage" as Storage {
+    component "CSI Plugin"
+    component "Persistent Volumes"
+    component "Storage Classes"
 }
 
-' 监控和日志
-RECTANGLE "监控和日志" as Monitoring {
-    [Prometheus]
-    [Grafana]
-    [ELK Stack]
+' Monitoring and Logging
+rectangle "Monitoring and Logging" as Monitoring {
+    component "Prometheus"
+    component "Grafana"
+    component "ELK Stack"
 }
 
-' 安全
-RECTANGLE "安全" as Security {
-    [RBAC]
-    [网络策略]
-    [Secret管理]
+' Security
+rectangle "Security" as Security {
+    component "RBAC"
+    component "Network Policies"
+    component "Secret Management"
 }
 
-' 连接关系
-UserInteraction -down-> APIServer : 请求
-APIServer <-right-> ETCD : 读写状态
-Scheduler -up-> APIServer : 监听/更新
-ControllerManager -up-> APIServer : 监听/更新
-APIServer -down-> WorkerNodes : 管理
-Networking -up-> WorkerNodes : 提供网络
-Storage -up-> WorkerNodes : 提供存储
-Monitoring -up-> ControlPlane : 监控
-Monitoring -up-> WorkerNodes : 监控
-Security -up-> ControlPlane : 保护
-Security -up-> WorkerNodes : 保护
+' Connections
+UserInteraction -down-> APIServer : Request
+APIServer <-right-> ETCD : Read/Write State
+Scheduler -up-> APIServer : Listen/Update
+ControllerManager -up-> APIServer : Listen/Update
+APIServer -down-> WorkerNodes : Manage
+Networking -up-> WorkerNodes : Provide Network
+Storage -up-> WorkerNodes : Provide Storage
+Monitoring -up-> ControlPlane : Monitor
+Monitoring -up-> WorkerNodes : Monitor
+Security -up-> ControlPlane : Protect
+Security -up-> WorkerNodes : Protect
 
 note right of ControlPlane
-  控制平面职责:
-  1. API服务器: 集群的统一入口
-  2. 调度器: 决定Pod部署位置
-  3. 控制器: 维护期望状态
-  4. etcd: 存储集群状态和配置
+  Control Plane Responsibilities:
+  1. API Server: Unified entry point for the cluster
+  2. Scheduler: Decides Pod deployment location
+  3. Controller: Maintains desired state
+  4. etcd: Stores cluster state and configuration
 end note
 
 note left of WorkerNodes
-  工作节点组件:
-  1. kubelet: 管理节点上的容器
-  2. 容器运行时: 运行容器 (如Docker)
-  3. kube-proxy: 管理网络规则
+  Worker Node Components:
+  1. kubelet: Manages containers on the node
+  2. Container Runtime: Runs containers (e.g., Docker)
+  3. kube-proxy: Manages network rules
 end note
 
 note bottom of Networking
-  网络功能:
-  1. Pod间通信
-  2. Service抽象
-  3. 负载均衡
-  4. 网络策略
+  Network Functions:
+  1. Pod-to-Pod communication
+  2. Service abstraction
+  3. Load balancing
+  4. Network policies
 end note
 
 @enduml
