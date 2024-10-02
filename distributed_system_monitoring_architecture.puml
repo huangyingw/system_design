@@ -1,7 +1,5 @@
 @startuml Distributed System Monitoring Architecture
 
-!define RECTANGLE class
-
 skinparam backgroundColor #FAFAFA
 skinparam handwritten false
 skinparam defaultFontName Arial
@@ -13,42 +11,42 @@ allowmixing
 title Distributed System Monitoring Architecture
 
 ' 监控代理
-RECTANGLE "Monitoring Agent" as Agent {
-    [Metric Collector]
-    [Log Collector]
-    [Health Checker]
+rectangle "Monitoring Agent" as Agent #4EC9B0 {
+    component "Metric Collector" #9CDCFE
+    component "Log Collector" #9CDCFE
+    component "Health Checker" #9CDCFE
 }
 
 ' 数据收集和传输
-queue "Message Queue" as MQ
-RECTANGLE "Data Ingestion Service" as Ingestion
+queue "Message Queue" as MQ #DCDCAA
+component "Data Ingestion Service" as Ingestion #FF6B6B
 
 ' 数据存储
-database "Time Series DB\n(Metrics)" as TSDB #lightblue
-database "Log Storage\n(Event Logs)" as LogDB #lightgreen
+database "Time Series DB\n(Metrics)" as TSDB #CE9178
+database "Log Storage\n(Event Logs)" as LogDB #CE9178
 
 ' 数据处理和分析
-RECTANGLE "Data Processing" as Processing {
-    [Stream Processing]
-    [Batch Processing]
-    [Log Analyzer]
-    [Metric Analyzer]
+rectangle "Data Processing" as Processing #4EC9B0 {
+    component "Stream Processing" #9CDCFE
+    component "Batch Processing" #9CDCFE
+    component "Log Analyzer" #9CDCFE
+    component "Metric Analyzer" #9CDCFE
 }
 
 ' 告警系统
-RECTANGLE "Alert Manager" as AlertManager {
-    [Rule Engine]
-    [Notification Service]
+rectangle "Alert Manager" as AlertManager #FF6B6B {
+    component "Rule Engine" #9CDCFE
+    component "Notification Service" #9CDCFE
 }
 
 ' 可视化
-RECTANGLE "Visualization" as Viz {
-    [Dashboard]
-    [Report Generator]
+rectangle "Visualization" as Viz #4EC9B0 {
+    component "Dashboard" #9CDCFE
+    component "Report Generator" #9CDCFE
 }
 
 ' API网关
-RECTANGLE "API Gateway" as Gateway
+rectangle "API Gateway" as Gateway
 
 ' 用户界面
 actor "Admin/User" as User
