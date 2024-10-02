@@ -2,57 +2,57 @@
 skinparam backgroundColor #FFFAF0
 skinparam linetype ortho
 
-|#E6E6FA|数据分析层|
+|#E6E6FA|Data Analysis Layer|
 start
-:分析查询日志;
-:了解业务需求;
+:Analyze query logs;
+:Understand business requirements;
 
-|#FFE4E1|性能监控|
-if (有性能监控工具?) then (是)
-  :使用性能监控工具;
-else (否)
-  :考虑引入监控工具;
+|#FFE4E1|Performance Monitoring|
+if (Have performance monitoring tools?) then (Yes)
+  :Use performance monitoring tools;
+else (No)
+  :Consider introducing monitoring tools;
 endif
 
-|#E6E6FA|优化分析层|
+|#E6E6FA|Optimization Analysis Layer|
 fork
-  :回顾历史优化措施;
+  :Review historical optimization measures;
 fork again
-  :应用程序代码审查;
+  :Application code review;
 end fork
 
 fork
-  :收集用户反馈和数据;
+  :Collect user feedback and data;
 fork again
-  :综合分析查询模式;
+  :Comprehensive analysis of query patterns;
 end fork
 
-|#98FB98|查询优化层|
-:确定常见查询类型;
+|#98FB98|Query Optimization Layer|
+:Identify common query types;
 note right
-  示例SQL查询：
+  Example SQL query:
   SELECT * FROM orders 
   WHERE customer_id = ? 
   AND order_date BETWEEN ? AND ?;
 end note
 
-|#FFD700|架构设计层|
-:基于查询模式选择分片键;
+|#FFD700|Architecture Design Layer|
+:Choose shard key based on query patterns;
 note right
-  选择 customer_id 和 order_date 
-  作为复合分片键
+  Select customer_id and order_date 
+  as composite shard key
 end note
 
-:设计分片架构;
+:Design sharding architecture;
 note right
-  - NoSQL: 设置分片规则
-  - RDBMS: 配置分片中间件
+  - NoSQL: Set up sharding rules
+  - RDBMS: Configure sharding middleware
 end note
 
-|#FF6347|性能评估层|
-:进行负载测试;
-:识别潜在瓶颈;
-:制定扩展策略;
+|#FF6347|Performance Evaluation Layer|
+:Conduct load testing;
+:Identify potential bottlenecks;
+:Develop scaling strategies;
 
 stop
 @enduml
