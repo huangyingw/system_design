@@ -1,82 +1,94 @@
 @startuml YouTube_Video_Playback_Architecture
+!pragma layout smetana
+allowmixing
 
-' 设置整体主题
-skinparam backgroundColor #1E1E1E
+skinparam backgroundColor #F0F0F0
 skinparam defaultFontName Arial
 skinparam defaultFontSize 12
-skinparam defaultFontColor #FFFFFF
+skinparam defaultFontColor #333333
 skinparam padding 5
 skinparam roundCorner 10
+skinparam ArrowColor #0066CC
+skinparam ArrowThickness 2
+skinparam linetype ortho
 
-' 定制组件样式
+' 增加组件边框的可见度
+skinparam rectangle {
+    BorderColor #555555
+    BorderThickness 2
+}
 skinparam component {
-  BackgroundColor #2C2C2C
-  BorderColor #4EC9B0
-  FontColor #FFFFFF
+    BorderColor #555555
+    BorderThickness 2
+    BackgroundColor #E1F5FE
 }
-
-' 定制数据库样式
 skinparam database {
-  BackgroundColor #2C2C2C
-  BorderColor #FF6B6B
-  FontColor #FFFFFF
+    BorderColor #555555
+    BorderThickness 2
+    BackgroundColor #FFCDD2
 }
 
-' 定制接口样式
-skinparam interface {
-  BackgroundColor #2C2C2C
-  BorderColor #4EC9B0
-  FontColor #FFFFFF
+' Components
+rectangle "Client Side" as ClientSide {
+    component "User Interface" as UI
+    component "Video Player" as VideoPlayer
 }
 
-' 定制箭头样式
-skinparam arrow {
-  Color #DCDCAA
-  FontColor #FFFFFF
-  Thickness 1.5
+rectangle "Content Delivery" as ContentDelivery {
+    component "CDN" as CDN
+    component "Edge Servers" as EdgeServers
 }
 
-' 定制注释样式
-skinparam note {
-  BackgroundColor #252526
-  BorderColor #CE9178
-  FontColor #FFFFFF
+rectangle "Backend Services" as BackendServices {
+    component "Streaming Server" as StreamingServer
+    component "Analytics Service" as AnalyticsService
+    component "Recommendation Engine" as RecommendationEngine
 }
 
-' 定义主要组件
-actor "User" as user #9CDCFE
-component "Video Player" as videoplayer
-component "CDN" as cdn
-database "Video Storage" as videostorage
-component "Streaming Server" as streamingserver
-database "User Preferences DB" as userprefsdb
-component "Analytics Service" as analyticsservice
+rectangle "Data Storage" as DataStorage {
+    database "Video Storage" as VideoStorage
+    database "User Preferences DB" as UserPrefsDB
+    database "Analytics DB" as AnalyticsDB
+}
 
-' 定义关系
-user -> videoplayer : 1. Request video
-videoplayer -> cdn : 2. Request video chunks
-cdn -> videostorage : 3. Fetch video data
-videostorage -> cdn : 4. Return video data
-cdn -> videoplayer : 5. Stream video chunks
-videoplayer -> streamingserver : 6. Request adaptive bitrate
-streamingserver -> videoplayer : 7. Provide optimal bitrate
-videoplayer -> userprefsdb : 8. Update watch history
-videoplayer -> analyticsservice : 9. Send playback analytics
+actor "User" as User
 
-' 添加注释
-note right of cdn
-  Distributed globally for
+' Connections
+User -right-> UI : <color:#0066CC>1. Interact</color>
+UI -right-> VideoPlayer : <color:#0066CC>2. Request video</color>
+VideoPlayer -right-> CDN : <color:#0066CC>3. Request video chunks</color>
+CDN -right-> EdgeServers : <color:#0066CC>4. Fetch from nearest</color>
+EdgeServers -down-> VideoStorage : <color:#0066CC>5. Retrieve video data</color>
+VideoStorage -up-> EdgeServers : <color:#0066CC>6. Return video data</color>
+EdgeServers -left-> CDN : <color:#0066CC>7. Cache and return</color>
+CDN -left-> VideoPlayer : <color:#0066CC>8. Stream video chunks</color>
+VideoPlayer -down-> StreamingServer : <color:#0066CC>9. Request adaptive bitrate</color>
+StreamingServer -up-> VideoPlayer : <color:#0066CC>10. Provide optimal bitrate</color>
+VideoPlayer -down-> UserPrefsDB : <color:#0066CC>11. Update watch history</color>
+VideoPlayer -down-> AnalyticsService : <color:#0066CC>12. Send playback analytics</color>
+AnalyticsService -right-> AnalyticsDB : <color:#0066CC>13. Store analytics data</color>
+UI -down-> RecommendationEngine : <color:#0066CC>14. Get recommendations</color>
+RecommendationEngine -up-> UI : <color:#0066CC>15. Provide recommendations</color>
+
+' Notes
+note right of CDN #E0E0E0
+  Globally distributed for
   low-latency content delivery
 end note
 
-note right of streamingserver
+note bottom of StreamingServer #E0E0E0
   Handles adaptive bitrate streaming
   for optimal viewing experience
 end note
 
-note right of analyticsservice
-  Collects and processes user
-  engagement and performance metrics
+note bottom of AnalyticsService #E0E0E0
+  Processes user engagement
+  and performance metrics
+end note
+
+note bottom of RecommendationEngine #E0E0E0
+  Suggests videos based on
+  user history and preferences
 end note
 
 @enduml
