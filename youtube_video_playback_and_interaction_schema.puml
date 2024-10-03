@@ -52,25 +52,31 @@ component "Streaming Server" as streamingserver
 database "User Preferences DB" as userprefsdb
 component "Analytics Service" as analyticsservice
 
-' 定义交互流程
-user -down-> videoplayer : 1. Request video
-videoplayer -right-> cdn : 2. Request content
-cdn -down-> videostorage : 3. Fetch if not cached
-cdn -left-> videoplayer : 4. Deliver content
-videoplayer -down-> streamingserver : 5. Request stream
-streamingserver -left-> userprefsdb : 6. Check user preferences
-streamingserver -up-> videoplayer : 7. Adaptive streaming
-videoplayer -right-> analyticsservice : 8. Send playback data
+' 定义关系
+user -> videoplayer : 1. Request video
+videoplayer -> cdn : 2. Request video chunks
+cdn -> videostorage : 3. Fetch video data
+videostorage -> cdn : 4. Return video data
+cdn -> videoplayer : 5. Stream video chunks
+videoplayer -> streamingserver : 6. Request adaptive bitrate
+streamingserver -> videoplayer : 7. Provide optimal bitrate
+videoplayer -> userprefsdb : 8. Update watch history
+videoplayer -> analyticsservice : 9. Send playback analytics
 
 ' 添加注释
 note right of cdn
-  Caches popular content
-  for faster delivery
+  Distributed globally for
+  low-latency content delivery
 end note
 
-note bottom of streamingserver
-  Provides adaptive bitrate streaming
-  based on user's connection
+note right of streamingserver
+  Handles adaptive bitrate streaming
+  for optimal viewing experience
+end note
+
+note right of analyticsservice
+  Collects and processes user
+  engagement and performance metrics
 end note
 
 @enduml
