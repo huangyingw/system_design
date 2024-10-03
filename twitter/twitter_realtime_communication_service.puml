@@ -37,10 +37,10 @@ MP -right-> WSS : Delivers Message
 WSS -right-> ClientB : Receives Message
 
 note right of CS
-  **性能优化**:
-  - 使用消息队列处理高并发消息
-  - 优化WebSocket服务器性能
-  - 使用Redis存储用户状态
+  **Performance Optimization**:
+  - Use message queue for high concurrency
+  - Optimize WebSocket server performance
+  - Use Redis for user status storage
 end note
 
 @enduml
