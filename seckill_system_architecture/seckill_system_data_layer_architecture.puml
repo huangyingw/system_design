@@ -1,0 +1,88 @@
+@startuml Seckill System Data Layer Architecture
+!pragma layout smetana
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam roundcorner 20
+skinparam shadowing false
+
+title Seckill System Data Layer Architecture
+
+rectangle "Data Access Layer" as DataAccessLayer #FFB6C1 {
+    component "ORM" as ORM
+    component "Connection Pool" as ConnectionPool
+    component "Query Optimizer" as QueryOptimizer
+    component "Transaction Manager" as TransactionManager
+}
+
+rectangle "Database Sharding" as DatabaseSharding #FFB6C1 {
+    component "Shard 1" as Shard1
+    component "Shard 2" as Shard2
+    component "Shard 3" as Shard3
+}
+
+rectangle "Database Optimization" as DatabaseOptimization #FFB6C1 {
+    component "Indexing" as Indexing
+    component "Query Optimization" as QueryOpt
+    component "Data Partitioning" as DataPartitioning
+}
+
+rectangle "Cache" as Cache #00FFFF {
+    component "Redis" as Redis
+    component "Memcached" as Memcached
+}
+
+rectangle "Persistent Storage" as PersistentStorage #90EE90 {
+    database "Master DB" as MasterDB
+    database "Slave DB 1" as SlaveDB1
+    database "Slave DB 2" as SlaveDB2
+}
+
+rectangle "Data Consistency" as DataConsistency #FFA07A {
+    component "Distributed Transactions" as DistributedTransactions
+    component "Eventual Consistency" as EventualConsistency
+}
+
+rectangle "Backup & Recovery" as BackupRecovery #98FB98 {
+    component "Regular Backups" as RegularBackups
+    component "Point-in-Time Recovery" as PITRecovery
+}
+
+DataAccessLayer --> DatabaseSharding : Manages
+DataAccessLayer --> Cache : Utilizes
+DataAccessLayer --> PersistentStorage : Persists
+DatabaseOptimization --> DatabaseSharding : Optimizes
+DataConsistency --> PersistentStorage : Ensures
+BackupRecovery --> PersistentStorage : Protects
+
+note right of DataAccessLayer
+  Handles data access operations,
+  connection pooling, and query optimization
+end note
+
+note right of DatabaseSharding
+  Distributes data across multiple
+  database instances for scalability
+end note
+
+note right of Cache
+  Improves read performance
+  by caching frequently accessed data
+end note
+
+note right of PersistentStorage
+  Ensures data durability with
+  master-slave replication
+end note
+
+note right of DataConsistency
+  Manages data consistency across
+  distributed database instances
+end note
+
+note right of BackupRecovery
+  Implements regular backups and
+  point-in-time recovery mechanisms
+end note
+
+@enduml
