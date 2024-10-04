@@ -28,147 +28,56 @@ skinparam sequence {
     ActorFontName Arial
 }
 
-skinparam database {
-    BorderColor #27AE60
-    BackgroundColor #D5F5E3
-    FontColor #2C3E50
-}
+actor "User A" as UserA
+actor "User B" as UserB
+participant "Client A" as ClientA
+participant "Client B" as ClientB
+participant "WebSocket Server" as WSS
+participant "Operational Transform Engine" as OTE
+participant "Conflict Resolution" as CR
+participant "Document Service" as DS
+database "Document DB" as DB
 
-skinparam queue {
-    BorderColor #8E44AD
-    BackgroundColor #E8DAEF
-    FontColor #2C3E50
-}
+UserA -> ClientA: Edit document
+activate ClientA
 
-actor "User A" as UserA #85C1E9
-actor "User B" as UserB #85C1E9
-participant "Frontend A" as FrontendA
-participant "Frontend B" as FrontendB
-participant "API Gateway" as Gateway
-participant "Collaboration\nService" as CollabService
-participant "Document\nService" as DocService
-database "Document DB" as DocDB
-queue "Message Queue" as MQ
-participant "Notification\nService" as NotifyService
+ClientA -> ClientA: Generate local change
+ClientA -> WSS: Send change
+activate WSS
 
-== Document Opening ==
-UserA -> FrontendA: Open document
-activate FrontendA
-FrontendA -> Gateway: Request document
-activate Gateway
-Gateway -> DocService: Fetch document
-activate DocService
-DocService -> DocDB: Retrieve document
-activate DocDB
-DocDB --> DocService: Document data
-deactivate DocDB
-DocService --> Gateway: Document data
-deactivate DocService
-Gateway --> FrontendA: Document data
-deactivate Gateway
-FrontendA --> UserA: Display document
-deactivate FrontendA
+WSS -> OTE: Apply operational transform
+activate OTE
 
-UserB -> FrontendB: Open same document
-activate FrontendB
-FrontendB -> Gateway: Request document
-activate Gateway
-Gateway -> DocService: Fetch document
-activate DocService
-DocService -> DocDB: Retrieve document
-activate DocDB
-DocDB --> DocService: Document data
-deactivate DocDB
-DocService --> Gateway: Document data
-deactivate DocService
-Gateway --> FrontendB: Document data
-deactivate Gateway
-FrontendB --> UserB: Display document
-deactivate FrontendB
+OTE -> CR: Check for conflicts
+activate CR
 
-== Real-time Editing ==
-UserA -> FrontendA: Make changes
-activate FrontendA
-FrontendA -> Gateway: Send changes
-activate Gateway
-Gateway -> CollabService: Process changes
-activate CollabService
-CollabService -> DocService: Update document
-activate DocService
-DocService -> DocDB: Save changes
-activate DocDB
-deactivate DocDB
-CollabService -> MQ: Broadcast changes
-activate MQ
-deactivate CollabService
+CR -> DS: Fetch latest document state
+activate DS
 
-MQ -> NotifyService: Notify of changes
-activate NotifyService
-NotifyService -> Gateway: Push update
-Gateway --> FrontendB: Receive update
-deactivate Gateway
-FrontendB --> UserB: Display updated content
-deactivate NotifyService
-deactivate MQ
+DS -> DB: Read document
+activate DB
+DB --> DS: Return document
+deactivate DB
 
-== Conflict Resolution ==
-UserB -> FrontendB: Make conflicting changes
-activate FrontendB
-FrontendB -> Gateway: Send changes
-activate Gateway
-Gateway -> CollabService: Process changes
-activate CollabService
-CollabService -> CollabService: Detect conflict
-CollabService -> CollabService: Resolve conflict
-CollabService -> DocService: Update document
-activate DocService
-DocService -> DocDB: Save merged changes
-activate DocDB
-deactivate DocDB
-CollabService -> MQ: Broadcast resolved changes
-activate MQ
-deactivate CollabService
+DS --> CR: Return latest state
+deactivate DS
 
-MQ -> NotifyService: Notify of resolved changes
-activate NotifyService
-NotifyService -> Gateway: Push update
-Gateway --> FrontendA: Receive update
-Gateway --> FrontendB: Receive update
-deactivate Gateway
-FrontendA --> UserA: Display merged content
-FrontendB --> UserB: Display merged content
-deactivate NotifyService
-deactivate MQ
+CR -> CR: Resolve conflicts (if any)
+CR --> OTE: Return resolved change
+deactivate CR
 
-== Offline Editing ==
-UserA -> FrontendA: Go offline
-UserA -> FrontendA: Make offline changes
-UserA -> FrontendA: Come back online
-activate FrontendA
-FrontendA -> Gateway: Sync offline changes
-activate Gateway
-Gateway -> CollabService: Process offline changes
-activate CollabService
-CollabService -> CollabService: Merge with latest version
-CollabService -> DocService: Update document
-activate DocService
-DocService -> DocDB: Save merged changes
-activate DocDB
-deactivate DocDB
-CollabService -> MQ: Broadcast merged changes
-activate MQ
-deactivate CollabService
+OTE -> WSS: Return transformed change
+deactivate OTE
 
-MQ -> NotifyService: Notify of merged changes
-activate NotifyService
-NotifyService -> Gateway: Push update
-Gateway --> FrontendA: Confirm sync
-Gateway --> FrontendB: Receive update
-deactivate Gateway
-FrontendA --> UserA: Display synced content
-deactivate FrontendA
-FrontendB --> UserB: Display updated content
-deactivate NotifyService
-deactivate MQ
+WSS -> ClientB: Broadcast change to other clients
+WSS -> ClientA: Acknowledge change
+deactivate WSS
+
+ClientA -> ClientA: Apply change locally
+ClientA --> UserA: Update UI
+deactivate ClientA
+
+ClientB -> ClientB: Apply received change
+ClientB -> UserB: Update UI
 
 @enduml
