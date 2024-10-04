@@ -5,8 +5,8 @@ skinparam defaultFontName Arial
 skinparam defaultFontSize 24
 skinparam roundcorner 8
 skinparam shadowing false
-skinparam padding 15
-skinparam componentPadding 25
+skinparam padding 10
+skinparam componentPadding 10
 skinparam ArrowColor #666666
 skinparam ArrowFontColor #333333
 skinparam ArrowFontSize 20
@@ -24,6 +24,7 @@ rectangle "Entry Layer" as EntryLayer #FFCCBC {
     component "CDN" as CDN
     component "Load Balancer" as LoadBalancer
     component "API Gateway" as APIGateway
+    component "Traffic Control" as TrafficControl
 }
 
 rectangle "Security Layer" as SecurityLayer #FFE0B2 {
@@ -40,26 +41,43 @@ rectangle "Service Layer" as ServiceLayer #E8F5E9 {
     component "Payment Service" as PaymentService
 }
 
+note right of ServiceLayer
+  Seckill-specific optimizations:
+  - Implement in-memory counters for real-time inventory tracking
+  - Use optimistic locking for order creation
+  - Employ request merging for batch processing
+  - Implement circuit breakers to prevent cascading failures
+end note
+
 rectangle "Cache Layer" as CacheLayer #E0F7FA {
     component "Redis Cluster" as RedisCluster
     component "Local Cache" as LocalCache
+    component "Inventory Counter" as InventoryCounter
 }
 
 rectangle "Message Queue" as MessageQueue #F3E5F5 {
     component "Kafka Cluster" as KafkaCluster
+    component "RocketMQ" as RocketMQ
 }
 
 rectangle "Async Processing" as AsyncProcessing #DCEDC8 {
     component "Order Processor" as OrderProcessor
     component "Inventory Updater" as InventoryUpdater
     component "Payment Processor" as PaymentProcessor
+    component "Result Notifier" as ResultNotifier
 }
 
 rectangle "Data Layer" as DataLayer #FFF3E0 {
     component "Master DB" as MasterDB
     component "Read Replicas" as ReadReplicas
     component "Sharding Proxy" as ShardingProxy
+    component "Write Buffer" as WriteBuffer
 }
+
+note bottom of DataLayer
+  DB optimizations for high concurrency:
+  - Write-behind caching with
+end note
 
 rectangle "Monitoring & Logging" as MonitoringLogging #ECEFF1 {
     component "ELK Stack" as ELKStack
@@ -97,17 +115,17 @@ note right of SecurityLayer
 end note
 
 note right of CacheLayer
-  Distributed cache for high performance:
-  - Product inventory
-  - User session data
-  - Order status
+  Optimize inventory management:
+  - Pre-warm inventory data in Redis
+  - Use Lua scripts for atomic inventory deduction
+  - Implement distributed locks for concurrency control
 end note
 
 note bottom of AsyncProcessing
-  Scalable workers for high-volume tasks:
-  - Order confirmation
-  - Inventory updates
-  - Payment processing
+  Enhance async processing:
+  - Implement multi-level queues for order processing
+  - Use separate queues for different stages (create, pay, notify)
+  - Implement retry mechanisms with exponential backoff
 end note
 
 note bottom of DataLayer #FFEB3B
@@ -118,6 +136,25 @@ note bottom of DataLayer #FFEB3B
   - Implement multi-master replication
   - Optimize sharding strategy
   - Consider NoSQL solutions for specific data
+end note
+
+note right of EntryLayer
+  Implement aggressive traffic shaping:
+  - Token bucket for rate limiting
+  - Request queuing and prioritization
+  - Dynamic throttling based on system load
+end note
+
+rectangle "Global Control" as GlobalControl #FFECB3 {
+    component "Traffic Orchestrator" as TrafficOrchestrator
+    component "System Monitor" as SystemMonitor
+}
+
+note right of GlobalControl
+  Implement global traffic control:
+  - Dynamic adjustment of traffic based on system health
+  - Gradual increase of allowed traffic to prevent sudden spikes
+  - Real-time monitoring and automatic intervention
 end note
 
 @enduml
