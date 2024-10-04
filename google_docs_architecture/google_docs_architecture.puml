@@ -1,60 +1,35 @@
-@startuml Google Docs System Architecture
+@startuml Google Docs Architecture
 
-!define RECTANGLE class
-
-skinparam backgroundColor #F0F8FF
-skinparam handwritten false
-skinparam monochrome false
-skinparam shadowing false
+skinparam backgroundColor #F5F5F5
 skinparam defaultFontName Arial
 skinparam defaultFontSize 12
-skinparam arrow {
-    Color #4A4A4A
-    FontColor #4A4A4A
-}
+skinparam titleFontSize 18
+skinparam titleFontColor #333333
+skinparam padding 5
+skinparam roundCorner 10
 
-skinparam rectangle {
-    BackgroundColor #E6F3FF
-    BorderColor #4A4A4A
-    FontColor #4A4A4A
-}
+title Google Docs Architecture
 
-skinparam database {
-    BackgroundColor #FFE6CC
-    BorderColor #4A4A4A
-    FontColor #4A4A4A
-}
-
-skinparam queue {
-    BackgroundColor #E6FFCC
-    BorderColor #4A4A4A
-    FontColor #4A4A4A
-}
-
-skinparam cloud {
-    BackgroundColor #F2E6FF
-    BorderColor #4A4A4A
-    FontColor #4A4A4A
-}
-
-rectangle "Frontend" {
+rectangle "Client Side" as ClientSide {
     [Web UI]
     [Mobile App]
     [Desktop App]
 }
 
-rectangle "API Gateway" {
-    [Load Balancer]
-    [Rate Limiter]
-    [API Versioning]
-}
+rectangle "Load Balancer" as LB
 
-rectangle "Backend Services" {
+rectangle "Application Layer" {
     [Authentication Service]
     [Document Service]
     [Collaboration Service]
     [Search Service]
     [Notification Service]
+    [Version Control Service]
+}
+
+rectangle "Real-time Collaboration" as RTC {
+    [Operational Transform Engine]
+    [WebSocket Server]
 }
 
 rectangle "Data Storage" {
@@ -70,7 +45,6 @@ rectangle "Data Storage" {
     
     database "Redis Cache" {
         [Session Data]
-        note right: Key: session_id
         [Document Cache]
         note right: Key: doc_id:version
     }
@@ -85,35 +59,20 @@ cloud "External Services" {
     [Analytics Service]
 }
 
-[Web UI] --> [Load Balancer]
-[Mobile App] --> [Load Balancer]
-[Desktop App] --> [Load Balancer]
+ClientSide -[#4CAF50,thickness=2]-> LB : <color:#4CAF50>1. HTTPS</color>
+LB -[#2196F3,thickness=2]-> [Authentication Service] : <color:#2196F3>2. Auth</color>
+LB -[#FF5722,thickness=2]-> [Document Service] : <color:#FF5722>3. Doc Ops</color>
+[Document Service] -[#9C27B0,thickness=2]-> RTC : <color:#9C27B0>4. Real-time Updates</color>
+[Document Service] -[#795548,thickness=2]-> [Document Data] : <color:#795548>5. CRUD</color>
+[Document Service] -[#FFC107,thickness=2]-> [Document Cache] : <color:#FFC107>6. Cache</color>
+[Collaboration Service] -[#00BCD4,thickness=2]-> [WebSocket Server] : <color:#00BCD4>7. Sync</color>
+[Notification Service] -[#607D8B,thickness=2]-> [RabbitMQ] : <color:#607D8B>8. Queue</color>
+[RabbitMQ] -[#8BC34A,thickness=2]-> [Email Service] : <color:#8BC34A>9. Send</color>
 
-[Load Balancer] --> [Rate Limiter]
-[Rate Limiter] --> [API Versioning]
-
-[API Versioning] --> [Authentication Service]
-[API Versioning] --> [Document Service]
-[API Versioning] --> [Collaboration Service]
-[API Versioning] --> [Search Service]
-[API Versioning] --> [Notification Service]
-
-[Authentication Service] --> [User Data]
-[Authentication Service] --> [Session Data]
-
-[Document Service] --> [Document Data]
-[Document Service] --> [Document Cache]
-[Document Service] --> [RabbitMQ]
-
-[Collaboration Service] --> [Document Data]
-[Collaboration Service] --> [Document Cache]
-[Collaboration Service] --> [RabbitMQ]
-
-[Search Service] --> [Document Data]
-
-[Notification Service] --> [RabbitMQ]
-[Notification Service] --> [Email Service]
-
-[RabbitMQ] --> [Analytics Service]
+note right of RTC
+  Ensures consistency and
+  real-time collaboration
+  across multiple users
+end note
 
 @enduml
