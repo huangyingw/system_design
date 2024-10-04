@@ -1,0 +1,51 @@
+@startuml Seckill System Frontend Architecture
+!pragma layout smetana
+skinparam backgroundColor #F0F0F0
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam roundcorner 20
+skinparam shadowing false
+
+title Seckill System Frontend Architecture
+
+rectangle "Mobile App" as MobileApp #LightBlue {
+    component "Native UI" as NativeUI
+    component "HTTP Client" as HTTPClient
+    component "Push Notification" as PushNotification
+}
+
+rectangle "Web Frontend" as WebFrontend #LightBlue {
+    component "Static Resources" as StaticResources
+    component "JavaScript SDK" as JavaScriptSDK
+    component "WebSocket Client" as WebSocketClient
+}
+
+rectangle CDN #LightGreen {
+    component "Static Content" as StaticContent
+    component "Image Caching" as ImageCaching
+}
+
+rectangle "API Gateway" as APIGateway #Orange
+
+WebFrontend --> CDN : "1. Fetch static content"
+MobileApp --> CDN : "2. Fetch static content"
+WebFrontend --> APIGateway : "3. API requests"
+MobileApp --> APIGateway : "4. API requests"
+
+note right of WebFrontend
+  Optimizations:
+  - Use Service Worker for offline support
+  - Implement progressive loading
+end note
+
+note right of MobileApp
+  Optimizations:
+  - Implement local caching
+  - Use background sync for offline actions
+end note
+
+note bottom of CDN
+  Global distribution for low latency
+end note
+
+@enduml

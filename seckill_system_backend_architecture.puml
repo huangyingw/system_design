@@ -1,0 +1,61 @@
+@startuml Seckill System Backend Architecture
+!pragma layout smetana
+skinparam backgroundColor #F0F0F0
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam roundcorner 20
+skinparam shadowing false
+
+title Seckill System Backend Architecture
+
+rectangle "API Gateway" as APIGateway #Orange
+
+rectangle "Business Logic Layer" as BusinessLogic #Yellow {
+    component "Order Service" as OrderService
+    component "Inventory Management" as InventoryManagement
+    component "User Service" as UserService
+    component "Payment Service" as PaymentService
+}
+
+rectangle "Security Layer" as SecurityLayer #Red {
+    component "Authentication" as Authentication
+    component "Rate Limiting" as RateLimiting
+    component "DDoS Protection" as DDoSProtection
+}
+
+rectangle "Cache Layer" as CacheLayer #Cyan {
+    component "Redis Cluster" as RedisCluster
+    component "Local Cache" as LocalCache
+}
+
+rectangle "Message Queue" as MessageQueue #Purple {
+    component "Kafka" as Kafka
+}
+
+rectangle "Async Processor" as AsyncProcessor #Purple {
+    component "Order Processor" as OrderProcessor
+    component "Inventory Updater" as InventoryUpdater
+}
+
+APIGateway --> SecurityLayer : "1. Validate request"
+SecurityLayer --> BusinessLogic : "2. Process request"
+BusinessLogic <--> CacheLayer : "3. Read/Write cache"
+BusinessLogic --> MessageQueue : "4. Publish events"
+AsyncProcessor <-- MessageQueue : "5. Consume events"
+
+note right of SecurityLayer
+  Implements circuit breaker
+  and request throttling
+end note
+
+note right of CacheLayer
+  Distributed cache for
+  high availability and performance
+end note
+
+note bottom of AsyncProcessor
+  Scalable workers for
+  processing high-volume tasks
+end note
+
+@enduml
