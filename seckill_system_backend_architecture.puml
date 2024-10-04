@@ -110,10 +110,14 @@ note bottom of AsyncProcessing
   - Payment processing
 end note
 
-note bottom of DataLayer
-  Master-Slave replication with sharding
-  for horizontal scalability and
-  read/write separation
+note bottom of DataLayer #FFEB3B
+  Performance bottleneck:
+  - Potential replication lag
+  - Uneven data distribution
+  Optimization:
+  - Implement multi-master replication
+  - Optimize sharding strategy
+  - Consider NoSQL solutions for specific data
 end note
 
 @enduml
