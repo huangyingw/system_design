@@ -50,3 +50,8 @@
 
 13. 故障恢复和容错
     fault_tolerant_system_recovery_design.puml
+
+14. 秒杀系统
+    seckill_system_frontend_architecture.puml
+    seckill_system_backend_architecture.puml
+    seckill_system_data_layer_architecture.puml
