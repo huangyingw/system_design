@@ -1,125 +1,92 @@
-@startuml Distributed Cache System with Consistency Strategies
-!define RECTANGLE class
-skinparam backgroundColor #EEEBDC
-skinparam handwritten false
+@startuml Distributed Cache System with Enhanced Consistency Strategies
+
+!pragma layout dot
+allowmixing
+skinparam backgroundColor #F0F0F0
 skinparam defaultFontName Arial
 skinparam defaultFontSize 12
-skinparam noteFontSize 13
-skinparam roundcorner 20
-skinparam shadowing false
-allowmixing
+skinparam roundCorner 10
+skinparam padding 8
+skinparam nodesep 60
+skinparam ranksep 40
 
-' Client Layer
-rectangle "Client Layer" #E0F2F1 {
-    component "Client 1" as C1
-    component "Client 2" as C2
-    component "Client N" as CN
+title Distributed Cache System with Enhanced Consistency Strategies
+
+rectangle "Client Layer" as ClientLayer #E6F3FF {
+    component "Client" as Client
+    component "Local Cache" as LC
 }
 
-' Load Balancer
-component "HAProxy" as LB #FFF59D
-
-' Cache Cluster
-rectangle "Cache Cluster (Redis)" #FFCCBC {
-    rectangle "Master Node" as MN {
-        component "Master 1" as M1
-        component "Master 2" as M2
-    }
-    rectangle "Slave Nodes" as SN {
-        component "Slave 1" as S1
-        component "Slave 2" as S2
-    }
-    interface "Cluster Communication" as CC
-    
-    interface "Consistency Strategies" as CS
-    rectangle "Strategy Implementation" #E1BEE7 {
-        component "Invalidate Cache" as IC
-        component "Update on Write" as UW
-        component "Versioning" as VS
-        component "Async Update" as AU
-        component "Read-Through" as RT
-        component "Write-Through" as WT
-        component "Write-Behind" as WB
-    }
+rectangle "Load Balancing Layer" as LBLayer #FFF0E6 {
+    component "Load Balancer" as LB
 }
 
-' Persistent Storage
-database "Persistent Storage" as PS #BBDEFB {
-    component "RDB Snapshot" as RDB
-    component "AOF Log" as AOF
+rectangle "Cache Cluster" as CC #E6FFE6 {
+    component "Cache Node 1" as CN1
+    component "Cache Node 2" as CN2
+    component "Cache Node 3" as CN3
 }
 
-' Relationships
-C1 -down-> LB : 1. Request
-C2 -down-> LB : 1. Request
-CN -down-> LB : 1. Request
-LB -down-> MN : 2. Distribute
-MN -right-> SN : 3. Replicate
-MN -down-> PS : 4. Persist
-M1 -[#8B4513]-> CC : Heartbeat
-M2 -[#8B4513]-> CC : Heartbeat
-S1 -[#8B4513]-> CC : Heartbeat
-S2 -[#8B4513]-> CC : Heartbeat
+rectangle "Consistency Layer" as ConsistencyLayer #FFE6E6 {
+    component "Consistency Manager" as CM
+    component "Bloom Filter" as BF
+}
 
-' Consistency Strategy Application
-MN .down.> IC : Apply
-MN .down.> UW : Apply
-MN .down.> VS : Apply
-MN .down.> AU : Apply
+rectangle "Storage Layer" as StorageLayer #E6E6FF {
+    component "Persistent Storage" as PS
+}
 
-note right of LB
-  Load balancing and
-  request distribution
+rectangle "Management Layer" as ManagementLayer #FFFDE6 {
+    component "Cache Warmer" as CW
+    component "Monitoring & Alerting" as MA
+}
+
+Client -[#4CAF50,thickness=2]down-> LC : <color:#4CAF50>1. Check local cache</color>
+LC -[#4CAF50,thickness=2]down-> LB : <color:#4CAF50>2. If not in local cache</color>
+LB -[#4CAF50,thickness=2]down-> CC : <color:#4CAF50>3. Route request</color>
+CC -[#2196F3,thickness=2]right-> BF : <color:#2196F3>4. Filter non-existent keys</color>
+BF -[#2196F3,thickness=2]right-> CM : <color:#2196F3>5. Ensure consistency</color>
+CM -[#2196F3,thickness=2]down-> PS : <color:#2196F3>6. Sync if needed</color>
+CW -[#FFA000,thickness=2]left-> CC : <color:#FFA000>7. Preload hot data</color>
+MA -[#795548,thickness=2]-> CC : <color:#795548>8. Monitor performance</color>
+
+note right of CM
+  Consistency strategies:
+  - Strong consistency
+  - Eventual consistency
+  - Read-your-writes consistency
 end note
 
-note bottom of PS
-  Ensures data durability
-  and supports recovery
+note bottom of CC
+  Consistent Hashing:
+  - Virtual nodes for better distribution
+  - Automatic rebalancing on node changes
 end note
 
-note right of CC
-  Manages cluster state
-  and node communication
+note right of CW
+  Cache Warming:
+  - Preload based on access patterns
+  - Scheduled updates for hot data
 end note
 
-note right of CS
-  Ensures data consistency
-  across cluster and clients
+note left of LC
+  Multi-level Caching:
+  - In-memory local cache
+  - Reduces network calls
 end note
 
-note bottom of IC
-  Invalidate: Delete cached item when updated in DB.
-  Pros: Simple. Cons: Can lead to cache misses.
+note bottom of BF
+  Cache Penetration Protection:
+  - Filters queries for non-existent keys
+  - Reduces unnecessary backend calls
 end note
 
-note bottom of UW
-  Update on Write: Update both cache and DB simultaneously.
-  Pros: Strong consistency. Cons: Higher write latency.
-end note
-
-note bottom of VS
-  Versioning: Use version numbers to track updates.
-  Pros: Detects conflicts. Cons: Requires extra metadata.
-end note
-
-note bottom of AU
-  Async Update: Update cache asynchronously after DB write.
-  Pros: Lower write latency. Cons: Temporary inconsistency.
-end note
-
-note bottom of RT
-  Read-Through: Cache fetches missing items from DB.
-  Pros: Simplifies client logic. Cons: Initial read delay.
-end note
-
-note bottom of WT
-  Write-Through: Write to DB through the cache.
-  Pros: Data safety. Cons: Higher write latency.
-end note
-
-note bottom of WB
-  Write-Behind: Cache acknowledges write, updates DB later.
-  Pros: Faster writes. Cons: Risk of data loss.
+note right of MA
+  Monitoring & Alerting:
+  - Cache hit/miss ratio
+  - Latency tracking
+  - Capacity utilization
+  - Automatic scaling triggers
 end note
 
 @enduml
