@@ -1,61 +1,96 @@
-@startuml
-!theme toy
-skinparam linetype ortho
-skinparam backgroundColor #F0F8FF
-skinparam ArrowColor #4B0082
-skinparam ArrowFontColor #4B0082
+@startuml Distributed Log Collection, Processing, and Analysis System
 
-rectangle "Data Generation Layer" {
-    [IoT Devices] as IoT #LightCyan
+skinparam backgroundColor #FAFAFA
+skinparam handwritten false
+skinparam monochrome false
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 16
+skinparam roundCorner 10
+skinparam ArrowColor #2C3E50
+skinparam ArrowThickness 1.5
+
+rectangle "Log Sources" as Sources #3498DB {
+    [IoT Devices]
+    [Web Servers]
+    [Databases]
+    [Applications]
 }
 
-rectangle "Data Collection Layer" {
-    [Log Collector] as Collector #LightGreen
+rectangle "Log Collection" as Collection #2ECC71 {
+    [Log Agents]
+    [Log Shippers]
+    [API Endpoints]
 }
 
-rectangle "Data Processing Layer" {
-    queue "Kafka Queue" as Kafka #LightPink
-    [Log Processing Service] as LogProcessor #LightYellow
-    [Stream Processing (Flink/Spark)] as StreamProcessor #LightSalmon
+rectangle "Message Queue" as Queue #F1C40F {
+    [Kafka]
+    [RabbitMQ]
 }
 
-database "Data Storage Layer" {
-    database "Master Database" as MasterDB #PaleGoldenrod {
-        note right
-            Composite Sharding Strategy:
-            - By Device
-            - By Time
-            PK, Index Optimization
-        end note
+rectangle "Processing Layer" as Processing #E67E22 {
+    rectangle "Stream Processing" as StreamProcessing {
+        [Apache Flink]
+        [Apache Spark Streaming]
     }
-    database "Replica Database" as ReplicaDB #PaleGoldenrod
-    database "Statistics Database" as StatsDB #Thistle {
-        note right
-            Sharding Key: 
-            Time + Device Type
-        end note
+    rectangle "Batch Processing" as BatchProcessing {
+        [Hadoop MapReduce]
+        [Apache Spark]
     }
 }
 
-rectangle "Application Service Layer" {
-    [Query Service] as QueryService #LightSteelBlue
-    [Alert Service] as AlertService #LightCoral
-    [API Server] as APIServer #LightSeaGreen
+database "Data Storage" as Storage #9B59B6 {
+    [Elasticsearch]
+    [HDFS]
+    [S3]
 }
 
-IoT -[#4B0082]-> Collector : Send logs
-Collector -[#4B0082]-> Kafka : Push logs
-Kafka -[#4B0082]-> LogProcessor : Transmit logs
-Kafka -[#4B0082]-> StreamProcessor : Stream processing
-LogProcessor -[#4B0082]-> MasterDB : Store processed logs
-MasterDB -[#4B0082]-> ReplicaDB : Data replication
-ReplicaDB -[#4B0082]-> QueryService : Query logs
-ReplicaDB -[#4B0082]-> AlertService : Analyze and generate alerts
-StreamProcessor -[#4B0082]-> StatsDB : Store statistical results
-StatsDB -[#4B0082]-> APIServer : Retrieve statistical data
+rectangle "Analysis & Insights" as Analysis #E74C3C {
+    [Machine Learning Models]
+    [Statistical Analysis]
+    [Log Correlation Engine]
+}
 
-note bottom of MasterDB
-    Redis cache key design:
-    device:{deviceId}:logs:{timestamp}
+rectangle "Visualization & Alerting" as Visualization #95A5A6 {
+    [Kibana]
+    [Grafana]
+    [Custom Dashboards]
+    [Alert Manager]
+}
+
+Sources --> Collection : Generate
+Collection --> Queue : Collect & Ship
+Queue --> StreamProcessing : Real-time
+Queue --> BatchProcessing : Batch
+StreamProcessing --> Storage : Store
+BatchProcessing --> Storage : Store
+Storage --> Analysis : Analyze
+Analysis --> Visualization : Visualize & Alert
+
+note bottom of Sources #3498DB
+  Diverse log sources including IoT devices,
+  servers, databases, and applications
 end note
+
+note bottom of Queue #F1C40F
+  Ensures scalability and decouples
+  collection from processing
+end note
+
+note right of StreamProcessing #E67E22
+  Handles real-time log analysis
+  for immediate insights and alerts
+end note
+
+note right of BatchProcessing #E67E22
+  Processes large volumes of
+  historical data for deep analysis
+end note
+
+note bottom of Analysis #E74C3C
+  Applies advanced analytics to detect
+  patterns, anomalies, and generate insights
+end note
+
 @enduml
