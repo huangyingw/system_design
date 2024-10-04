@@ -1,46 +1,109 @@
 @startuml
 
-skinparam backgroundColor #D3D3D3
-skinparam defaultFontName "Arial"
-skinparam defaultFontSize 16
+!pragma layout dot
+skinparam backgroundColor #F0F0F0
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
 skinparam note {
     BackgroundColor #FFFFFF
     BorderColor #000000
-    FontSize 16
-    FontName "Arial"
+    FontSize 12
 }
+
+allowmixing
 
 title Real-time Communication Service Architecture
 
-rectangle "Client A" as ClientA
-rectangle "Client B" as ClientB
-
-rectangle "Communication Service" as CS {
-    rectangle "WebSocket Server" as WSS
-    rectangle "Message Queue" as MQ
-    rectangle "Message Processor" as MP
+rectangle "Client Layer" as CL #E6F3FF {
+    component "Client A" as ClientA
+    component "Client B" as ClientB
 }
 
-rectangle "Data Persistence Layer" as DPS {
-    rectangle "Message Data (DB)" as MD
-    rectangle "User Status Data (Redis)" as USD
+rectangle "Load Balancer" as LB #D1E8FF
+
+rectangle "Communication Service" as CS #FFE6CC {
+    component "WebSocket Server Cluster" as WSS #FFA07A
+    component "Message Queue (Kafka)" as MQ #98FB98
+    component "Message Processor Cluster" as MP #87CEFA
 }
 
-ClientA -down-> WSS : Opens WebSocket Connection
-ClientB -down-> WSS : Opens WebSocket Connection
-ClientA -right-> WSS : Sends Message
-WSS -down-> MQ : Queues Message
-MQ -down-> MP : Processes Message
-MP -down-> MD : Stores Message Data
-MP -down-> USD : Updates User Status
-MP -right-> WSS : Delivers Message
-WSS -right-> ClientB : Receives Message
+rectangle "Caching Layer" as CL #FFD700 {
+    component "Redis Cluster" as RC
+}
 
-note right of CS
-  **Performance Optimization**:
-  - Use message queue for high concurrency
-  - Optimize WebSocket server performance
-  - Use Redis for user status storage
+rectangle "Data Persistence Layer" as DPS #E6E6FA {
+    component "Message Database (Cassandra)" as MD
+    component "User Status Database (Redis)" as USD
+}
+
+rectangle "Monitoring and Logging" as ML #F0E68C {
+    component "ELK Stack" as ELK
+    component "Prometheus" as Prom
+}
+
+ClientA -[#FF6347]-> LB : "1. Connect"
+ClientB -[#FF6347]-> LB : "2. Connect"
+LB -[#FF6347]-> WSS : "3. Route"
+ClientA -[#4169E1]-> LB : "4. Send Message"
+LB -[#4169E1]-> WSS : "5. Route Message"
+WSS -[#4169E1]-> MQ : "6. Queue Message"
+MQ -[#4169E1]-> MP : "7. Process Message"
+MP -[#4169E1]-> MD : "8. Store Message"
+MP -[#32CD32]-> RC : "9. Update Cache"
+MP -[#32CD32]-> USD : "10. Update User Status"
+MP -[#4169E1]-> WSS : "11. Deliver Message"
+WSS -[#4169E1]-> ClientB : "12. Receive Message"
+
+WSS -[#A9A9A9]-> ELK : "Log"
+MP -[#A9A9A9]-> ELK : "Log"
+WSS -[#A9A9A9]-> Prom : "Metrics"
+MP -[#A9A9A9]-> Prom : "Metrics"
+
+note right of LB
+  Load Balancer distributes traffic
+  across WebSocket server instances
+end note
+
+note bottom of WSS
+  WebSocket Server Cluster:
+  - Horizontal scaling for high concurrency
+  - Sticky sessions for connection persistence
+end note
+
+note right of MQ
+  Kafka:
+  - High throughput message queue
+  - Partitioning for parallel processing
+end note
+
+note bottom of MP
+  Message Processor Cluster:
+  - Stateless for easy scaling
+  - Handles message routing and processing
+end note
+
+note right of RC
+  Redis Cluster:
+  - In-memory caching for fast data access
+  - Distributed caching for scalability
+end note
+
+note bottom of MD
+  Cassandra:
+  - Distributed NoSQL database
+  - Optimized for write-heavy workloads
+end note
+
+note bottom of USD
+  Redis for User Status:
+  - Fast read/write operations
+  - TTL support for temporary data
+end note
+
+note right of ML
+  Monitoring and Logging:
+  - Real-time system health monitoring
+  - Log aggregation and analysis
 end note
 
 @enduml
