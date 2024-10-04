@@ -1,61 +1,117 @@
 @startuml Seckill System Backend Architecture
 !pragma layout smetana
-skinparam backgroundColor #F0F0F0
+skinparam backgroundColor #FAFAFA
 skinparam defaultFontName Arial
 skinparam defaultFontSize 12
 skinparam roundcorner 20
 skinparam shadowing false
+allowmixing
 
 title Seckill System Backend Architecture
 
-rectangle "API Gateway" as APIGateway #Orange
+rectangle "Client Layer" as ClientLayer #E0E0E0 {
+    component "Web Clients" as WebClients
+    component "Mobile Apps" as MobileApps
+}
 
-rectangle "Business Logic Layer" as BusinessLogic #Yellow {
+rectangle "API Gateway" as APIGateway #FFA07A
+
+rectangle "Load Balancer" as LoadBalancer #87CEFA
+
+rectangle "Business Logic Layer" as BusinessLogic #FFFFE0 {
     component "Order Service" as OrderService
     component "Inventory Management" as InventoryManagement
     component "User Service" as UserService
     component "Payment Service" as PaymentService
+    component "Seckill Service" as SeckillService
 }
 
-rectangle "Security Layer" as SecurityLayer #Red {
+rectangle "Security Layer" as SecurityLayer #FFB6C1 {
     component "Authentication" as Authentication
     component "Rate Limiting" as RateLimiting
     component "DDoS Protection" as DDoSProtection
+    component "Data Encryption" as DataEncryption
 }
 
-rectangle "Cache Layer" as CacheLayer #Cyan {
+rectangle "Cache Layer" as CacheLayer #E0FFFF {
     component "Redis Cluster" as RedisCluster
     component "Local Cache" as LocalCache
 }
 
-rectangle "Message Queue" as MessageQueue #Purple {
-    component "Kafka" as Kafka
+rectangle "Message Queue" as MessageQueue #DDA0DD {
+    component "Kafka Cluster" as KafkaCluster
 }
 
-rectangle "Async Processor" as AsyncProcessor #Purple {
+rectangle "Async Processor" as AsyncProcessor #98FB98 {
     component "Order Processor" as OrderProcessor
     component "Inventory Updater" as InventoryUpdater
+    component "Payment Processor" as PaymentProcessor
 }
 
-APIGateway --> SecurityLayer : "1. Validate request"
-SecurityLayer --> BusinessLogic : "2. Process request"
-BusinessLogic <--> CacheLayer : "3. Read/Write cache"
-BusinessLogic --> MessageQueue : "4. Publish events"
-AsyncProcessor <-- MessageQueue : "5. Consume events"
+rectangle "Database Layer" as DatabaseLayer #F0E68C {
+    component "Master DB" as MasterDB
+    component "Slave DBs" as SlaveDBs
+    component "Sharding" as Sharding
+}
+
+rectangle "Monitoring & Logging" as MonitoringLogging #D3D3D3 {
+    component "ELK Stack" as ELKStack
+    component "Prometheus" as Prometheus
+    component "Grafana" as Grafana
+}
+
+ClientLayer --> LoadBalancer : "1. Request"
+LoadBalancer --> APIGateway : "2. Route"
+APIGateway --> SecurityLayer : "3. Validate"
+SecurityLayer --> BusinessLogic : "4. Process"
+BusinessLogic <--> CacheLayer : "5. Cache R/W"
+BusinessLogic --> MessageQueue : "6. Publish"
+AsyncProcessor <-- MessageQueue : "7. Consume"
+BusinessLogic <--> DatabaseLayer : "8. CRUD"
+AsyncProcessor <--> DatabaseLayer : "9. Update"
+
+MonitoringLogging ..> ClientLayer : "Monitor"
+MonitoringLogging ..> APIGateway : "Monitor"
+MonitoringLogging ..> BusinessLogic : "Monitor"
+MonitoringLogging ..> CacheLayer : "Monitor"
+MonitoringLogging ..> MessageQueue : "Monitor"
+MonitoringLogging ..> AsyncProcessor : "Monitor"
+MonitoringLogging ..> DatabaseLayer : "Monitor"
 
 note right of SecurityLayer
-  Implements circuit breaker
-  and request throttling
+  Implements circuit breaker,
+  request throttling, and
+  data encryption
 end note
 
 note right of CacheLayer
   Distributed cache for
-  high availability and performance
+  high availability and
+  performance. Stores:
+  - Product inventory
+  - User session data
+  - Order status
 end note
 
 note bottom of AsyncProcessor
   Scalable workers for
-  processing high-volume tasks
+  processing high-volume tasks:
+  - Order confirmation
+  - Inventory updates
+  - Payment processing
+end note
+
+note bottom of DatabaseLayer
+  Master-Slave replication
+  with sharding for
+  horizontal scalability
+end note
+
+note right of MonitoringLogging
+  Real-time monitoring,
+  alerting, and log
+  analysis for the entire
+  system
 end note
 
 @enduml
