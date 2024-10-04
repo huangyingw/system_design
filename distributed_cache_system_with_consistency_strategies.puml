@@ -1,27 +1,12 @@
-@startuml Distributed Cache System with Enhanced Consistency Strategies
+@startuml Distributed Cache System with Enhanced Consistency and Eviction Strategies
 
-!pragma layout dot
 allowmixing
-skinparam backgroundColor #F0F0F0
-skinparam defaultFontName Arial
-skinparam defaultFontSize 12
-skinparam roundCorner 10
-skinparam padding 8
-skinparam nodesep 60
-skinparam ranksep 40
 
-title Distributed Cache System with Enhanced Consistency Strategies
+rectangle "Client" as Client #E1F5FE
 
-rectangle "Client Layer" as ClientLayer #E6F3FF {
-    component "Client" as Client
-    component "Local Cache" as LC
-}
+rectangle "Load Balancer" as LB #FFEBEE
 
-rectangle "Load Balancing Layer" as LBLayer #FFF0E6 {
-    component "Load Balancer" as LB
-}
-
-rectangle "Cache Cluster" as CC #E6FFE6 {
+rectangle "Cache Cluster" as CC #E8F5E9 {
     component "Cache Node 1" as CN1
     component "Cache Node 2" as CN2
     component "Cache Node 3" as CN3
@@ -30,6 +15,12 @@ rectangle "Cache Cluster" as CC #E6FFE6 {
 rectangle "Consistency Layer" as ConsistencyLayer #FFE6E6 {
     component "Consistency Manager" as CM
     component "Bloom Filter" as BF
+}
+
+rectangle "Eviction Strategies" as EvictionStrategies #FFF3E0 {
+    component "LRU (Least Recently Used)" as LRU
+    component "LFU (Least Frequently Used)" as LFU
+    component "FIFO (First In First Out)" as FIFO
 }
 
 rectangle "Storage Layer" as StorageLayer #E6E6FF {
@@ -41,12 +32,12 @@ rectangle "Management Layer" as ManagementLayer #FFFDE6 {
     component "Monitoring & Alerting" as MA
 }
 
-Client -[#4CAF50,thickness=2]down-> LC : <color:#4CAF50>1. Check local cache</color>
-LC -[#4CAF50,thickness=2]down-> LB : <color:#4CAF50>2. If not in local cache</color>
-LB -[#4CAF50,thickness=2]down-> CC : <color:#4CAF50>3. Route request</color>
-CC -[#2196F3,thickness=2]right-> BF : <color:#2196F3>4. Filter non-existent keys</color>
-BF -[#2196F3,thickness=2]right-> CM : <color:#2196F3>5. Ensure consistency</color>
-CM -[#2196F3,thickness=2]down-> PS : <color:#2196F3>6. Sync if needed</color>
+Client -[#4CAF50,thickness=2]down-> LB : <color:#4CAF50>1. Request</color>
+LB -[#4CAF50,thickness=2]down-> CC : <color:#4CAF50>2. Route request</color>
+CC -[#2196F3,thickness=2]right-> BF : <color:#2196F3>3. Filter non-existent keys</color>
+BF -[#2196F3,thickness=2]right-> CM : <color:#2196F3>4. Ensure consistency</color>
+CM -[#2196F3,thickness=2]down-> PS : <color:#2196F3>5. Sync if needed</color>
+CC -[#FFA000,thickness=2]down-> EvictionStrategies : <color:#FFA000>6. Apply eviction if needed</color>
 CW -[#FFA000,thickness=2]left-> CC : <color:#FFA000>7. Preload hot data</color>
 MA -[#795548,thickness=2]-> CC : <color:#795548>8. Monitor performance</color>
 
@@ -55,38 +46,29 @@ note right of CM
   - Strong consistency
   - Eventual consistency
   - Read-your-writes consistency
+  - Causal consistency
+  - Session consistency
+end note
+
+note right of EvictionStrategies
+  Eviction strategies:
+  - LRU: Evicts least recently used items
+  - LFU: Evicts least frequently used items
+  - FIFO: Evicts oldest items first
+  - Time-based expiration
 end note
 
 note bottom of CC
   Consistent Hashing:
   - Virtual nodes for better distribution
-  - Automatic rebalancing on node changes
+  - Minimizes data movement on node changes
 end note
 
-note right of CW
-  Cache Warming:
-  - Preload based on access patterns
-  - Scheduled updates for hot data
-end note
-
-note left of LC
-  Multi-level Caching:
-  - In-memory local cache
-  - Reduces network calls
-end note
-
-note bottom of BF
-  Cache Penetration Protection:
-  - Filters queries for non-existent keys
-  - Reduces unnecessary backend calls
-end note
-
-note right of MA
-  Monitoring & Alerting:
-  - Cache hit/miss ratio
-  - Latency tracking
-  - Capacity utilization
-  - Automatic scaling triggers
+note right of PS
+  Persistence options:
+  - Write-through: Immediate disk write
+  - Write-behind: Async disk write
+  - Write-around: Write directly to storage
 end note
 
 @enduml
