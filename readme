@@ -9,9 +9,6 @@
     7: 帮我逐个检查文件名是否能够如实反映文件的内容, 我比较喜欢长一点的文件名，要能够完整的描述这个设计/文件里面cover了哪些东西, 我的目标是快速地用关键词来搜索定位到我想要的文件. 相当于给每个文件打label.
     8: 帮我更新 map.txt 文件, 来把文件放到对应的label下.
 
-"./cdn/comprehensive_cdn_architecture.puml"
-"./cart_and_inventory_service_architecture.puml"
-"./blockchain_system_detailed_architecture_with_components.puml"
 "./big_file_upload_system/big_file_upload_system_architecture.puml"
 "./architecture_diagrams/spark_kubernetes_architecture.puml"
 "./architecture_diagrams/mongodb-sharded-cluster-architecture.puml"
