@@ -1,60 +1,78 @@
 @startuml
-skinparam backgroundColor #D3D3D3
+!pragma layout dot
+skinparam backgroundColor #EEEEEE
+allowmixing
 
-!define KafkaNode(x) class x << (K,orchid) >> 
-!define ZookeeperNode(x) class x << (Z,yellow) >> 
-!define ProducerNode(x) class x << (P,blue) >> 
-!define ConsumerNode(x) class x << (C,red) >> 
+rectangle "Kafka Cluster" as KafkaCluster #LightBlue {
+    rectangle "Broker1" as Broker1 #PaleGreen
+    rectangle "Broker2" as Broker2 #PaleGreen
+    rectangle "Broker3" as Broker3 #PaleGreen
+    
+    rectangle "Zookeeper Ensemble" as ZookeeperEnsemble #LightYellow {
+        component "Zookeeper1" as Zookeeper1
+        component "Zookeeper2" as Zookeeper2
+        component "Zookeeper3" as Zookeeper3
+    }
 
-package "Kafka Cluster" {
-    KafkaNode("Broker1\n(物理)") 
-    KafkaNode("Broker2\n(物理)") 
-    KafkaNode("Broker3\n(物理)") 
-    ZookeeperNode("Zookeeper\n(物理)") 
+    rectangle "Topic1" as Topic1 #LightPink {
+        component "Partition1_1" as Partition1_1
+        component "Partition1_2" as Partition1_2
+    }
 
-    class "Topic1\n(逻辑)" << (T,purple) >> 
-    class "Topic2\n(逻辑)" << (T,purple) >> 
-
-    class "Partition1_1\n(逻辑)" 
-    class "Partition1_2\n(逻辑)"  
-    class "Partition2_1\n(逻辑)"  
-    class "Partition2_2\n(逻辑)"  
-
-    "Topic1\n(逻辑)" -- "Partition1_1\n(逻辑)" : contains
-    "Topic1\n(逻辑)" -- "Partition1_2\n(逻辑)" : contains
-    "Topic2\n(逻辑)" -- "Partition2_1\n(逻辑)" : contains
-    "Topic2\n(逻辑)" -- "Partition2_2\n(逻辑)" : contains
-
-    "Partition1_1\n(逻辑)" -- "Broker1\n(物理)" : Leader at
-    "Partition1_1\n(逻辑)" -- "Broker2\n(物理)" : Follower at
-    "Partition1_1\n(逻辑)" -- "Broker3\n(物理)" : Follower at
-
-    "Partition1_2\n(逻辑)" -- "Broker1\n(物理)" 
-    "Partition2_1\n(逻辑)" -- "Broker2\n(物理)" 
-    "Partition2_2\n(逻辑)" -- "Broker2\n(物理)" 
-
-    "Broker1\n(物理)" --|> "Zookeeper\n(物理)" 
-    "Broker2\n(物理)" --|> "Zookeeper\n(物理)" 
-    "Broker3\n(物理)" --|> "Zookeeper\n(物理)" 
-    "Topic1\n(逻辑)" --|> "Zookeeper\n(物理)" 
-    "Topic2\n(逻辑)" --|> "Zookeeper\n(物理)" 
+    rectangle "Topic2" as Topic2 #LightPink {
+        component "Partition2_1" as Partition2_1
+        component "Partition2_2" as Partition2_2
+    }
 }
 
-ProducerNode("Producer1\n(物理)") 
-ProducerNode("Producer2\n(物理)") 
-ConsumerNode("Consumer1\n(物理)") 
-ConsumerNode("Consumer2\n(物理)") 
+rectangle "Producers" as Producers #LightSkyBlue {
+    component "Producer1" as Producer1
+    component "Producer2" as Producer2
+}
 
-"Producer1\n(物理)" --> "Topic1\n(逻辑)" : writes to
-"Producer2\n(物理)" --> "Topic2\n(逻辑)" : writes to
+rectangle "Consumers" as Consumers #LightSalmon {
+    component "Consumer1" as Consumer1
+    component "Consumer2" as Consumer2
+}
 
-"Consumer1\n(物理)" --> "Partition1_1\n(逻辑)" : reads from
-"Consumer1\n(物理)" --> "Partition1_2\n(逻辑)" : reads from
-"Consumer2\n(物理)" --> "Partition2_1\n(逻辑)" : reads from
-"Consumer2\n(物理)" --> "Partition2_2\n(逻辑)" : reads from
+' Connections
+Producer1 -[#Blue,thickness=2]-> Topic1 : <color:#Blue>1. Produce messages
+Producer2 -[#Purple,thickness=2]-> Topic2 : <color:#Purple>2. Produce messages
 
-' 假设使用旧版本的 Kafka，消费者偏移量还存储在 Zookeeper 中
-"Consumer1\n(物理)" --|> "Zookeeper\n(物理)" : offsets stored in
-"Consumer2\n(物理)" --|> "Zookeeper\n(物理)" : offsets stored in
+Topic1 -[#Green,thickness=2]-> Partition1_1 : <color:#Green>3. Distribute
+Topic1 -[#Green,thickness=2]-> Partition1_2 : <color:#Green>4. Distribute
+Topic2 -[#Orange,thickness=2]-> Partition2_1 : <color:#Orange>5. Distribute
+Topic2 -[#Orange,thickness=2]-> Partition2_2 : <color:#Orange>6. Distribute
+
+Partition1_1 -[#Red,thickness=2]-> Broker1 : <color:#Red>7. Leader
+Partition1_1 .[#Gray,thickness=1]-> Broker2 : <color:#Gray>8. Follower
+Partition1_1 .[#Gray,thickness=1]-> Broker3 : <color:#Gray>9. Follower
+
+Consumer1 -[#Brown,thickness=2]-> Partition1_1 : <color:#Brown>10. Consume
+Consumer1 -[#Brown,thickness=2]-> Partition1_2 : <color:#Brown>11. Consume
+Consumer2 -[#Magenta,thickness=2]-> Partition2_1 : <color:#Magenta>12. Consume
+Consumer2 -[#Magenta,thickness=2]-> Partition2_2 : <color:#Magenta>13. Consume
+
+Broker1 -[#Black,thickness=1]-> ZookeeperEnsemble : <color:#Black>14. Coordinate
+Broker2 -[#Black,thickness=1]-> ZookeeperEnsemble : <color:#Black>15. Coordinate
+Broker3 -[#Black,thickness=1]-> ZookeeperEnsemble : <color:#Black>16. Coordinate
+
+note right of ZookeeperEnsemble
+  Stores metadata:
+  - Broker list
+  - Topic configurations
+  - Partition leaders
+end note
+
+note bottom of Consumers
+  Consumer offsets stored in 
+  Kafka (modern) or Zookeeper (legacy)
+end note
+
+note "Performance bottleneck:\nZookeeper writes for metadata updates" as N1
+ZookeeperEnsemble .. N1
+
+note "Optimization:\nIncrease partitions for better parallelism" as N2
+Topic1 .. N2
 
 @enduml
