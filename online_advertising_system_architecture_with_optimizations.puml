@@ -74,4 +74,54 @@ note bottom of datalake
   - Conversion data
 end note
 
+note bottom of adserver
+  Optimizations:
+  - Load balancing
+  - Horizontal scaling
+  - Caching popular ads
+  - Database query optimization
+  - CDN for static content
+end note
+
+note bottom of rtb
+  Optimizations:
+  - High-performance computing cluster
+  - Pre-computation and caching
+  - Optimized bidding algorithms
+  - In-memory databases (e.g., Redis)
+end note
+
+note bottom of profiling
+  Optimizations:
+  - Incremental updates
+  - Distributed processing (e.g., Spark)
+  - Optimized data storage (columnar)
+  - Data sharding and parallel processing
+end note
+
+note bottom of targeting
+  Optimizations:
+  - Machine learning models
+  - Online learning and updates
+  - GPU acceleration
+  - Parallel feature engineering
+end note
+
+note bottom of analytics
+  Optimizations:
+  - Stream processing (e.g., Kafka Streams, Flink)
+  - Incremental computation
+  - Distributed computing (e.g., Hadoop, Spark)
+  - Optimized data storage (columnar, e.g., Parquet)
+end note
+
+note bottom of datalake
+  Optimizations:
+  - Data sharding
+  - NoSQL databases (e.g., Cassandra)
+  - Hot/cold data separation
+  - Optimized indexing
+  - Asynchronous writes and batch reads
+end note
+
 @enduml
