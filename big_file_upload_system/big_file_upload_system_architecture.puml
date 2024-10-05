@@ -1,74 +1,84 @@
 @startuml
-skinparam backgroundColor white
+!pragma layout smetana
+skinparam backgroundColor #FAFAFA
 skinparam handwritten false
 skinparam shadowing false
-skinparam linetype ortho
 skinparam padding 10
 skinparam roundCorner 10
+allowmixing
 
 ' Color definitions
-!define CLIENT_COLOR #E0E0E0
-!define SERVICE_COLOR #D0E0F0
-!define STORAGE_COLOR #F0E0D0
-!define QUEUE_COLOR #E0F0D0
-!define CACHE_COLOR #F0D0E0
+!define CLIENT_COLOR E0E0E0
+!define SERVICE_COLOR D0E0F0
+!define STORAGE_COLOR F0E0D0
+!define QUEUE_COLOR E0F0D0
+!define CACHE_COLOR F0D0E0
 
-skinparam component {
-    BackgroundColor<<CLIENT>> CLIENT_COLOR
-    BackgroundColor<<SERVICE>> SERVICE_COLOR
-    BackgroundColor<<STORAGE>> STORAGE_COLOR
-    BackgroundColor<<QUEUE>> QUEUE_COLOR
-    BackgroundColor<<CACHE>> CACHE_COLOR
-    BorderColor #808080
-    FontColor black
+rectangle "Client Side" {
+    component "Client" as Client #CLIENT_COLOR
+    component "FileChunker" as FileChunker #CLIENT_COLOR
+    component "ResumableUploadManager" as ResumableUploadManager #CLIENT_COLOR
+    component "ResumableDownloadManager" as ResumableDownloadManager #CLIENT_COLOR
 }
 
-package "Client Side" {
-    [Client] <<CLIENT>>
-    [FileChunker] <<CLIENT>>
-    [ResumableUploadManager] <<CLIENT>>
-    [ResumableDownloadManager] <<CLIENT>>
+rectangle "Service Layer" {
+    component "LoadBalancer" as LoadBalancer #SERVICE_COLOR
+    component "UploadService" as UploadService #SERVICE_COLOR
+    component "DownloadService" as DownloadService #SERVICE_COLOR
+    component "CDN" as CDN #SERVICE_COLOR
+    component "AuthenticationService" as AuthService #SERVICE_COLOR
 }
 
-package "Service Layer" {
-    [LoadBalancer] <<SERVICE>>
-    note right of [LoadBalancer]
-        Implements rate limiting
-    end note
-    
-    [UploadService] <<SERVICE>>
-    [DownloadService] <<SERVICE>>
-    [CDN] <<SERVICE>>
-}
-
-package "Storage Layer" {
-    database "ObjectStorage" <<STORAGE>> {
-        [FileChunks]
-        [Metadata]
+rectangle "Storage Layer" {
+    component "ObjectStorage" as ObjectStorage #STORAGE_COLOR {
+        component "FileChunks" as FileChunks
+        component "Metadata" as Metadata
     }
-    note bottom of ObjectStorage
-        Implements data sharding,
-        replication, and database functions
-    end note
+    component "Redis" as Redis #CACHE_COLOR
 }
 
-queue "MessageQueue" <<QUEUE>>
-[CacheService] <<CACHE>>
+component "MessageQueue" as MessageQueue #QUEUE_COLOR
 
-' Connections
-Client --> FileChunker : Split large file
-FileChunker --> LoadBalancer : Upload/Download file chunks
-LoadBalancer --> MessageQueue : Enqueue file chunks
-MessageQueue --> UploadService : Dequeue and process upload chunks
-MessageQueue --> DownloadService : Dequeue and process download requests
-UploadService --> ObjectStorage : Store file chunks and metadata
-DownloadService <-- ObjectStorage : Retrieve file chunks and metadata
-Client --> ResumableUploadManager : Manage file upload chunks
-Client --> ResumableDownloadManager : Manage file download chunks
-ResumableUploadManager --> UploadService : Manage upload status
-ResumableDownloadManager --> DownloadService : Manage download status
-UploadService <--> CacheService : Cache/Retrieve frequently accessed data
-DownloadService <--> CacheService : Cache/Retrieve frequently accessed data
-DownloadService --> CDN : Serve popular files
+note right of LoadBalancer
+    Implements rate limiting
+    and request distribution
+end note
+
+note bottom of ObjectStorage
+    Implements data sharding,
+    replication, and database functions
+end note
+
+note right of Redis
+    key: value
+    chunk_id: upload_status
+    file_id: metadata
+end note
+
+Client -[#FF5733,thickness=2]-> FileChunker : <color:#FF5733>1. Split large file</color>
+FileChunker -[#33FF57,thickness=2]-> LoadBalancer : <color:#33FF57>2. Upload/Download file chunks</color>
+LoadBalancer -[#5733FF,thickness=2]-> AuthService : <color:#5733FF>3. Authenticate request</color>
+AuthService -[#FF33F1,thickness=2]-> MessageQueue : <color:#FF33F1>4. Enqueue authenticated requests</color>
+MessageQueue -[#33FFF1,thickness=2]-> UploadService : <color:#33FFF1>5. Dequeue and process upload chunks</color>
+MessageQueue -[#8B4513,thickness=2]-> DownloadService : <color:#8B4513>6. Dequeue and process download requests</color>
+UploadService -[#FF8C33,thickness=2]-> ObjectStorage : <color:#FF8C33>7. Store file chunks and metadata</color>
+DownloadService <-[#3357FF,thickness=2]- ObjectStorage : <color:#3357FF>8. Retrieve file chunks and metadata</color>
+Client -[#FF3357,thickness=2]-> ResumableUploadManager : <color:#FF3357>9. Manage file upload chunks</color>
+Client -[#57FF33,thickness=2]-> ResumableDownloadManager : <color:#57FF33>10. Manage file download chunks</color>
+ResumableUploadManager -[#33FF8C,thickness=2]-> UploadService : <color:#33FF8C>11. Manage upload status</color>
+ResumableDownloadManager -[#8C33FF,thickness=2]-> DownloadService : <color:#8C33FF>12. Manage download status</color>
+UploadService <-[#FF3333,thickness=2]-> Redis : <color:#FF3333>13. Cache/Retrieve upload status</color>
+DownloadService <-[#33FFFF,thickness=2]-> Redis : <color:#33FFFF>14. Cache/Retrieve download status</color>
+DownloadService -[#4B0082,thickness=2]-> CDN : <color:#4B0082>15. Serve popular files</color>
+
+note as PerformanceNote
+    Performance bottlenecks and optimization suggestions:
+    1. Implement parallel chunk uploads for faster large file transfers
+    2. Use adaptive chunk sizes based on network conditions
+    3. Implement progressive file downloads for faster user experience
+    4. Optimize CDN caching strategies for frequently accessed files
+    5. Use database indexing for faster metadata retrieval
+    6. Implement data compression for storage and transfer efficiency
+end note
 
 @enduml
