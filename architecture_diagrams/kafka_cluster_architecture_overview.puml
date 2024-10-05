@@ -1,66 +1,89 @@
-@startuml
-skinparam backgroundColor #FFFAFA
-skinparam packageStyle rectangle
+@startuml Kafka Cluster Architecture Overview
+!pragma layout dot
+skinparam backgroundColor #F0F0F0
 skinparam defaultFontName Arial
-skinparam defaultFontSize 12
-skinparam node {
-    BackgroundColor lightblue
-    BorderColor black
-    FontName Arial
-    FontSize 12
-    RoundCorner 20
-    Padding 10
+skinparam defaultFontSize 14
+skinparam defaultFontColor #333333
+skinparam roundcorner 20
+skinparam shadowing false
+skinparam ArrowColor #666666
+skinparam ArrowThickness 2
+allowmixing
+
+' Color definitions
+!define ZOOKEEPER_COLOR E6E6FA
+!define BROKER_COLOR E0FFFF
+!define COMPONENT_COLOR F0FFF0
+!define MONITORING_COLOR FFF0F5
+!define SECURITY_COLOR FFE4E1
+
+' Zookeeper Ensemble
+rectangle "Zookeeper Ensemble" as ZK #ZOOKEEPER_COLOR {
+    component "ZK Node 1" as ZK1
+    component "ZK Node 2" as ZK2
+    component "ZK Node 3" as ZK3
 }
 
-' Define Brokers and Zookeeper
-node "Zookeeper\n(物理)" as Zookeeper << (Z,yellow) >>
+' Kafka Cluster
+rectangle "Kafka Cluster" as KC {
+    rectangle "Broker 1" as B1 #BROKER_COLOR {
+        component "Request Handler" as RH1 #COMPONENT_COLOR
+        component "Network Processor" as NP1 #COMPONENT_COLOR
+    }
+    rectangle "Broker 2" as B2 #BROKER_COLOR {
+        component "Request Handler" as RH2 #COMPONENT_COLOR
+        component "Network Processor" as NP2 #COMPONENT_COLOR
+    }
+    rectangle "Broker 3 (Controller)" as B3 #BROKER_COLOR {
+        component "Controller" as CTRL #COMPONENT_COLOR
+        component "Replication Manager" as RM #COMPONENT_COLOR
+        component "Log Manager" as LM #COMPONENT_COLOR
+    }
+    rectangle "Broker 4" as B4 #BROKER_COLOR {
+        component "Request Handler" as RH4 #COMPONENT_COLOR
+        component "Network Processor" as NP4 #COMPONENT_COLOR
+    }
+}
 
-node "Broker1\n(物理)" as Broker1 << (K,orchid) >>
-node "Broker2\n(物理)" as Broker2 << (K,orchid) >>
-node "Broker3\n(物理)" as Broker3 << (K,orchid) >>
-node "Broker4\n(物理)" as Broker4 << (K,orchid) >>
+' Monitoring & Management
+rectangle "Monitoring & Management" as MM #MONITORING_COLOR {
+    component "Kafka Manager" as KM
+    component "JMX Exporter" as JMX
+    component "Prometheus" as PROM
+    component "Grafana" as GRAF
+}
 
-' Define internal components
-node "Controller\n(Broker3)" as Controller << (C,lightblue) >>
-node "Replication Manager\n(Broker3)" as ReplicationManager << (C,lightblue) >>
-node "Log Manager\n(Broker3)" as LogManager << (C,lightblue) >>
-node "Network Processor\n(Broker4)" as NetworkProcessor << (C,lightblue) >>
-node "Request Handler\n(Broker1)" as RequestHandler << (C,lightblue) >>
-
-' Arrange nodes for better layout
-Zookeeper -down-> Broker1
-Zookeeper -down-> Broker2
-Zookeeper -down-> Broker3
-Zookeeper -down-> Broker4
-
-Broker1 -down-> RequestHandler
-Broker3 -down-> Controller
-Broker3 -down-> ReplicationManager
-Broker3 -down-> LogManager
-Broker4 -down-> NetworkProcessor
+' Security Layer
+rectangle "Security Layer" as SL #SECURITY_COLOR {
+    component "SSL/TLS" as SSL
+    component "SASL" as SASL
+    component "ACL" as ACL
+}
 
 ' Connections
-Controller --> Zookeeper : "manages & coordinates"
-Broker3 --> Controller : "hosts"
-Broker3 --> ReplicationManager : "hosts"
-Broker3 --> LogManager : "hosts"
-Broker4 --> NetworkProcessor : "hosts"
-Broker1 --> RequestHandler : "hosts"
+ZK -[#4B0082,thickness=2]down-> KC : <color:#4B0082><b>1. Coordinates</b></color>
+B3 -[#006400,thickness=2]up-> ZK : <color:#006400><b>2. Manages</b></color>
+KC -[#4682B4,thickness=2]right-> MM : <color:#4682B4><b>3. Monitored by</b></color>
+KC -[#8B4513,thickness=2]-> SL : <color:#8B4513><b>4. Secured by</b></color>
 
-Zookeeper -[dotted]-> Broker1 : "coordinates"
-Zookeeper -[dotted]-> Broker2 : "coordinates"
-Zookeeper -[dotted]-> Broker3 : "coordinates"
-Zookeeper -[dotted]-> Broker4 : "coordinates"
+' Notes
+note right of B3 #FFFAFA
+  <b>Controller Broker:</b>
+  Manages cluster-wide operations
+  Performance bottleneck: Consider implementing
+  multi-controller for high availability
+end note
 
-' Annotations for clarity
-note right of Zookeeper : "Zookeeper\nCluster Management & Coordination"
-note right of Controller : "Controller\nCluster Leadership & Coordination"
-note right of ReplicationManager : "Replication Manager\nManages Replication"
-note right of LogManager : "Log Manager\nManages Logs"
-note right of NetworkProcessor : "Network Processor\nHandles Network Requests"
-note right of RequestHandler : "Request Handler\nProcesses Client Requests"
+note bottom of MM #FFFAFA
+  Provides insights and facilitates cluster management
+  Optimization: Implement automated alerting and
+  self-healing mechanisms
+end note
 
-' 示例场景
-note bottom of Broker3 : "Use case scenario:\nWhen Broker3 fails, the Replication Manager replicates its data to other brokers to ensure high availability."
+note bottom of SL #FFFAFA
+  Ensures secure communication and access control
+  Consider implementing rotating keys and
+  certificate management for enhanced security
+end note
 
 @enduml
