@@ -1,35 +1,30 @@
 @startuml Fault Tolerant System Recovery Design
 
-!define RECTANGLE class
 allowmixing
+!pragma layout dot
 
 skinparam {
-    backgroundColor #F0F0F0
+    backgroundColor #FAFAFA
     handwritten false
     defaultFontName Arial
-    defaultFontSize 12
-    roundcorner 20
+    defaultFontSize 16
+    roundcorner 10
     shadowing false
     ArrowColor #2C3E50
     ActorBorderColor #2C3E50
     LifeLineBorderColor #2C3E50
     LifeLineBackgroundColor #A9DCDF
-    
     ParticipantBorderColor #2C3E50
     ParticipantBackgroundColor #A9DCDF
     ParticipantFontName Arial
     ParticipantFontSize 12
     ParticipantFontColor #2C3E50
-    
     ActorBackgroundColor #A9DCDF
     ActorFontColor #2C3E50
     ActorFontSize 12
     ActorFontName Arial
-    
-    RectangleBackgroundColor #FFFFFF
-    
     NoteFontName Arial
-    NoteFontSize 11
+    NoteFontSize 16
     NoteFontColor #333333
     NoteBackgroundColor #FFFDE7
     NoteBorderColor #FFC107
@@ -37,58 +32,50 @@ skinparam {
 
 title Fault Tolerant System Recovery Design
 
-' 主要系统组件
-RECTANGLE "Primary System" as Primary #E1F5FE {
-    [Service A]
-    [Service B]
-    [Service C]
+rectangle "Primary System" as Primary #E1F5FE {
+    component "Service A" as ServiceA
+    component "Service B" as ServiceB
+    component "Service C" as ServiceC
 }
 
-' 备份系统
-RECTANGLE "Backup System" as Backup #E8F5E9 {
-    [Service A']
-    [Service B']
-    [Service C']
+rectangle "Backup System" as Backup #E8F5E9 {
+    component "Service A'" as ServiceA_Backup
+    component "Service B'" as ServiceB_Backup
+    component "Service C'" as ServiceC_Backup
 }
 
-' 健康检查
-RECTANGLE "Health Checker" as HealthChecker #FFF3E0 {
-    [Heartbeat Monitor]
-    [Performance Monitor]
-    [Log Analyzer]
+rectangle "Health Checker" as HealthChecker #FFF3E0 {
+    component "Heartbeat Monitor" as HeartbeatMonitor
+    component "Performance Monitor" as PerformanceMonitor
+    component "Log Analyzer" as LogAnalyzer
 }
 
-' 故障检测
-RECTANGLE "Fault Detector" as FaultDetector #FFEBEE {
-    [Anomaly Detection]
-    [Error Pattern Recognition]
-    [Threshold Analyzer]
+rectangle "Fault Detector" as FaultDetector #FFEBEE {
+    component "Anomaly Detection" as AnomalyDetection
+    component "Error Pattern Recognition" as ErrorPatternRecognition
+    component "Threshold Analyzer" as ThresholdAnalyzer
 }
 
-' 数据一致性管理
-RECTANGLE "Consistency Manager" as ConsistencyManager #E8EAF6 {
-    [Data Synchronization]
-    [Conflict Resolution]
-    [Version Control]
+rectangle "Consistency Manager" as ConsistencyManager #E8EAF6 {
+    component "Data Synchronization" as DataSync
+    component "Conflict Resolution" as ConflictResolution
+    component "Version Control" as VersionControl
 }
 
-' 自动恢复控制器
-RECTANGLE "Recovery Controller" as RecoveryController #F3E5F5 {
-    [Failover Orchestrator]
-    [State Transfer]
-    [Service Restart]
+rectangle "Recovery Controller" as RecoveryController #F3E5F5 {
+    component "Failover Orchestrator" as FailoverOrchestrator
+    component "State Transfer" as StateTransfer
+    component "Service Restart" as ServiceRestart
 }
 
-' 连接
-Primary --> HealthChecker : Send health data
-HealthChecker --> FaultDetector : Report anomalies
-FaultDetector --> RecoveryController : Trigger recovery
-RecoveryController --> Backup : Activate backup
-RecoveryController --> ConsistencyManager : Ensure data consistency
-ConsistencyManager --> Primary : Sync data
-ConsistencyManager --> Backup : Sync data
+Primary -[#1E88E5,thickness=2]-> HealthChecker : <color:#1E88E5>1. Send health data
+HealthChecker -[#FFA000,thickness=2]-> FaultDetector : <color:#FFA000>2. Report anomalies
+FaultDetector -[#D81B60,thickness=2]-> RecoveryController : <color:#D81B60>3. Trigger recovery
+RecoveryController -[#7CB342,thickness=2]-> Backup : <color:#7CB342>4. Activate backup
+RecoveryController -[#5E35B1,thickness=2]-> ConsistencyManager : <color:#5E35B1>5. Ensure data consistency
+ConsistencyManager -[#00897B,thickness=2]-> Primary : <color:#00897B>6. Sync data (Primary)
+ConsistencyManager -[#00897B,thickness=2]-> Backup : <color:#00897B>7. Sync data (Backup)
 
-' 注释
 note right of HealthChecker
   Continuously monitors system health
   using various metrics and log analysis
@@ -112,5 +99,8 @@ note right of RecoveryController
   4. Verify system integrity
   5. Notify administrators
 end note
+
+note "Performance bottleneck:\nOptimize data synchronization\nfor large-scale systems" as PerformanceNote
+PerformanceNote .. ConsistencyManager
 
 @enduml
