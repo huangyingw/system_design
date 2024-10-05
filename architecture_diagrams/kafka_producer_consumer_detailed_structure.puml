@@ -1,76 +1,125 @@
 @startuml
 skinparam backgroundColor #F5F5F5
 skinparam packageStyle rectangle
+allowmixing
+skinparam linetype ortho
 
-package "Kafka System" {
+title Kafka Producer and Consumer Detailed Architecture
+
+rectangle "Kafka System" {
     
-    ' Producer Components
-    package "Producer Components" {
-        class Producer << (P,blue) >> {
-            Sends messages to the broker
-        }
-        class ProducerInterceptor << (P,blue) >> {
-            Intercepts messages\nPerforms operations before and after sending messages
-        }
-        class Serializer << (P,blue) >> {
-            Serializes objects\nConverts objects to byte arrays
-        }
-        class Partitioner << (P,blue) >> {
-            Determines message partition
-        }
-        class RecordAccumulator << (P,blue) >> {
-            Collects and batches messages
-        }
-        class Sender << (P,blue) >> {
-            Fetches messages from the accumulator\nSends messages to the broker
-        }
+    rectangle "Producer Components" as ProducerComponents {
+        component "Producer" as Producer #87CEFA
+        component "ProducerInterceptor" as ProducerInterceptor #87CEFA
+        component "Serializer" as Serializer #87CEFA
+        component "Partitioner" as Partitioner #87CEFA
+        component "RecordAccumulator" as RecordAccumulator #87CEFA
+        component "Sender" as Sender #87CEFA
 
-        Producer --> ProducerInterceptor : uses
-        ProducerInterceptor --> Serializer : uses
-        Serializer --> Partitioner : uses
-        Partitioner --> RecordAccumulator : uses
-        RecordAccumulator --> Sender : uses
+        Producer -[#FF6347,thickness=2]-> ProducerInterceptor : 1
+        ProducerInterceptor -[#FF6347,thickness=2]-> Serializer : 2
+        Serializer -[#FF6347,thickness=2]-> Partitioner : 3
+        Partitioner -[#FF6347,thickness=2]-> RecordAccumulator : 4
+        RecordAccumulator -[#FF6347,thickness=2]-> Sender : 5
     }
 
-    ' Consumer Components
-    package "Consumer Components" {
-        class Consumer << (C,red) >> {
-            Pulls messages from the broker
-        }
-        class Coordinator << (C,red) >> {
-            Manages consumer groups\nHandles partition rebalancing
-        }
-        class PartitionAssignor << (C,red) >> {
-            Assigns partitions\nDetermines which partitions to consume
-        }
-        class FetchManager << (C,red) >> {
-            Fetches messages from the broker
-        }
-        class Deserializer << (C,red) >> {
-            Deserializes byte arrays\nConverts byte arrays to objects
-        }
-        class ConsumerInterceptor << (C,red) >> {
-            Intercepts messages\nPerforms operations before and after consuming messages
-        }
+    rectangle "Consumer Components" as ConsumerComponents {
+        component "Consumer" as Consumer #FFA07A
+        component "Coordinator" as Coordinator #FFA07A
+        component "PartitionAssignor" as PartitionAssignor #FFA07A
+        component "FetchManager" as FetchManager #FFA07A
+        component "Deserializer" as Deserializer #FFA07A
+        component "ConsumerInterceptor" as ConsumerInterceptor #FFA07A
 
-        Consumer --> Coordinator : uses
-        Coordinator --> PartitionAssignor : uses
-        PartitionAssignor --> FetchManager : uses
-        FetchManager --> Deserializer : uses
-        Deserializer --> ConsumerInterceptor : uses
+        Consumer -[#4682B4,thickness=2]-> Coordinator : 1
+        Coordinator -[#4682B4,thickness=2]-> PartitionAssignor : 2
+        PartitionAssignor -[#4682B4,thickness=2]-> FetchManager : 3
+        FetchManager -[#4682B4,thickness=2]-> Deserializer : 4
+        Deserializer -[#4682B4,thickness=2]-> ConsumerInterceptor : 5
     }
 
-    ' Broker
-    class Broker << (K,orchid) >> {
-        Receives and stores messages\nDelivers messages to consumers
-    }
+    component "Broker" as Broker #98FB98
 
-    Sender --> Broker : sends messages
-    Broker --> FetchManager : delivers messages
+    Sender -[#FF6347,thickness=2]-> Broker : <color:#FF6347>6. Send messages</color>
+    Broker -[#4682B4,thickness=2]-> FetchManager : <color:#4682B4>6. Deliver messages</color>
 }
 
-' Adjusting positions to align Producer and Consumer components horizontally
-Producer -down- Broker
-Consumer -down- Broker
+note right of Producer
+  Initiates message production process
+  <b>Bottleneck:</b> High message volume
+  <b>Optimize:</b> Increase batch size, use async sends
+end note
+
+note right of ProducerInterceptor
+  Intercepts and modifies messages
+  <b>Bottleneck:</b> Complex interception logic
+  <b>Optimize:</b> Keep interception logic simple
+end note
+
+note right of Serializer
+  Converts messages to byte arrays
+  <b>Bottleneck:</b> Inefficient serialization
+  <b>Optimize:</b> Use efficient formats (e.g., Avro)
+end note
+
+note right of Partitioner
+  Determines message partition
+  <b>Bottleneck:</b> Uneven partition distribution
+  <b>Optimize:</b> Implement custom partitioner if needed
+end note
+
+note right of RecordAccumulator
+  Batches messages for efficiency
+  <b>Bottleneck:</b> Memory usage for large batches
+  <b>Optimize:</b> Fine-tune batch.size and linger.ms
+end note
+
+note right of Sender
+  Sends batched messages to broker
+  <b>Bottleneck:</b> Network I/O
+  <b>Optimize:</b> Increase buffer.memory, use compression
+end note
+
+note left of Consumer
+  Initiates message consumption process
+  <b>Bottleneck:</b> Slow message processing
+  <b>Optimize:</b> Increase consumer threads
+end note
+
+note left of Coordinator
+  Manages consumer group membership
+  <b>Bottleneck:</b> Frequent rebalances
+  <b>Optimize:</b> Tune session.timeout.ms
+end note
+
+note left of PartitionAssignor
+  Assigns partitions to consumers
+  <b>Bottleneck:</b> Uneven partition assignment
+  <b>Optimize:</b> Use appropriate assignment strategy
+end note
+
+note left of FetchManager
+  Fetches messages from broker
+  <b>Bottleneck:</b> Fetch size too small
+  <b>Optimize:</b> Increase fetch.min.bytes
+end note
+
+note left of Deserializer
+  Converts byte arrays back to messages
+  <b>Bottleneck:</b> Inefficient deserialization
+  <b>Optimize:</b> Use efficient deserialization methods
+end note
+
+note left of ConsumerInterceptor
+  Intercepts and processes consumed messages
+  <b>Bottleneck:</b> Complex interception logic
+  <b>Optimize:</b> Keep interception logic simple
+end note
+
+note bottom of Broker
+  Stores and manages message topics and partitions
+  <b>Bottleneck:</b> Disk I/O, network bandwidth
+  <b>Optimize:</b> Use SSDs, RAID, increase num.io.threads, network capacity
+end note
 
 @enduml
