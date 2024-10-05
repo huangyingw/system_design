@@ -1,0 +1,61 @@
+@startuml Distributed Web Crawler System Architecture
+
+!define RECTANGLE class
+
+skinparam backgroundColor #FEFEFE
+skinparam handwritten false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam roundCorner 10
+skinparam componentStyle uml2
+allowmixing
+
+rectangle "Distributed Web Crawler System" {
+    RECTANGLE "URL Frontier" as frontier #D6EAF8
+    RECTANGLE "Crawler Manager" as manager #D5F5E3
+    RECTANGLE "DNS Resolver" as dns #FDEBD0
+    RECTANGLE "Fetcher" as fetcher #F5B7B1
+    RECTANGLE "Content Parser" as parser #D7BDE2
+    RECTANGLE "Content Store" as store #FAD7A0
+    RECTANGLE "Indexer" as indexer #AED6F1
+    RECTANGLE "Duplicate Detector" as dedup #F9E79F
+    
+    database "URL Database" as urldb #D6DBDF
+    database "Content Database" as contentdb #D6DBDF
+    database "Index Database" as indexdb #D6DBDF
+}
+
+frontier -[#4CAF50,thickness=2]-> manager : <color:#4CAF50>1. Provide URLs</color>
+manager -[#2196F3,thickness=2]-> dns : <color:#2196F3>2. Resolve DNS</color>
+manager -[#FF5722,thickness=2]-> fetcher : <color:#FF5722>3. Fetch content</color>
+fetcher -[#9C27B0,thickness=2]-> parser : <color:#9C27B0>4. Parse content</color>
+parser -[#795548,thickness=2]-> store : <color:#795548>5. Store content</color>
+parser -[#FFC107,thickness=2]-> indexer : <color:#FFC107>6. Index content</color>
+parser -[#00BCD4,thickness=2]-> dedup : <color:#00BCD4>7. Check duplicates</color>
+dedup -[#607D8B,thickness=2]-> frontier : <color:#607D8B>8. Add new URLs</color>
+
+frontier -[#E91E63,dashed]-> urldb : Store/Retrieve
+store -[#E91E63,dashed]-> contentdb : Store
+indexer -[#E91E63,dashed]-> indexdb : Store
+
+note right of frontier
+  Prioritizes and
+  schedules URLs
+end note
+
+note right of manager
+  Coordinates crawling
+  tasks and resources
+end note
+
+note bottom of fetcher
+  Respects robots.txt
+  and crawl delays
+end note
+
+note bottom of dedup
+  Prevents crawling
+  duplicate content
+end note
+
+@enduml
