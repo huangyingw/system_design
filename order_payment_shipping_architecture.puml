@@ -1,28 +1,72 @@
-@startuml Order_Payment_Shipping
-!theme toy
-skinparam backgroundColor E6E6FA
-skinparam shadowing false
-skinparam RoundCorner 10
-skinparam ArrowColor 454645
-skinparam DefaultFontName Arial
-skinparam DefaultFontSize 12
+@startuml Order Payment and Shipping System Architecture
 
-component "Order Service" as OrderService #FFF0F5
-component "Payment Gateway" as PaymentGateway #FFE4B5
-component "Shipping Service" as ShippingService #FFE4B5
-component "Email Service" as EmailService #FFE4B5
+!define RECTANGLE class
+!define STORAGE database
 
-' Relationships
-OrderService -[#FF69B4]right-> PaymentGateway : "Process payment"
-OrderService -[#FF69B4]right-> ShippingService : "Arrange shipping"
-OrderService -[#FF69B4]down-> EmailService : "Send confirmation"
+skinparam backgroundColor #FAFAFA
+skinparam handwritten false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam roundCorner 10
+skinparam componentStyle uml2
+allowmixing
 
-' Notes
-note right of OrderService
-  Order Service:
-  - Handle orders
-  - Process payments
-  - Arrange shipments
-  - Send order confirmation
+rectangle "E-commerce System" {
+    RECTANGLE "Order Service" as orderService #D6EAF8
+    RECTANGLE "Payment Gateway" as paymentGateway #D5F5E3
+    RECTANGLE "Payment Processor" as paymentProcessor #FDEBD0
+    RECTANGLE "Fraud Detection" as fraudDetection #F5B7B1
+    RECTANGLE "Shipping Service" as shippingService #D7BDE2
+    RECTANGLE "Inventory Service" as inventoryService #FAD7A0
+    RECTANGLE "Notification Service" as notificationService #AED6F1
+    
+    STORAGE "Order Database" as orderDB #D6DBDF
+    STORAGE "Payment Database" as paymentDB #D6DBDF
+    STORAGE "Shipping Database" as shippingDB #D6DBDF
+    STORAGE "Inventory Database" as inventoryDB #D6DBDF
+}
+
+actor "Customer" as customer
+actor "Merchant" as merchant
+
+customer -[#4CAF50,thickness=2]-> orderService : <color:#4CAF50>1. Place Order</color>
+orderService -[#2196F3,thickness=2]-> inventoryService : <color:#2196F3>2. Check Stock</color>
+inventoryService -[#FF5722,thickness=2]-> inventoryDB : <color:#FF5722>3. Verify Inventory</color>
+orderService -[#9C27B0,thickness=2]-> paymentGateway : <color:#9C27B0>4. Initiate Payment</color>
+paymentGateway -[#795548,thickness=2]-> fraudDetection : <color:#795548>5. Check for Fraud</color>
+paymentGateway -[#FFC107,thickness=2]-> paymentProcessor : <color:#FFC107>6. Process Payment</color>
+paymentProcessor -[#00BCD4,thickness=2]-> paymentGateway : <color:#00BCD4>7. Payment Result</color>
+paymentGateway -[#E91E63,thickness=2]-> orderService : <color:#E91E63>8. Confirm Payment</color>
+orderService -[#9E9E9E,thickness=2]-> shippingService : <color:#9E9E9E>9. Create Shipment</color>
+shippingService -[#3F51B5,thickness=2]-> shippingDB : <color:#3F51B5>10. Update Shipping Status</color>
+orderService -[#009688,thickness=2]-> orderDB : <color:#009688>11. Update Order Status</color>
+orderService -[#FF9800,thickness=2]-> notificationService : <color:#FF9800>12. Send Confirmation</color>
+notificationService -[#8BC34A,thickness=2]-> customer : <color:#8BC34A>13. Notify Customer</color>
+shippingService -[#607D8B,thickness=2]-> merchant : <color:#607D8B>14. Shipping Instructions</color>
+
+note right of paymentGateway
+  Supports multiple payment methods:
+  - Credit/Debit Cards
+  - Digital Wallets
+  - Bank Transfers
+  - Cryptocurrencies
 end note
+
+note right of fraudDetection
+  Uses machine learning algorithms
+  to detect suspicious transactions
+end note
+
+note bottom of paymentProcessor
+  Integrates with various
+  payment service providers
+  and banks
+end note
+
+note bottom of shippingService
+  Integrates with multiple
+  shipping carriers for
+  real-time tracking
+end note
+
 @enduml
