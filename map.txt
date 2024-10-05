@@ -6,6 +6,7 @@
     distributed_system_cap_theorem_illustration.puml
     distributed_system_monitoring_and_alerting_architecture.puml
     fault_tolerant_and_high_availability_system_design.puml
+    distributed_message_queue_system.puml
 
 2. 微服务架构
     microservices_architecture_design.puml
