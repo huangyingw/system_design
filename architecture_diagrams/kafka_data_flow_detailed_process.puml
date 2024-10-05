@@ -1,21 +1,62 @@
 @startuml
 skinparam backgroundColor #E8E8E8
 
-class Producer << (P,blue) >>
-class Broker1 << (K,orchid) >>
-class Broker2 << (K,orchid) >>
-class Broker3 << (K,orchid) >>
-class Consumer1 << (C,red) >>
-class Consumer2 << (C,red) >>
+' 定义组件
+rectangle "Producer" as Producer #4CAF50
+rectangle "Broker Cluster" as BrokerCluster {
+    rectangle "Broker 1" as Broker1 #FF9800
+    rectangle "Broker 2" as Broker2 #FF9800
+    rectangle "Broker 3" as Broker3 #FF9800
+}
+rectangle "ZooKeeper Ensemble" as ZooKeeper #9C27B0
+rectangle "Consumer Group" as ConsumerGroup {
+    rectangle "Consumer 1" as Consumer1 #2196F3
+    rectangle "Consumer 2" as Consumer2 #2196F3
+}
+rectangle "Schema Registry" as SchemaRegistry #E91E63
+rectangle "Monitoring & Metrics" as Monitoring #795548
 
-Producer --> Broker1 : send
-Broker1 --> Broker2 : replicate
-Broker1 --> Broker3 : replicate
-Broker1 --> Consumer1 : fetch
-Broker2 --> Consumer2 : fetch
+' 定义连接
+Producer -[#4CAF50,thickness=2]-> Broker1 : 1. Send Message
+Producer -[#4CAF50,dashed]-> SchemaRegistry : 2. Validate Schema
+Broker1 -[#FF9800,thickness=2]-> Broker2 : 3. Replicate
+Broker1 -[#FF9800,thickness=2]-> Broker3 : 4. Replicate
+Broker1 -[#2196F3,thickness=2]-> Consumer1 : 5. Fetch
+Broker2 -[#2196F3,thickness=2]-> Consumer2 : 6. Fetch
+ZooKeeper -[#9C27B0,dashed]-> BrokerCluster : 7. Manage Metadata
+ZooKeeper -[#9C27B0,dashed]-> ConsumerGroup : 8. Coordinate
+Monitoring -[#795548,dashed]-> BrokerCluster : 9. Collect Metrics
+Monitoring -[#795548,dashed]-> ConsumerGroup : 10. Collect Metrics
 
-note top of Producer : 生产者发送消息到指定主题
-note top of Broker1 : 消息被分区并复制到多个Broker
-note top of Consumer1 : 消费者从Broker中获取消息
+' 添加注释
+note top of Producer
+    生产者发送消息到指定主题
+    可以选择同步或异步发送
+end note
+
+note bottom of BrokerCluster
+    消息被分区并复制到多个Broker
+    确保高可用性和容错性
+end note
+
+note bottom of ConsumerGroup
+    消费者从Broker中获取消息
+    支持多种消费模式
+end note
+
+note right of SchemaRegistry
+    管理和验证消息模式
+    确保数据兼容性
+end note
+
+note right of ZooKeeper
+    管理集群元数据
+    协调Broker和Consumer
+end note
+
+note left of Monitoring
+    监控系统性能和健康状况
+    收集关键指标
+end note
 
 @enduml
