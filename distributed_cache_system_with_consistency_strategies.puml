@@ -1,47 +1,52 @@
-@startuml Distributed Cache System with Enhanced Consistency and Eviction Strategies
+@startuml Distributed Cache System with Consistency Strategies
 
-allowmixing
 
-rectangle "Client" as Client #E1F5FE
 
-rectangle "Load Balancer" as LB #FFEBEE
-
-rectangle "Cache Cluster" as CC #E8F5E9 {
-    component "Cache Node 1" as CN1
-    component "Cache Node 2" as CN2
-    component "Cache Node 3" as CN3
+skinparam {
+    backgroundColor #F0F0F0
+    handwritten false
+    defaultFontName Arial
+    defaultFontSize 14
+    roundcorner 20
+    shadowing false
+    ArrowColor #2C3E50
+    RectangleBackgroundColor #FFFFFF
+    NoteFontName Arial
+    NoteFontSize 12
+    NoteFontColor #333333
+    NoteBackgroundColor #FFFDE7
+    NoteBorderColor #FFC107
 }
 
-rectangle "Consistency Layer" as ConsistencyLayer #FFE6E6 {
-    component "Consistency Manager" as CM
-    component "Bloom Filter" as BF
-}
+title Distributed Cache System with Consistency Strategies
 
-rectangle "Eviction Strategies" as EvictionStrategies #FFF3E0 {
-    component "LRU (Least Recently Used)" as LRU
-    component "LFU (Least Frequently Used)" as LFU
-    component "FIFO (First In First Out)" as FIFO
-}
+RECTANGLE "Client" as Client #E1F5FE
+RECTANGLE "Load Balancer" as LB #FFF3E0
+RECTANGLE "Cache Cluster" as CC #E8F5E9
+RECTANGLE "Consistency Manager" as CM #FFEBEE
+RECTANGLE "Persistence Store" as PS #E0F7FA
+RECTANGLE "Cache Warmer" as CW #F3E5F5
+RECTANGLE "Bloom Filter" as BF #FFF8E1
+RECTANGLE "Monitoring & Alerts" as MA #FFCCBC
 
-rectangle "Storage Layer" as StorageLayer #E6E6FF {
-    component "Persistent Storage" as PS
-}
-
-rectangle "Management Layer" as ManagementLayer #FFFDE6 {
-    component "Cache Warmer" as CW
-    component "Monitoring & Alerting" as MA
-}
-
+' Request flow
 Client -[#4CAF50,thickness=2]down-> LB : <color:#4CAF50>1. Request</color>
-LB -[#4CAF50,thickness=2]down-> CC : <color:#4CAF50>2. Route request</color>
-CC -[#2196F3,thickness=2]right-> BF : <color:#2196F3>3. Filter non-existent keys</color>
-BF -[#2196F3,thickness=2]right-> CM : <color:#2196F3>4. Ensure consistency</color>
-CM -[#2196F3,thickness=2]down-> PS : <color:#2196F3>5. Sync if needed</color>
-CC -[#FFA000,thickness=2]down-> EvictionStrategies : <color:#FFA000>6. Apply eviction if needed</color>
-CW -[#FFA000,thickness=2]left-> CC : <color:#FFA000>7. Preload hot data</color>
-MA -[#795548,thickness=2]-> CC : <color:#795548>8. Monitor performance</color>
+LB -[#2196F3,thickness=2]down-> CC : <color:#2196F3>2. Route request</color>
+CC -[#FF5722,thickness=2]right-> BF : <color:#FF5722>3. Filter non-existent keys</color>
+BF -[#9C27B0,thickness=2]right-> CM : <color:#9C27B0>4. Ensure consistency</color>
+CM -[#795548,thickness=2]down-> PS : <color:#795548>5. Sync if needed</color>
+CC -[#FFC107,thickness=2]down-> PS : <color:#FFC107>6. Read/Write through</color>
 
-note right of CM
+' Response flow
+PS -[#00BCD4,thickness=2,dashed]up-> CC : <color:#00BCD4>7. Return data (if not in cache)</color>
+CC -[#E91E63,thickness=2,dashed]up-> LB : <color:#E91E63>8. Return cached/fetched data</color>
+LB -[#9C27B0,thickness=2,dashed]up-> Client : <color:#9C27B0>9. Return response to client</color>
+
+' Other operations
+CW -[#00BCD4,thickness=2]left-> CC : <color:#00BCD4>10. Preload hot data</color>
+MA -[#E91E63,thickness=2]-> CC : <color:#E91E63>11. Monitor performance</color>
+
+note bottom of CM
   Consistency strategies:
   - Strong consistency
   - Eventual consistency
@@ -50,25 +55,32 @@ note right of CM
   - Session consistency
 end note
 
-note right of EvictionStrategies
-  Eviction strategies:
-  - LRU: Evicts least recently used items
-  - LFU: Evicts least frequently used items
-  - FIFO: Evicts oldest items first
+note right of CC
+  Cache eviction policies:
+  - LRU (Least Recently Used)
+  - LFU (Least Frequently Used)
+  - FIFO (First In First Out)
   - Time-based expiration
 end note
 
-note bottom of CC
-  Consistent Hashing:
-  - Virtual nodes for better distribution
-  - Minimizes data movement on node changes
+note bottom of CW
+  Cache warming strategies:
+  - Periodic data preloading
+  - On-demand preloading
+  - Gradual cache population
 end note
 
-note right of PS
-  Persistence options:
-  - Write-through: Immediate disk write
-  - Write-behind: Async disk write
-  - Write-around: Write directly to storage
+note right of BF
+  Cache penetration prevention:
+  - Filters out requests for non-existent keys
+  - Reduces unnecessary database queries
+end note
+
+note bottom of PS
+  Write strategies:
+  - Write-through
+  - Write-behind (Write-back)
+  - Write-around
 end note
 
 @enduml
