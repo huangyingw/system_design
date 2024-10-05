@@ -4,12 +4,10 @@
 !define STORAGE database
 
 skinparam backgroundColor #FAFAFA
-skinparam handwritten false
 skinparam defaultFontName Arial
 skinparam defaultFontSize 14
-skinparam roundCorner 10
-skinparam componentStyle uml2
 allowmixing
+
 
 rectangle "E-commerce System" {
     RECTANGLE "Order Service" as orderService #D6EAF8
@@ -44,29 +42,64 @@ orderService -[#FF9800,thickness=2]-> notificationService : <color:#FF9800>12. S
 notificationService -[#8BC34A,thickness=2]-> customer : <color:#8BC34A>13. Notify Customer</color>
 shippingService -[#607D8B,thickness=2]-> merchant : <color:#607D8B>14. Shipping Instructions</color>
 
+note right of orderService
+<b>Performance Bottleneck:</b>
+• High concurrency during peak times
+
+<b>Optimizations:</b>
+• Implement caching (e.g., Redis)
+• Use message queues for async processing
+• Horizontal scaling with load balancing
+end note
+
+note right of inventoryService
+<b>Performance Bottleneck:</b>
+• Frequent inventory checks and updates
+
+<b>Optimizations:</b>
+• Implement inventory caching
+• Use eventual consistency for non-critical updates
+• Optimize database queries and indexing
+end note
+
 note right of paymentGateway
-  Supports multiple payment methods:
-  - Credit/Debit Cards
-  - Digital Wallets
-  - Bank Transfers
-  - Cryptocurrencies
+<b>Performance Bottleneck:</b>
+• High volume of payment transactions
+
+<b>Optimizations:</b>
+• Implement circuit breaker pattern
+• Use connection pooling for external services
+• Optimize network configurations
 end note
 
 note right of fraudDetection
-  Uses machine learning algorithms
-  to detect suspicious transactions
-end note
+<b>Performance Bottleneck:</b>
+• Complex fraud detection algorithms
 
-note bottom of paymentProcessor
-  Integrates with various
-  payment service providers
-  and banks
+<b>Optimizations:</b>
+• Use machine learning models for faster processing
+• Implement risk scoring to prioritize checks
+• Parallel processing for batch transactions
 end note
 
 note bottom of shippingService
-  Integrates with multiple
-  shipping carriers for
-  real-time tracking
+<b>Performance Bottleneck:</b>
+• Integration with multiple shipping carriers
+
+<b>Optimizations:</b>
+• Implement caching for shipping rates and tracking info
+• Use asynchronous processing for non-critical updates
+• Optimize API calls to shipping carriers
+end note
+
+note bottom of notificationService
+<b>Performance Bottleneck:</b>
+• High volume of notifications during peak times
+
+<b>Optimizations:</b>
+• Use message queues for async processing
+• Implement rate limiting
+• Batch notifications where possible
 end note
 
 @enduml
