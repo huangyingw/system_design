@@ -1,129 +1,126 @@
 @startuml
-skinparam backgroundColor #D3D3D3
+!pragma layout dot
+skinparam backgroundColor #F0F0F0
+allowmixing
 
-package "Spark on Kubernetes Application" #LightYellow {
-    [Driver Program\n(Scala, Java, Python, R)] as Driver
-        [SparkContext\n(Scala, Java, Python, R)] as SC
-        [RDD Operations\n(Scala, Java, Python, R)] as RDDOps
-        [DAG Scheduler\n(Scala)] as DAG
-        [Task Scheduler\n(Scala)] as TS
+rectangle "Spark Application" as SparkApp #FDD835 {
+    component "Driver Program" as Driver
+    component "SparkContext" as SC
+    component "RDD Operations" as RDDOps
+    component "DAG Scheduler" as DAG
+    component "Task Scheduler" as TS
 }
 
-package "Kubernetes Cluster" #LightGreen {
-        [Kubernetes Master\n(Java, Scala)] as K8sMaster
-        [Kubernetes API] as K8sAPI
-    }
-
-package "Kubernetes Worker Node 1" #LightBlue {
-        [Pod 1\n(Kubernetes)] as Pod1
-        [Executor 1\n(Scala, Java, Python, R)] as E1
-        [Cache 1] as C1
-    frame "Logical Data Processing 1" #Pink {
-        [Map Task 1.1\n(Scala, Java, Python, R)] as MT11
-        [Reduce Task 1.2\n(Scala, Java, Python, R)] as RT12
-    }
+rectangle "Kubernetes Cluster" as K8sCluster #7CB342 {
+    component "Kubernetes Master" as K8sMaster
+    component "Kubernetes API" as K8sAPI
 }
 
-package "Kubernetes Worker Node 2" #LightBlue {
-        [Pod 2\n(Kubernetes)] as Pod2
-        [Executor 2\n(Scala, Java, Python, R)] as E2
-        [Cache 2] as C2
-    frame "Logical Data Processing 2" #Pink {
-        [Map Task 2.1\n(Scala, Java, Python, R)] as MT21
-        [Reduce Task 2.2\n(Scala, Java, Python, R)] as RT22
+rectangle "Worker Node 1" as Node1 #4A86E8 {
+    component "Pod 1" as Pod1
+    component "Executor 1" as E1
+    component "Cache 1" as C1
+    rectangle "Data Processing 1" as LDP1 #8E24AA {
+        component "Map Task 1.1" as MT11
+        component "Reduce Task 1.2" as RT12
     }
 }
 
-    [Final Reduce and Merge\n(Scala, Java, Python, R)] as FinalReduce
-
-database "Data Storage System\n(Java)" as Storage #LightCoral {
-        [HDFS\n(Java)]
-        [Elasticsearch]
-        [Other Sources] as Others
+rectangle "Worker Node 2" as Node2 #4A86E8 {
+    component "Pod 2" as Pod2
+    component "Executor 2" as E2
+    component "Cache 2" as C2
+    rectangle "Data Processing 2" as LDP2 #8E24AA {
+        component "Map Task 2.1" as MT21
+        component "Reduce Task 2.2" as RT22
     }
+}
 
-Driver --> SC : Use
-SC --> RDDOps : Data Transformations
-RDDOps --> DAG : Convert to DAG
-SC --> TS : Submit Tasks
-SC --> K8sAPI : Deploy Driver/Executors
-DAG --> TS : Execution Planning
-TS --> K8sAPI : Request Executors
-K8sMaster --> Pod1 : Schedule Pod
-K8sMaster --> Pod2 : Schedule Pod
-Pod1 --> E1 : Run Executor
-E1 --> C1 : Data Caching
-E1 --> MT11 : Execute Map Task
-MT11 --> RT12 : Followed by Reduce Task
-Pod2 --> E2 : Run Executor
-E2 --> C2 : Data Caching
-E2 --> MT21 : Execute Map Task
-MT21 --> RT22 : Followed by Reduce Task
-RT12 --> FinalReduce : Send Results
-RT22 --> FinalReduce : Send Results
-FinalReduce --> Storage : Final Output
+component "Final Reduce" as FinalReduce #FB8C00
 
-note right of RT12
-  Reduce Task 1.2:
-  - Performs local reduce operations on Node 1
-  - Part of the distributed reduce phase
-end note
+rectangle "Data Storage" as Storage #E53935 {
+    component "HDFS" as HDFS
+    component "Elasticsearch" as ES
+    component "Other Sources" as Others
+}
+
+Driver -[#78909C,thickness=2]-> SC : <color:#78909C>1. Initialize
+SC -[#78909C,thickness=2]-> RDDOps : <color:#78909C>2. Define
+RDDOps -[#78909C,thickness=2]-> DAG : <color:#78909C>3. Convert
+SC -[#78909C,thickness=2]-> TS : <color:#78909C>4. Submit
+SC -[#78909C,thickness=2]-> K8sAPI : <color:#78909C>5. Deploy
+DAG -[#78909C,thickness=2]-> TS : <color:#78909C>6. Plan
+TS -[#78909C,thickness=2]-> K8sAPI : <color:#78909C>7. Request
+K8sMaster -[#7CB342,thickness=2]-> Pod1 : <color:#7CB342>8. Schedule
+K8sMaster -[#7CB342,thickness=2]-> Pod2 : <color:#7CB342>9. Schedule
+Pod1 -[#4A86E8,thickness=2]-> E1 : <color:#4A86E8>10. Run
+E1 -[#4A86E8,thickness=2]-> C1 : <color:#4A86E8>11. Cache
+E1 -[#8E24AA,thickness=2]-> MT11 : <color:#8E24AA>12. Map
+MT11 -[#8E24AA,thickness=2]-> RT12 : <color:#8E24AA>13. Reduce
+Pod2 -[#4A86E8,thickness=2]-> E2 : <color:#4A86E8>14. Run
+E2 -[#4A86E8,thickness=2]-> C2 : <color:#4A86E8>15. Cache
+E2 -[#8E24AA,thickness=2]-> MT21 : <color:#8E24AA>16. Map
+MT21 -[#8E24AA,thickness=2]-> RT22 : <color:#8E24AA>17. Reduce
+RT12 -[#FB8C00,thickness=2]-> FinalReduce : <color:#FB8C00>18. Aggregate
+RT22 -[#FB8C00,thickness=2]-> FinalReduce : <color:#FB8C00>19. Aggregate
+FinalReduce -[#E53935,thickness=2]-> Storage : <color:#E53935>20. Store
 
 note right of RDDOps
-  RDD Operations define data processing logic:
-  - Transformations (e.g., map, filter) define how to process data
-  - Actions (e.g., count, collect) trigger computation and output results
-  - Operations are lazily evaluated: executed when action is called
-  - The basis for distributed data processing tasks on Worker Nodes
+  RDD Operations:
+  - Define processing logic
+  - Transformations and actions
+  - Lazy evaluation
+  - Distributed processing basis
 end note
 
 note right of DAG
-  DAG (Directed Acyclic Graph) represents:
-  - Data processing steps and their dependencies
-  - Optimizes task execution
-  - Provides a fault-tolerance mechanism
-  - No cyclic dependencies in the workflow
-  - Basis for execution planning and optimization
+  DAG (Directed Acyclic Graph):
+  - Represents processing steps
+  - Optimizes execution
+  - Ensures fault-tolerance
+  - No cyclic dependencies
 end note
 
-note right of Elasticsearch
-  Elasticsearch is used for:
-  - Full-text Search and Complex Queries
-  - Real-time Analysis and Dashboards
-  - Log and Event Data Analysis
-  - Big Data Integration
-  - Data Enrichment
+note right of ES
+  Elasticsearch:
+  - Full-text search
+  - Real-time analysis
+  - Log and event data processing
+  - Data enrichment
 end note
 
 note top of C1
-  Cache for Accelerating Data Access
-  Supports Various Persistence Levels
+  Cache:
+  key: value pairs
+  Accelerates data access
 end note
 
 note right of Storage
-  External Persistent Storage System
-  Provides Long-term Data Storage and Fault Tolerance
+  External Storage:
+  Long-term data persistence
+  Fault tolerance
 end note
 
 note right of K8sMaster
   Kubernetes Master:
-  - Manages the Kubernetes Cluster
-  - Schedules and Orchestrates Pods
-  - Provides Cluster Management Capabilities
+  - Manages cluster
+  - Schedules and orchestrates Pods
+  - Overall cluster management
 end note
 
 note right of E1
-  Executors run in Kubernetes Pods
-  Each Pod represents a Spark Executor
-  Pods are managed by Kubernetes
-  Executors perform Tasks and may have local Cache
+  Executors:
+  - Run in Kubernetes Pods
+  - Managed by Kubernetes
+  - Execute tasks
+  - Local caching capability
 end note
 
 note right of FinalReduce
-  Final Reduce and Merge:
-  - Aggregates results from all Reduce Tasks
-  - Performs final data merging and processing
-  - Outputs the final result to the Data Storage System
+  Final Reduce:
+  - Aggregates results
+  - Performs final processing
+  - Prepares for storage
 end note
 
 @enduml
