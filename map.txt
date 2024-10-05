@@ -1,11 +1,11 @@
 1. 分布式系统
     blockchain_system_detailed_architecture_with_components.puml
     kubernetes_based_container_orchestration_system_architecture.puml
-    distributed_cache_system_design.puml
     distributed_cache_system_with_consistency_strategies.puml
     distributed_file_system/system_architecture.puml
     distributed_system_cap_theorem_illustration.puml
-    distributed_system_monitoring_architecture.puml
+    distributed_system_monitoring_and_alerting_architecture.puml
+    fault_tolerant_and_high_availability_system_design.puml
 
 2. 微服务架构
     microservices_architecture_design.puml
@@ -15,6 +15,7 @@
 3. 数据处理和分析
     real_time_data_stream_processing_system.puml
     distributed_tracing_system_design.puml
+    iot_log_collection_processing_and_alerting_system_architecture.puml
 
 4. 全球化部署
     global_deployment_architecture_design.puml
@@ -29,7 +30,7 @@
     twitter/timeline_update_service_detailed_architecture.puml
     twitter/tweet_system_detailed_architecture.puml
     twitter/twitter_recommendation_service_detailed.puml
-    twitter_comment_system_design.puml
+    twitter_comment_system_with_ml_moderation_and_real_time_processing.puml
 
 8. 文件传输和存储
     telegram/uml_diagrams/Telegram_File_Transfer_And_Storage.puml
@@ -39,19 +40,30 @@
     YouTube/YouTube_Video_Upload_and_Processing_Schema.puml
     YouTube/YouTube_Video_Playback_and_Interaction_Schema.puml
 
-10. 物联网系统
-    iot_log_collection_processing_and_alert_system_architecture.puml
-
-11. 在线广告系统
+10. 在线广告系统
     online_advertising_system_architecture_with_optimizations.puml
 
-12. 分布式计算
+11. 分布式计算
     distributed_computing_system_for_password_cracking.puml
 
-13. 故障恢复和容错
-    fault_tolerant_system_recovery_design.puml
-
-14. 秒杀系统
+12. 秒杀系统
     seckill_system_frontend_architecture.puml
     seckill_system_backend_architecture.puml
     seckill_system_data_layer_architecture.puml
+
+13. 数据库优化
+    database_performance_optimization_strategies_and_techniques.puml
+    dynamodb_distributed_storage_system.puml
+
+14. 搜索系统
+    twitter/twitter_search_service_detailed.puml
+
+15. 日历系统
+    high_traffic_calendar/high_traffic_calendar_optimized_architecture.puml
+    high_traffic_calendar/high_traffic_calendar_mongodb_design.puml
+
+16. URL缩短服务
+    url_shortener_system_architecture/url_shortener_system_architecture.puml
+
+17. 协同编辑
+    google_docs_architecture/google_docs_architecture.puml
