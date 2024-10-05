@@ -1,96 +1,71 @@
 @startuml Comprehensive CDN Architecture
-!define LIGHTBLUE
-!includeurl https://raw.githubusercontent.com/Drakemor/RedDress-PlantUML/master/style.puml
+!pragma layout dot
+allowmixing
 
-skinparam backgroundColor #E8E8E8
-skinparam handwritten false
+skinparam backgroundColor #F0F0F0
 skinparam defaultFontSize 14
-skinparam noteFontSize 20
+skinparam noteFontSize 12
 skinparam arrowFontSize 12
-skinparam rectangle {
-  BackgroundColor White
-  BorderColor Black
-  Shadowing false
-}
 
-rectangle "CDN System Architecture" as CDN #F0F0F0 {
+rectangle "CDN System Architecture" as CDN #E6E6FA {
     actor "User" as User
-
     rectangle "DNS Server" as DNSServer #D0E0F0
-    rectangle "Global Load Balancer" as GLB #D0E0F0 {
-        database "Geo-Location DB" as GeoDB #F0E0D0
-    }
-    
+    rectangle "Global Load Balancer" as GLB #D0E0F0
     rectangle "Origin Server" as Origin #D0E0F0
     
-    together {
-        rectangle "Region 1" as Region1 #E0F0E0 {
-            rectangle "Regional Load Balancer 1" as RLB1 #D0E0F0
-            rectangle "Edge Server 1" as ES1 #D0E0F0 {
-                database "Cache 1" as Cache1 #F0E0D0
-            }
-        }
+    rectangle "Region 1" as Region1 #E0F0E0 {
+        rectangle "Regional Load Balancer 1" as RLB1 #D0E0F0
+        rectangle "Edge Server 1" as ES1 #D0E0F0
+        component "Cache 1" as Cache1 #F0E0D0
     }
     
-    together {
-        rectangle "Region 2" as Region2 #E0F0E0 {
-            rectangle "Regional Load Balancer 2" as RLB2 #D0E0F0
-            rectangle "Edge Server 2" as ES2 #D0E0F0 {
-                database "Cache 2" as Cache2 #F0E0D0
-            }
-        }
+    rectangle "Region 2" as Region2 #E0F0E0 {
+        rectangle "Regional Load Balancer 2" as RLB2 #D0E0F0
+        rectangle "Edge Server 2" as ES2 #D0E0F0
+        component "Cache 2" as Cache2 #F0E0D0
     }
     
     rectangle "Cache Decision System" as CDS #D0E0F0
     rectangle "Analytics & Monitoring" as Analytics #D0E0F0
     
-    rectangle "CDN Cache Management and Optimization" as CDNManagement #E0F0E0 {
-        rectangle "Pre-Caching Strategy" as PreCache
-        rectangle "Cache Synchronization" as Sync
-        rectangle "Intelligent Routing" as Routing
-        rectangle "Locality Principle" as Locality
+    rectangle "CDN Management" as CDNManagement #E0F0E0 {
+        component "Pre-Caching Strategy" as PreCache
+        component "Cache Synchronization" as Sync
+        component "Intelligent Routing" as Routing
+        component "Locality Principle" as Locality
     }
 }
 
-User -[#green]right-> DNSServer : "1. User Request"
-DNSServer -[#blue]down-> GLB : "2. DNS Resolution"
-GLB -[#blue]down-> GeoDB : "3. Geo-location Query"
-GeoDB -[#purple]left-> RLB1 : "4. Route to Region 1"
-GeoDB -[#purple]right-> RLB2 : "4. Route to Region 2"
-RLB1 -[#orange]down-> ES1 : "5. Load Balance"
-RLB2 -[#orange]down-> ES2 : "5. Load Balance"
-ES1 -[#red]down-> Cache1 : "6. Check Cache"
-ES2 -[#red]down-> Cache2 : "6. Check Cache"
-Cache1 -[#brown]-> CDS : "7. Cache Query"
-Cache2 -[#brown]-> CDS : "7. Cache Query"
-CDS -[#brown]up-> Cache1 : "8. Cache Decision"
-CDS -[#brown]up-> Cache2 : "8. Cache Decision"
-Cache1 -[#gray]-> Origin : "9. Request Origin\n(if not cached)"
-Cache2 -[#gray]-> Origin : "9. Request Origin\n(if not cached)"
-Origin -[#gray]up-> Cache1 : "10. Update Cache"
-Origin -[#gray]up-> Cache2 : "10. Update Cache"
-ES1 -[#green]up-> User : "11. Response"
-ES2 -[#green]up-> User : "11. Response"
+User -[#green,thickness=2]-> DNSServer : <color:#green>1. User Request
+DNSServer -[#blue,thickness=2]-> GLB : <color:#blue>2. DNS Resolution
+GLB -[#purple,thickness=2]-> RLB1 : <color:#purple>3. Route to Region
+GLB -[#purple,thickness=2]-> RLB2 : <color:#purple>3. Route to Region
+RLB1 -[#orange,thickness=2]-> ES1 : <color:#orange>4. Load Balance
+RLB2 -[#orange,thickness=2]-> ES2 : <color:#orange>4. Load Balance
+ES1 -[#red,thickness=2]-> Cache1 : <color:#red>5. Check Cache
+ES2 -[#red,thickness=2]-> Cache2 : <color:#red>5. Check Cache
+Cache1 -[#brown,thickness=2]-> CDS : <color:#brown>6. Cache Query
+Cache2 -[#brown,thickness=2]-> CDS : <color:#brown>6. Cache Query
+CDS -[#gray,thickness=2]-> Origin : <color:#gray>7. Request Origin\n(if not cached)
+Origin -[#gray,thickness=2]-> Cache1 : <color:#gray>8. Update Cache
+Origin -[#gray,thickness=2]-> Cache2 : <color:#gray>8. Update Cache
+ES1 -[#green,thickness=2]-> User : <color:#green>9. Response
+ES2 -[#green,thickness=2]-> User : <color:#green>9. Response
 
-CDS -[#darkblue]right-> Analytics : "12. Data Analysis"
-Analytics -[#darkblue]up-> GLB : "13. Optimize Decisions"
+CDS -[#darkblue,thickness=2]-> Analytics : <color:#darkblue>10. Data Analysis
+Analytics -[#darkblue,thickness=2]-> GLB : <color:#darkblue>11. Optimize Decisions
 
-PreCache -[#purple]down-> Cache1 : "Pre-Caching"
-PreCache -[#purple]down-> Cache2 : "Pre-Caching"
-Sync -[#blue]down-> Cache1 : "Sync Data"
-Sync -[#blue]down-> Cache2 : "Sync Data"
-Routing -[#orange]down-> GLB : "Optimize Routing"
-Locality -[#green]down-> GeoDB : "Apply Locality"
+CDNManagement -[#purple,thickness=2]-> Cache1 : <color:#purple>Manage
 
 note right of CDNManagement
   System Optimization:
-  1. Real-time CDN performance and user behavior analysis
-  2. Optimize Global Load Balancer routing decisions
-  3. Intelligent pre-caching based on predicted popular content
-  4. Enhance Cache Decision System to improve cache hit rates
-  5. Edge computing for processing simple requests
+  1. Real-time CDN performance analysis
+  2. Optimize routing decisions
+  3. Intelligent pre-caching
+  4. Improve cache hit rates
+  5. Edge computing for simple requests
   6. Multi-level caching strategy
-  7. Security measures: DDoS protection, content encryption
+  7. Security: DDoS protection, encryption
 end note
 
 note bottom of ES2
@@ -100,38 +75,5 @@ note bottom of ES2
   - Query String
   - Request Headers
 end note
-
-' Layout optimization
-User -[hidden]down- DNSServer
-DNSServer -[hidden]down- GLB
-GLB -[hidden]down- Region1
-Region1 -[hidden]right- Region2
-Region1 -[hidden]down- Origin
-Origin -[hidden]down- CDS
-CDS -[hidden]right- Analytics
-
-' Additional layout adjustments
-User -[hidden]left- CDNManagement
-DNSServer -[hidden]left- CDNManagement
-GLB -[hidden]left- CDNManagement
-Region1 -[hidden]left- CDNManagement
-Region2 -[hidden]right- CDNManagement
-Origin -[hidden]left- CDNManagement
-CDS -[hidden]left- CDNManagement
-Analytics -[hidden]left- CDNManagement
-
-' Adjust CDNManagement position
-CDNManagement -[hidden]up- Region2
-
-' Adjust vertical spacing
-User -[hidden]- DNSServer
-DNSServer -[hidden]- GLB
-GLB -[hidden]- Region1
-Region1 -[hidden]- Origin
-Origin -[hidden]- CDS
-
-' Adjust horizontal spacing
-Region1 -[hidden]-- Region2
-Region2 -[hidden]-- CDNManagement
 
 @enduml
