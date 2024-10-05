@@ -1,105 +1,109 @@
 @startuml Order Payment and Shipping System Architecture
 
-!define RECTANGLE class
-!define STORAGE database
-
-skinparam backgroundColor #FAFAFA
-skinparam defaultFontName Arial
-skinparam defaultFontSize 14
+skinparam backgroundColor #F0F0F0
 allowmixing
-
+!pragma layout dot
 
 rectangle "E-commerce System" {
-    RECTANGLE "Order Service" as orderService #D6EAF8
-    RECTANGLE "Payment Gateway" as paymentGateway #D5F5E3
-    RECTANGLE "Payment Processor" as paymentProcessor #FDEBD0
-    RECTANGLE "Fraud Detection" as fraudDetection #F5B7B1
-    RECTANGLE "Shipping Service" as shippingService #D7BDE2
-    RECTANGLE "Inventory Service" as inventoryService #FAD7A0
-    RECTANGLE "Notification Service" as notificationService #AED6F1
+    rectangle "API Gateway" as apiGateway #A9CCE3
     
-    STORAGE "Order Database" as orderDB #D6DBDF
-    STORAGE "Payment Database" as paymentDB #D6DBDF
-    STORAGE "Shipping Database" as shippingDB #D6DBDF
-    STORAGE "Inventory Database" as inventoryDB #D6DBDF
+    rectangle "Order Domain" {
+        component "Order Service" as orderService #D6EAF8
+        component "Order Cache" as orderCache #D6EAF8
+        component "Order Database" as orderDB #D6DBDF
+    }
+    
+    rectangle "Payment Domain" {
+        component "Payment Service" as paymentService #D5F5E3
+        component "Payment Gateway" as paymentGateway #D5F5E3
+        component "Fraud Detection" as fraudDetection #F5B7B1
+        component "Payment Database" as paymentDB #D6DBDF
+    }
+    
+    rectangle "Inventory Domain" {
+        component "Inventory Service" as inventoryService #FAD7A0
+        component "Inventory Cache" as inventoryCache #FAD7A0
+        component "Inventory Database" as inventoryDB #D6DBDF
+    }
+    
+    rectangle "Shipping Domain" {
+        component "Shipping Service" as shippingService #D7BDE2
+        component "Shipping Database" as shippingDB #D6DBDF
+    }
+    
+    rectangle "Notification Domain" {
+        component "Notification Service" as notificationService #AED6F1
+    }
+    
+    rectangle "Message Queue" as messageQueue #F9E79F
 }
 
 actor "Customer" as customer
 actor "Merchant" as merchant
 
-customer -[#4CAF50,thickness=2]-> orderService : <color:#4CAF50>1. Place Order</color>
-orderService -[#2196F3,thickness=2]-> inventoryService : <color:#2196F3>2. Check Stock</color>
-inventoryService -[#FF5722,thickness=2]-> inventoryDB : <color:#FF5722>3. Verify Inventory</color>
-orderService -[#9C27B0,thickness=2]-> paymentGateway : <color:#9C27B0>4. Initiate Payment</color>
-paymentGateway -[#795548,thickness=2]-> fraudDetection : <color:#795548>5. Check for Fraud</color>
-paymentGateway -[#FFC107,thickness=2]-> paymentProcessor : <color:#FFC107>6. Process Payment</color>
-paymentProcessor -[#00BCD4,thickness=2]-> paymentGateway : <color:#00BCD4>7. Payment Result</color>
-paymentGateway -[#E91E63,thickness=2]-> orderService : <color:#E91E63>8. Confirm Payment</color>
-orderService -[#9E9E9E,thickness=2]-> shippingService : <color:#9E9E9E>9. Create Shipment</color>
-shippingService -[#3F51B5,thickness=2]-> shippingDB : <color:#3F51B5>10. Update Shipping Status</color>
-orderService -[#009688,thickness=2]-> orderDB : <color:#009688>11. Update Order Status</color>
-orderService -[#FF9800,thickness=2]-> notificationService : <color:#FF9800>12. Send Confirmation</color>
-notificationService -[#8BC34A,thickness=2]-> customer : <color:#8BC34A>13. Notify Customer</color>
-shippingService -[#607D8B,thickness=2]-> merchant : <color:#607D8B>14. Shipping Instructions</color>
+customer -[#4CAF50,thickness=2]-> apiGateway : <color:#4CAF50>1. Place Order</color>
+apiGateway -[#2196F3,thickness=2]-> orderService : <color:#2196F3>2. Process Order</color>
+orderService -[#FF5722,thickness=2]-> inventoryService : <color:#FF5722>3. Check Stock</color>
+inventoryService -[#9C27B0,thickness=2]-> inventoryCache : <color:#9C27B0>4. Verify Inventory</color>
+orderService -[#795548,thickness=2]-> paymentService : <color:#795548>5. Initiate Payment</color>
+paymentService -[#FFC107,thickness=2]-> fraudDetection : <color:#FFC107>6. Check for Fraud</color>
+paymentService -[#00BCD4,thickness=2]-> paymentGateway : <color:#00BCD4>7. Process Payment</color>
+paymentGateway -[#E91E63,thickness=2]-> paymentService : <color:#E91E63>8. Payment Result</color>
+paymentService -[#9E9E9E,thickness=2]-> orderService : <color:#9E9E9E>9. Confirm Payment</color>
+orderService -[#3F51B5,thickness=2]-> messageQueue : <color:#3F51B5>10. Order Confirmed</color>
+messageQueue -[#009688,thickness=2]-> shippingService : <color:#009688>11. Create Shipment</color>
+shippingService -[#FF9800,thickness=2]-> shippingDB : <color:#FF9800>12. Update Shipping Status</color>
+messageQueue -[#8BC34A,thickness=2]-> notificationService : <color:#8BC34A>13. Send Notifications</color>
+notificationService -[#607D8B,thickness=2]-> customer : <color:#607D8B>14. Notify Customer</color>
+shippingService -[#673AB7,thickness=2]-> merchant : <color:#673AB7>15. Shipping Instructions</color>
+
+note right of apiGateway
+Performance Optimization:
+• Implement rate limiting
+• Use caching for frequently accessed data
+• Load balancing for horizontal scaling
+end note
 
 note right of orderService
-<b>Performance Bottleneck:</b>
-• High concurrency during peak times
-
-<b>Optimizations:</b>
-• Implement caching (e.g., Redis)
-• Use message queues for async processing
-• Horizontal scaling with load balancing
+Performance Optimization:
+• Use distributed caching (Redis)
+• Implement CQRS pattern
+• Event sourcing for order history
 end note
 
 note right of inventoryService
-<b>Performance Bottleneck:</b>
-• Frequent inventory checks and updates
-
-<b>Optimizations:</b>
-• Implement inventory caching
-• Use eventual consistency for non-critical updates
+Performance Optimization:
+• Real-time inventory updates with cache
+• Eventual consistency for non-critical updates
 • Optimize database queries and indexing
 end note
 
-note right of paymentGateway
-<b>Performance Bottleneck:</b>
-• High volume of payment transactions
-
-<b>Optimizations:</b>
+note right of paymentService
+Performance Optimization:
 • Implement circuit breaker pattern
-• Use connection pooling for external services
-• Optimize network configurations
-end note
-
-note right of fraudDetection
-<b>Performance Bottleneck:</b>
-• Complex fraud detection algorithms
-
-<b>Optimizations:</b>
-• Use machine learning models for faster processing
-• Implement risk scoring to prioritize checks
-• Parallel processing for batch transactions
+• Use connection pooling
+• Asynchronous processing for non-critical operations
 end note
 
 note bottom of shippingService
-<b>Performance Bottleneck:</b>
-• Integration with multiple shipping carriers
-
-<b>Optimizations:</b>
-• Implement caching for shipping rates and tracking info
-• Use asynchronous processing for non-critical updates
-• Optimize API calls to shipping carriers
+Performance Optimization:
+• Batch processing for shipments
+• Caching for shipping rates and tracking info
+• Asynchronous updates to shipping status
 end note
 
 note bottom of notificationService
-<b>Performance Bottleneck:</b>
-• High volume of notifications during peak times
-
-<b>Optimizations:</b>
-• Use message queues for async processing
+Performance Optimization:
+• Use message queue for async processing
 • Implement rate limiting
 • Batch notifications where possible
+end note
+
+note bottom of messageQueue
+Key: Value
+• Order: {id, status, customer}
+• Payment: {id, amount, status}
+• Shipment: {id, order_id, status}
 end note
 
 @enduml
