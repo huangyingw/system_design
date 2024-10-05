@@ -1,63 +1,69 @@
 @startuml CDN Performance Optimization Strategies
 
 skinparam {
-    BackgroundColor #FFFFFF
-    FontName Arial
-    FontSize 14
-    FontColor #333333
-    ArrowColor #666666
-    BorderColor #999999
-    RectangleBackgroundColor #F0F8FF
-    RectangleBorderColor #4682B4
-    NoteBorderColor #DAA520
-    NoteBackgroundColor #FFFACD
+    backgroundColor #FAFAFA
+    handwritten false
+    defaultFontName Arial
+    defaultFontSize 14
+    roundcorner 20
+    shadowing false
 }
 
-title CDN Performance Optimization Strategies\n
-
-rectangle "Content Optimization" {
-    rectangle "Compression" as compress
-    rectangle "Minification" as minify
-    rectangle "Image Optimization" as imgopt
+rectangle "CDN Performance Optimization Strategies" as CDN {
+    rectangle "Content Optimization" as ContentOpt #E1F5FE
+    rectangle "Delivery Optimization" as DeliveryOpt #FFF3E0
+    rectangle "Caching Strategies" as CacheStrat #E8F5E9
+    rectangle "Advanced Techniques" as AdvTech #FFEBEE
+    rectangle "Security Measures" as Security #E0F7FA
+    rectangle "Analytics & Monitoring" as Analytics #F3E5F5
 }
 
-rectangle "Delivery Optimization" {
-    rectangle "HTTP/2 Support" as http2
-    rectangle "TCP Optimization" as tcpopt
-    rectangle "SSL/TLS Optimization" as sslopt
-}
+ContentOpt -[#4CAF50,thickness=2]down-> DeliveryOpt : 1. Optimize Content
+DeliveryOpt -[#2196F3,thickness=2]right-> CacheStrat : 2. Efficient Delivery
+CacheStrat -[#FF5722,thickness=2]right-> AdvTech : 3. Enhance Caching
+DeliveryOpt -[#9C27B0,thickness=2]down-> Security : 4. Secure Delivery
+AdvTech -[#795548,thickness=2]down-> Analytics : 5. Performance Insights
 
-rectangle "Caching Strategies" {
-    rectangle "Browser Caching" as browsercache
-    rectangle "Edge Caching" as edgecache
-    rectangle "Adaptive TTL" as adaptivettl
-}
+note bottom of ContentOpt
+  - Compress files
+  - Minify code
+  - Optimize images
+  - Use HTTP/2 and HTTP/3
+end note
 
-rectangle "Advanced Techniques" {
-    rectangle "Prefetching" as prefetch
-    rectangle "Load Balancing" as loadbalance
-    rectangle "Real-time Purge" as purge
-}
+note bottom of DeliveryOpt
+  - Edge caching
+  - Dynamic content acceleration
+  - Intelligent routing
+  - Anycast DNS
+end note
 
-compress -[hidden]down- minify
-minify -[hidden]down- imgopt
+note bottom of CacheStrat
+  - Browser caching
+  - Adaptive TTL
+  - Stale-while-revalidate
+  - Cache key optimization
+end note
 
-http2 -[hidden]down- tcpopt
-tcpopt -[hidden]down- sslopt
+note bottom of AdvTech
+  - Content prefetching
+  - Load balancing
+  - Multi-CDN strategy
+  - Edge computing
+end note
 
-browsercache -[hidden]down- edgecache
-edgecache -[hidden]down- adaptivettl
+note bottom of Security
+  - DDoS protection
+  - Web Application Firewall
+  - SSL/TLS optimization
+  - Bot traffic management
+end note
 
-prefetch -[hidden]down- loadbalance
-loadbalance -[hidden]down- purge
-
-"Content Optimization" -[hidden]right- "Delivery Optimization"
-"Delivery Optimization" -[hidden]right- "Caching Strategies"
-"Caching Strategies" -[hidden]right- "Advanced Techniques"
-
-note bottom of compress : 减小文件大小
-note bottom of http2 : 更快的连接
-note bottom of browsercache : 减少服务器负载
-note bottom of prefetch : 预测用户需求
+note bottom of Analytics
+  - Real-time analytics
+  - Performance monitoring
+  - Error tracking
+  - User experience metrics
+end note
 
 @enduml
