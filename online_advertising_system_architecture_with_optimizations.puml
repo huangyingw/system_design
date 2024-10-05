@@ -1,126 +1,77 @@
-@startuml
-skinparam backgroundColor white
+@startuml Online Advertising System Architecture with Optimizations
+
+!define RECTANGLE class
+!define STORAGE database
+
+skinparam backgroundColor #FAFAFA
+skinparam handwritten false
 skinparam defaultFontName Arial
 skinparam defaultFontSize 14
-skinparam componentStyle rectangle
-skinparam linetype ortho
-skinparam nodesep 80
-skinparam ranksep 100
+skinparam roundCorner 10
+skinparam componentStyle uml2
+allowmixing
 
-title Online Advertising System Architecture - Optimized Layout
-caption Core Components, Key Processes, Optimization Points, and Potential Bottlenecks
 
-rectangle "Client Side" {
-    [Advertiser] as Advertiser
-    [User] as User
-    [Website/App] as Publisher
+rectangle "Online Advertising System" {
+    RECTANGLE "Ad Server" as adserver #D6EAF8
+    RECTANGLE "Real-Time Bidding (RTB)" as rtb #D5F5E3
+    RECTANGLE "User Profiling" as profiling #FDEBD0
+    RECTANGLE "Ad Targeting Engine" as targeting #F5B7B1
+    RECTANGLE "Campaign Manager" as campaign #D7BDE2
+    RECTANGLE "Analytics Engine" as analytics #FAD7A0
+    RECTANGLE "Reporting Dashboard" as dashboard #AED6F1
+    
+    STORAGE "User Data Store" as userdb #D6DBDF
+    STORAGE "Ad Inventory" as inventory #D6DBDF
+    STORAGE "Campaign Data" as campaigndb #D6DBDF
+    STORAGE "Analytics Data Lake" as datalake #D6DBDF
 }
 
-cloud "CDN" as CDN
+actor "Ad Company" as adcompany
+actor "Website/App" as website
+actor "User" as user
 
-rectangle "Load Balancer" as LoadBalancer
+website -[#4CAF50,thickness=2]-> adserver : <color:#4CAF50>1. Ad Request</color>
+adserver -[#2196F3,thickness=2]-> rtb : <color:#2196F3>2. Bid Request</color>
+rtb -[#FF5722,thickness=2]-> targeting : <color:#FF5722>3. Get Targeted Ads</color>
+targeting -[#9C27B0,thickness=2]-> profiling : <color:#9C27B0>4. Get User Profile</color>
+profiling -[#795548,thickness=2]-> userdb : <color:#795548>5. Fetch/Update Data</color>
+targeting -[#FFC107,thickness=2]-> inventory : <color:#FFC107>6. Check Inventory</color>
+rtb -[#00BCD4,thickness=2]-> adserver : <color:#00BCD4>7. Winning Bid</color>
+adserver -[#E91E63,thickness=2]-> website : <color:#E91E63>8. Serve Ad</color>
+website -[#9E9E9E,thickness=2]-> user : <color:#9E9E9E>9. Display Ad</color>
+user -[#3F51B5,thickness=2]-> adserver : <color:#3F51B5>10. Ad Interaction</color>
+adserver -[#009688,thickness=2]-> analytics : <color:#009688>11. Log Event</color>
+analytics -[#FF9800,thickness=2]-> datalake : <color:#FF9800>12. Store Data</color>
+analytics -[#8BC34A,thickness=2]-> dashboard : <color:#8BC34A>13. Update Metrics</color>
+dashboard -[#607D8B,thickness=2]-> adcompany : <color:#607D8B>14. View Reports</color>
 
-rectangle "Core Services" {
-    [Ad Management] as AdManagement
-    [User Analysis] as UserAnalysis
-    [Ad Matching Engine] as AdMatching
-    [Real-Time Bidding] as RTB
-}
+campaign -[#CDDC39,dashed]-> targeting : Configure Targeting
+campaign -[#CDDC39,dashed]-> rtb : Set Bid Strategies
+adcompany -[#CDDC39,dashed]-> campaign : Manage Campaigns
 
-rectangle "Caching Layer" as CacheLayer
-
-rectangle "Data Processing & Storage" {
-    [Data Pipeline] as DataPipeline
-    database "Data Storage" as DataStorage
-}
-
-queue "Message Queue" as MessageQueue
-
-Advertiser -[thickness=2]d-> LoadBalancer : "1. Create Ad"
-LoadBalancer -[thickness=2]d-> AdManagement : "2. Store Ad"
-AdManagement -[thickness=2]r-> DataStorage : "3. Persist Ad Data"
-AdManagement -[thickness=2]-> AdMatching : "4. Update Ad Inventory"
-
-Publisher -[thickness=2]d-> LoadBalancer : "5. Request Ad"
-LoadBalancer -[thickness=2]d-> AdMatching : "6. Route Request"
-AdMatching -[#blue;thickness=2]r-> RTB : "<color:blue>7. Trigger Bidding</color>"
-RTB -[#red;thickness=2,dashed]d-> RTB : "<color:red>8. Process Bids</color>"
-RTB -[#red;thickness=2]l-> AdMatching : "<color:red>9. Return Selected Ad</color>"
-AdMatching -[thickness=2]u-> CDN : "10. Serve Ad"
-CDN -[thickness=2]u-> Publisher : "11. Deliver Ad"
-User -[thickness=2]d-> DataPipeline : "12. User Behavior"
-DataPipeline -[thickness=2]r-> DataStorage : "13. Store Data"
-DataPipeline -[thickness=2]d-> MessageQueue : "14. Queue Analytics Tasks"
-MessageQueue -[thickness=2]r-> UserAnalysis : "15. Process Analytics"
-UserAnalysis -[#blue;thickness=2]u-> CacheLayer : "<color:blue>16. Update Cache</color>"
-AdMatching <-[#green;thickness=2]u- CacheLayer : "<color:green>17. Read Cache</color>"
-
-note right of LoadBalancer
-  Optimization: 
-  - Distributes traffic
-  - Improves availability
+note right of targeting
+  Implements advanced targeting algorithms:
+  - Behavioral targeting
+  - Contextual targeting
+  - Demographic targeting
+  - Retargeting
 end note
 
-note right of CDN
-  Optimization:
-  - Faster ad content delivery
-  - Reduces latency for global users
+note right of analytics
+  Performs:
+  - Click-through rate (CTR) analysis
+  - Conversion tracking
+  - Attribution modeling
+  - A/B testing
 end note
 
-note right of RTB
-  Potential Bottleneck: 
-  - High-traffic situations
-  Optimization: 
-  - Use distributed system
-  - Implement caching
-  - Optimize algorithms
-end note
-
-note bottom of AdMatching
-  Potential Bottleneck:
-  - Complex matching in real-time
-  Optimization:
-  - Use high-performance in-memory
-    or graph databases
-  - Implement ML models
-  - Ensure low latency
-end note
-
-note left of DataPipeline
-  Scalability:
-  - Use stream processing
-  - Implement data sharding
-  - Consider data compression
-end note
-
-note top of UserAnalysis
-  Potential Bottleneck:
-  - Processing large datasets
-  Optimization:
-  - Use incremental computation
-  - Implement approximate algorithms
-  - Ensure GDPR compliance
-end note
-
-note bottom of CacheLayer
-  Optimization:
-  - Reduces database load
-  - Improves response time
-  - Use Redis or Memcached
-end note
-
-note left of MessageQueue
-  Optimization:
-  - Enables asynchronous processing
-  - Improves system responsiveness
-end note
-
-note bottom of DataStorage
-  Potential Bottleneck:
-  - Handling increasing data volume
-  Optimization:
-  - Use distributed storage systems
-  - Implement data sharding
+note bottom of datalake
+  Stores:
+  - User behavior data
+  - Ad performance metrics
+  - Campaign data
+  - Conversion data
 end note
 
 @enduml
