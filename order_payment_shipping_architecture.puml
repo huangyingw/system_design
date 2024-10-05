@@ -100,10 +100,23 @@ Performance Optimization:
 end note
 
 note bottom of messageQueue
-Key: Value
-• Order: {id, status, customer}
-• Payment: {id, amount, status}
-• Shipment: {id, order_id, status}
+Message Types:
+• OrderCreated
+• PaymentProcessed
+• InventoryUpdated
+• ShipmentCreated
+• NotificationSent
+end note
+
+note right of messageQueue
+Message Structure:
+{
+  "type": "EventType",
+  "timestamp": "ISO8601 DateTime",
+  "payload": {
+    // Event-specific data
+  }
+}
 end note
 
 @enduml
