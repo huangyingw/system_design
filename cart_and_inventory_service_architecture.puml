@@ -1,22 +1,81 @@
 @startuml Cart_Inventory_Architecture
-!theme toy
-skinparam backgroundColor E6E6FA
+!pragma layout dot
+allowmixing
+skinparam backgroundColor #F0F8FF
 skinparam shadowing false
 skinparam RoundCorner 10
 skinparam ArrowColor 454645
 skinparam DefaultFontName Arial
 skinparam DefaultFontSize 12
 
-component "Cart Service" as CartService #FFF0F5
-component "Inventory Service" as InventoryService #FFF0F5
-database "Database" as Database #B0E0E6
+rectangle "Client Layer" as ClientLayer #E6E6FA {
+    component "Web App" as WebApp #FFF0F5
+    component "Mobile App" as MobileApp #FFF0F5
+}
 
-' Relationships
-CartService -[#228B22]right-> InventoryService : "Check stock"
-CartService -[#228B22]down-> Database : "Update cart"
+rectangle "API Gateway" as APIGateway #D8BFD8
 
-' Notes
-note bottom of CartService
+rectangle "Service Layer" as ServiceLayer #E6E6FA {
+    component "Cart Service" as CartService #FFF0F5
+    component "Inventory Service" as InventoryService #FFF0F5
+    component "Product Service" as ProductService #FFF0F5
+    component "User Service" as UserService #FFF0F5
+}
+
+rectangle "Cache Layer" as CacheLayer #FFE4E1 {
+    component "Redis Cache" as RedisCache #FFA07A
+}
+
+rectangle "Database Layer" as DatabaseLayer #B0E0E6 {
+    component "Cart DB" as CartDB #87CEEB
+    component "Inventory DB" as InventoryDB #87CEEB
+    component "Product DB" as ProductDB #87CEEB
+    component "User DB" as UserDB #87CEEB
+}
+
+rectangle "Message Queue" as MessageQueue #98FB98
+
+rectangle "External Services" as ExternalServices #F0E68C {
+    component "Payment Gateway" as PaymentGateway #FFD700
+    component "Shipping Service" as ShippingService #FFD700
+}
+
+ClientLayer -[#FF6347,thickness=2]down-> APIGateway : "<color:#FF6347>1. User requests"
+APIGateway -[#4169E1,thickness=2]down-> ServiceLayer : "<color:#4169E1>2. Route requests"
+
+CartService -[#32CD32,thickness=2]right-> InventoryService : "<color:#32CD32>3. Check stock"
+CartService -[#9932CC,thickness=2]right-> ProductService : "<color:#9932CC>4. Get product details"
+CartService -[#FF8C00,thickness=2]right-> UserService : "<color:#FF8C00>5. Validate user"
+
+CartService -[#1E90FF,thickness=2]down-> RedisCache : "<color:#1E90FF>6. Cache cart data"
+InventoryService -[#DC143C,thickness=2]down-> RedisCache : "<color:#DC143C>7. Cache inventory data"
+
+CartService -[#008080,thickness=2]down-> CartDB : "<color:#008080>8. Persist cart"
+InventoryService -[#8B4513,thickness=2]down-> InventoryDB : "<color:#8B4513>9. Update inventory"
+ProductService -[#4682B4,thickness=2]down-> ProductDB : "<color:#4682B4>10. Fetch product info"
+UserService -[#2E8B57,thickness=2]down-> UserDB : "<color:#2E8B57>11. Get user data"
+
+CartService -[#CD5C5C,thickness=2]right-> MessageQueue : "<color:#CD5C5C>12. Publish events"
+InventoryService -[#6A5ACD,thickness=2]left-> MessageQueue : "<color:#6A5ACD>13. Subscribe to events"
+
+CartService -[#DAA520,thickness=2]-> PaymentGateway : "<color:#DAA520>14. Process payment"
+CartService -[#20B2AA,thickness=2]-> ShippingService : "<color:#20B2AA>15. Initiate shipping"
+
+note right of ClientLayer
+  Client Layer:
+  - Responsive UI
+  - Offline capabilities
+  - Data caching
+end note
+
+note right of APIGateway
+  API Gateway:
+  - Rate limiting
+  - Authentication
+  - Request routing
+end note
+
+note right of CartService
   Cart Service:
   - High concurrency
   - Data consistency
@@ -24,10 +83,39 @@ note bottom of CartService
   - Product validation
 end note
 
-note bottom of Database
-  Database:
+note right of InventoryService
+  Inventory Service:
+  - Real-time stock updates
+  - Reservation system
+  - Restock alerts
+end note
+
+note right of RedisCache
+  Redis Cache:
+  - Key: user_id
+  - Value: cart_data
+  - TTL: 1 hour
+end note
+
+note right of CartDB
+  Cart DB:
   - Scalable
   - Redundant
   - Backup & Recovery
 end note
+
+note right of MessageQueue
+  Message Queue:
+  - Asynchronous processing
+  - Event-driven architecture
+  - Fault tolerance
+end note
+
+note bottom of ExternalServices
+  External Services:
+  - Fault tolerance
+  - Circuit breaker
+  - Retry mechanisms
+end note
+
 @enduml
