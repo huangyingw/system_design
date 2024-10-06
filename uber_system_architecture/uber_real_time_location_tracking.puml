@@ -51,17 +51,17 @@ LocationBasedServices -[#FF1493,thickness=2]up-> MapServices : <back:#FFFFFF><co
 MapServices -[#FF4500,thickness=2]right-> ExternalServices : <back:#FFFFFF><color:#FF4500>6. Fetch map & traffic data</color></back>
 MapServices -[#1E90FF,thickness=2]up-> MobileDevices : <back:#FFFFFF><color:#1E90FF>7. Render map & location info</color></back>
 
-note right of GPSProcessor
+note top of GPSProcessor
   Handles raw GPS data
   from mobile devices
 end note
 
-note right of GeocodingService
+note top of GeocodingService
   Converts GPS coordinates
   to human-readable addresses
 end note
 
-note right of GeofencingService
+note top of GeofencingService
   Manages virtual geographic
   boundaries for specific areas
 end note
