@@ -1,154 +1,114 @@
-@startuml Telegram_File_Transfer_And_Storage_Optimized
+@startuml Telegram_File_Transfer_And_Storage
 
-' Set theme and styling
-skinparam backgroundColor #E6E6FA
-skinparam handwritten false
-skinparam monochrome false
-skinparam packageStyle rectangle
+!pragma layout dot
+allowmixing
+
+skinparam backgroundColor #F0F0F0
 skinparam defaultFontName Arial
-skinparam defaultFontSize 28
-skinparam ArrowFontSize 24
-skinparam NoteFontSize 26
+skinparam defaultFontSize 15
+skinparam ArrowFontSize 15
+skinparam NoteFontSize 17
 skinparam roundcorner 10
 skinparam shadowing false
-skinparam nodesep 60
-skinparam ranksep 60
 
-' Color scheme
-skinparam rectangle {
-    BackgroundColor #F0F8FF
-    BorderColor #4682B4
-    FontColor #000080
-}
-skinparam database {
-    BackgroundColor #F0FFFF
-    BorderColor #20B2AA
-    FontColor #008080
-}
-skinparam cloud {
-    BackgroundColor #F0F8FF
-    BorderColor #6495ED
-    FontColor #4169E1
-}
-skinparam queue {
-    BackgroundColor #FFF0F5
-    BorderColor #DB7093
-    FontColor #C71585
-}
-skinparam note {
-    BackgroundColor #FFFAF0
-    BorderColor #DEB887
-    FontColor #8B4513
-}
-skinparam arrow {
-    Color #4682B4
-    FontColor #000080
+rectangle "Client Applications" as CA #E6F3FF {
+    component "Mobile App" as MA
+    component "Desktop Client" as DC
+    component "Web Client" as WC
 }
 
-' Define components
-rectangle "Client Apps" as CA {
-    [Mobile App]
-    [Desktop Client]
-    [Web Client]
+rectangle "Load Balancing" as LB #F0FFF0 {
+    component "Global Load Balancer" as GLB
+    component "Regional Load Balancers" as RLB
 }
 
-cloud "Global LB" as GLB {
-    [GeoDNS]
+rectangle "File Transfer Service Cluster" as FTSC #E6F3FF {
+    component "Chunk Manager" as CM
+    component "Metadata Handler" as MH
+    component "Encryption Service" as ES
+    component "Deduplication" as DD
+    component "Rate Limiter" as RL
+    component "Compression Service" as CS
 }
 
-rectangle "Regional LBs" as RLB {
-    [LB - US]
-    [LB - EU]
-    [LB - Asia]
+rectangle "Storage" as ST #F0FFFF {
+    component "Metadata DB (Cassandra)" as MDB
+    component "Object Storage (S3-compatible)" as OS
 }
 
-rectangle "File Transfer\nService Cluster" as FTSC {
-    [Chunk Manager]
-    [Metadata Handler]
-    [Encryption Service]
-    [Deduplication]
+rectangle "Content Delivery" as CD #F0F8FF {
+    component "CDN Edge Servers" as CES
+    component "CDN Caching Servers" as CCS
 }
 
-database "Metadata DB" as MDB {
-    [Cassandra]
+rectangle "File Processing" as FP #E6F3FF {
+    component "File Processing Queue (Kafka)" as FPQ
+    component "Thumbnail Generator" as TG
+    component "Video Transcoder" as VT
+    component "Virus Scanner" as VS
+    component "File Analyzer" as FA
 }
+
+rectangle "Caching" as CL #F0FFFF {
+    component "Redis Cluster" as RC
+}
+
+rectangle "Monitoring & Analytics" as MA #FFE6E6 {
+    component "Prometheus" as PM
+    component "Grafana" as GF
+    component "ELK Stack" as ELK
+}
+
+CA -[#4682B4,thickness=2]-> LB : <back:#FFFFFF><color:#4682B4>1. Request</color></back>
+LB -[#008000,thickness=2]-> FTSC : <back:#FFFFFF><color:#008000>2. Route</color></back>
+FTSC <-[#8A2BE2,thickness=2]-> ST : <back:#FFFFFF><color:#8A2BE2>3. Store/Retrieve</color></back>
+FTSC -[#1E90FF,thickness=2]-> CD : <back:#FFFFFF><color:#1E90FF>4. Distribute</color></back>
+CD -[#32CD32,thickness=2]-> CA : <back:#FFFFFF><color:#32CD32>5. Serve</color></back>
+FTSC -[#FF69B4,thickness=2]-> FP : <back:#FFFFFF><color:#FF69B4>6. Process</color></back>
+FTSC <-[#DAA520,thickness=2]-> CL : <back:#FFFFFF><color:#DAA520>7. Cache</color></back>
+MA -[#FF6347,thickness=2]-> FTSC : <back:#FFFFFF><color:#FF6347>8. Monitor</color></back>
 
 note right of MDB
-    <b>Sharding Key: file_id</b>
-    --
-    1. Efficient query by file ID
-    2. Same shard for file metadata
-    3. Support file-level operations
+    Sharding Key: file_id
+    - Efficient query by file ID
+    - Same shard for file metadata
+    - Support file-level operations
 end note
-
-database "Object Storage" as OS {
-    [S3-compatible]
-}
 
 note right of OS
-    <b>Sharding Key: chunk_id</b>
-    --
-    1. Independent access, high parallelism
-    2. Support chunking and resumable transfers
-    3. Even distribution, avoid hotspots
-    4. Easy horizontal scaling
+    Sharding Key: chunk_id
+    - Independent access, high parallelism
+    - Support chunking and resumable transfers
+    - Even distribution, avoid hotspots
+    - Easy horizontal scaling
 end note
 
-cloud "CDN" as CDN {
-    [Edge Servers]
-    [Caching Servers]
-}
-
-queue "File Processing\nQueue" as FPQ {
-    [Kafka]
-}
-
-database "Cache Layer" as CL {
-    [Redis]
-}
-
-note right of CL
-    <b>Key Design:</b>
-    1. File metadata: file:{id}:meta
-       Hash(name,size,type,time)
-    2. File chunk list: file:{id}:chunks
-       Set(chunk_id1, chunk_id2, ...)
-    3. Chunk metadata: chunk:{id}:meta
-       Hash(size,checksum,location)
-    4. User recent files: user:{id}:recent
-       SortedSet(file_id, timestamp)
-    5. File access count: file:{id}:access
-       String(count)
-    6. Upload status: file:{id}:upload
-       Hash(total,uploaded,status)
-    --
-    <b>Expiration Strategy:</b>
+note bottom of RC
+    Key Design:
+    1. file:{id}:meta - Hash(name,size,type,time)
+    2. file:{id}:chunks - Set(chunk_id1, chunk_id2, ...)
+    3. chunk:{id}:meta - Hash(size,checksum,location)
+    4. user:{id}:recent - SortedSet(file_id, timestamp)
+    5. file:{id}:access - String(count)
+    6. file:{id}:upload - Hash(total,uploaded,status)
+    
+    Expiration Strategy:
     - Metadata/chunks: LRU, 1h
     - Recent files: 7d
     - Access count: 30d
     - Upload status: 15m after completion
 end note
 
-rectangle "File Processing\nWorkers" as FPW {
-    [Thumbnail Gen]
-    [Video Transcoder]
-    [Virus Scanner]
-}
+note as FileChunkRelation
+    file_id and chunk_id relationship:
+    1. One file_id maps to multiple chunk_ids
+    2. Metadata DB stores the mapping
+    3. Upload: file_id first, then chunk_ids
+    4. Download: query all chunk_ids by file_id
+    5. chunk_id format: file_id + sequence number
+    6. Support large file chunked transfer
+end note
 
-' Define relationships
-CA <--> GLB : HTTPS
-GLB --> RLB : Route
-RLB --> FTSC : Distribute
-FTSC <--> MDB : CRUD
-FTSC <--> OS : Store/Retrieve
-FTSC --> CDN : Distribute
-CDN --> CA : Serve
-FTSC --> FPQ : Enqueue
-FPQ --> FPW : Process
-FTSC <--> CL : Cache
-
-note "file_id and chunk_id relationship:\n1. One file_id maps to multiple chunk_ids\n2. Metadata DB stores the mapping\n3. Upload: file_id first, then chunk_ids\n4. Download: query all chunk_ids by file_id\n5. chunk_id format: file_id + sequence number\n6. Support large file chunked transfer" as Rel
-Rel .. MDB
-Rel .. OS
+FileChunkRelation .. ST
 
 @enduml
