@@ -1,39 +1,85 @@
 @startuml YouTube_Video_Upload_Architecture
 
+!pragma layout dot
 allowmixing
 
-' 设置整体主题
-skinparam backgroundColor #1E1E1E
+skinparam backgroundColor #F0F0F0
 skinparam defaultFontName Arial
-skinparam defaultFontSize 12
-skinparam defaultFontColor #FFFFFF
+skinparam defaultFontSize 15
 skinparam padding 5
 skinparam roundCorner 10
 
-' 定义主要组件
-component "User" as user #9CDCFE
-component "Web Server" as webserver #4EC9B0
-component "Upload Service" as uploadservice #FF6B6B
-queue "Upload Queue" as uploadqueue #DCDCAA
-component "Transcoding Service" as transcodingservice #CE9178
-database "Original Video Storage" as originalstorage #FF6B6B
-database "Transcoded Video Storage" as transcodedStorage #FF6B6B
-database "Metadata DB" as metadatadb #FF6B6B
+rectangle "Client Side" as ClientSide #E6F3FF {
+    component "User Device" as UserDevice #87CEFA
+    component "YouTube App/Web Interface" as Frontend #FF6347
+}
 
-' 定义流程
-user -[#DCDCAA]-> webserver : 1. Upload video
-webserver -[#DCDCAA]-> uploadservice : 2. Process upload
-uploadservice -[#DCDCAA]-> uploadqueue : 3. Queue for processing
-uploadservice -[#DCDCAA]-> originalstorage : 4. Store original
-uploadservice -[#DCDCAA]-> metadatadb : 5. Store metadata
-uploadqueue -[#DCDCAA]-> transcodingservice : 6. Dequeue for transcoding
-transcodingservice -[#DCDCAA]-> transcodedStorage : 7. Store transcoded versions
-transcodingservice -[#DCDCAA]-> metadatadb : 8. Update metadata
+rectangle "Server Side" as ServerSide #FFFAF0 {
+    rectangle "Web Layer" as WebLayer #E6FFE6 {
+        component "Load Balancer" as LoadBalancer #FFD700
+        component "Web Server" as WebServer #98FB98
+        component "Authentication Service" as AuthService #DDA0DD
+    }
+    
+    rectangle "Application Layer" as AppLayer #FFF0F5 {
+        component "Upload Service" as UploadService #FF69B4
+        component "Transcoding Service" as TranscodingService #20B2AA
+        component "Content Delivery Network (CDN)" as CDN #87CEEB
+        component "Analytics Service" as AnalyticsService #FFA07A
+    }
+    
+    rectangle "Queue Layer" as QueueLayer #E6E6FA {
+        component "Upload Queue" as UploadQueue #FFDAB9
+    }
+    
+    rectangle "Storage Layer" as StorageLayer #FFE4E1 {
+        component "Original Video Storage" as OriginalStorage #FF69B4
+        component "Transcoded Video Storage" as TranscodedStorage #FF69B4
+        component "Metadata DB" as MetadataDB #FF69B4
+        component "User DB" as UserDB #FF69B4
+    }
+}
 
-' 添加注释
-note right of transcodingservice
+UserDevice -[#000000,thickness=2]-> Frontend : <back:#FFFFFF><color:#000000>1. Initiate upload</color></back>
+Frontend -[#000000,thickness=2]-> LoadBalancer : <back:#FFFFFF><color:#000000>2. Send request</color></back>
+LoadBalancer -[#000000,thickness=2]-> WebServer : <back:#FFFFFF><color:#000000>3. Route request</color></back>
+WebServer -[#000000,thickness=2]-> AuthService : <back:#FFFFFF><color:#000000>4. Authenticate user</color></back>
+AuthService -[#000000,thickness=2]-> UserDB : <back:#FFFFFF><color:#000000>5. Verify credentials</color></back>
+WebServer -[#000000,thickness=2]-> UploadService : <back:#FFFFFF><color:#000000>6. Process upload</color></back>
+UploadService -[#000000,thickness=2]-> UploadQueue : <back:#FFFFFF><color:#000000>7. Queue for processing</color></back>
+UploadService -[#000000,thickness=2]-> OriginalStorage : <back:#FFFFFF><color:#000000>8. Store original</color></back>
+UploadService -[#000000,thickness=2]-> MetadataDB : <back:#FFFFFF><color:#000000>9. Store metadata</color></back>
+UploadQueue -[#000000,thickness=2]-> TranscodingService : <back:#FFFFFF><color:#000000>10. Dequeue for transcoding</color></back>
+TranscodingService -[#000000,thickness=2]-> TranscodedStorage : <back:#FFFFFF><color:#000000>11. Store transcoded versions</color></back>
+TranscodingService -[#000000,thickness=2]-> MetadataDB : <back:#FFFFFF><color:#000000>12. Update metadata</color></back>
+TranscodedStorage -[#000000,thickness=2]-> CDN : <back:#FFFFFF><color:#000000>13. Distribute content</color></back>
+CDN -[#000000,thickness=2]-> Frontend : <back:#FFFFFF><color:#000000>14. Serve video</color></back>
+AnalyticsService -[#000000,thickness=2]-> MetadataDB : <back:#FFFFFF><color:#000000>15. Collect and store analytics</color></back>
+
+note right of TranscodingService
   Generates multiple versions
   (different resolutions and formats)
+  Parallel processing for faster transcoding
+end note
+
+note bottom of CDN
+  Improves video delivery speed
+  and reduces server load
+end note
+
+note bottom of AnalyticsService
+  Tracks user engagement, views,
+  and other important metrics
+end note
+
+note right of UploadService
+  Potential bottleneck:
+  Handle large file uploads efficiently
+end note
+
+note left of TranscodingService
+  Performance consideration:
+  Load balancing for distributed transcoding
 end note
 
 @enduml
