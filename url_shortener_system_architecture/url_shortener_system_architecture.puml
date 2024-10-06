@@ -1,95 +1,132 @@
 @startuml
-!define RECTANGLE class
+!pragma layout dot
+allowmixing
 
-skinparam backgroundColor #FAFAFA
-skinparam linetype ortho
+skinparam backgroundColor #F0F0F0
 skinparam padding 8
 skinparam roundcorner 15
+skinparam defaultFontSize 20
+skinparam noteFontSize 20
+skinparam arrowFontSize 20
 
-skinparam rectangle {
-    BackgroundColor<< Frontend >> #E1F5FE
-    BackgroundColor<< Cache >> #FFEBEE
-    BackgroundColor<< Database >> #E8F5E9
-    BackgroundColor<< Queue >> #FFF3E0
-    BorderColor #78909C
-    FontColor #37474F
+rectangle "Client" as Client #E1F5FE
+rectangle "CDN" as CDN #E1F5FE
+rectangle "DNS" as DNS #E1F5FE
+
+rectangle "Load Balancer" as LoadBalancer #D1C4E9 {
+    component "API Gateway" as APIGateway #B39DDB
+    component "Rate Limiter" as RateLimiter #B39DDB
 }
 
-skinparam arrow {
-    Color #78909C
-    FontColor #37474F
+rectangle "Security Layer" as SecurityLayer #FFCDD2 {
+    component "WAF" as WAF #EF9A9A
+    component "OAuth2 Server" as OAuth2Server #EF9A9A
 }
 
-rectangle "Client" as Client << Frontend >>
-rectangle "CDN" as CDN << Frontend >>
-
-rectangle "Load Balancer" as LoadBalancer {
-    rectangle "API Servers" as APIServers {
-        rectangle "API Server 1" as API1
-        rectangle "API Server 2" as API2
-        rectangle "API Server 3" as API3
-    }
+rectangle "Service Layer" as ServiceLayer #BBDEFB {
+    component "URL Shortener Service" as URLShortenerService #90CAF9
+    component "Analytics Service" as AnalyticsService #90CAF9
+    component "User Management Service" as UserManagementService #90CAF9
 }
 
-rectangle "Redis Cluster" as RedisCluster << Cache >> {
-    rectangle "Redis Master" as RedisMaster
-    rectangle "Redis Slave 1" as RedisSlave1
-    rectangle "Redis Slave 2" as RedisSlave2
+rectangle "Cache Layer" as CacheLayer #FFCDD2 {
+    component "Redis Cluster" as RedisCluster #EF9A9A
+    component "Memcached" as Memcached #EF9A9A
 }
 
-rectangle "MongoDB Cluster" as MongoDBCluster << Database >> {
-    rectangle "MongoDB Router\n(MongoS)" as MongoRouter
-    rectangle "Config Servers" as ConfigServers
-    rectangle "Shard 1" as Shard1
-    rectangle "Shard 2" as Shard2
+rectangle "Database Layer" as DatabaseLayer #C8E6C9 {
+    component "MongoDB Cluster" as MongoDBCluster #81C784
+    component "Cassandra Cluster" as CassandraCluster #81C784
+    component "TimescaleDB" as TimescaleDB #81C784
 }
 
-rectangle "Message Queue" as MessageQueue << Queue >>
-rectangle "Background Worker" as BackgroundWorker
+rectangle "Message Queue" as MessageQueue #FFE0B2
+rectangle "Background Workers" as BackgroundWorkers #FFCC80
 
-Client -down-> CDN : 1. Static resource request
-Client -down-> LoadBalancer : 2. API request
-LoadBalancer -down-> APIServers : 3. Distribute requests
-APIServers -right-> RedisCluster : 4. Cache read/write
-APIServers -down-> MongoDBCluster : 5. DB read/write
-APIServers -left-> MessageQueue : 6. Async tasks
-BackgroundWorker -up-> MessageQueue : 7. Process tasks
-BackgroundWorker -right-> MongoDBCluster : 8. Update data
+rectangle "Service Discovery & Config" as ServiceDiscoveryConfig #E1BEE7 {
+    component "Consul" as Consul #CE93D8
+    component "Vault" as Vault #CE93D8
+}
 
-note right of LoadBalancer #E1F5FE
-    Read/Write Separation:
-    - Read requests prioritized to Redis cluster
-    - Write requests sent directly to MongoDB cluster
-    - Majority of requests are reads (URL redirections)
+rectangle "Monitoring & Logging" as MonitoringLogging #E1BEE7 {
+    component "ELK Stack" as ELKStack #CE93D8
+    component "Prometheus" as Prometheus #CE93D8
+    component "Grafana" as Grafana #CE93D8
+    component "Jaeger" as Jaeger #CE93D8
+}
+
+rectangle "Backup & DR" as BackupDR #DCEDC8 {
+    component "Backup Service" as BackupService #AED581
+    component "Disaster Recovery" as DisasterRecovery #AED581
+}
+
+Client -[#1E88E5,thickness=2]down-> DNS : <back:#FFFFFF><color:#1E88E5>1. DNS lookup</color></back>
+DNS -[#1E88E5,thickness=2]down-> LoadBalancer : <back:#FFFFFF><color:#1E88E5>2. Route to Load Balancer</color></back>
+Client -[#43A047,thickness=2]down-> CDN : <back:#FFFFFF><color:#43A047>3. Static resource request</color></back>
+Client -[#FBC02D,thickness=2]down-> LoadBalancer : <back:#FFFFFF><color:#FBC02D>4. API request</color></back>
+LoadBalancer -[#FBC02D,thickness=2]down-> SecurityLayer : <back:#FFFFFF><color:#FBC02D>5. Security check</color></back>
+SecurityLayer -[#FBC02D,thickness=2]down-> ServiceLayer : <back:#FFFFFF><color:#FBC02D>6. Route request</color></back>
+ServiceLayer -[#D81B60,thickness=2]right-> CacheLayer : <back:#FFFFFF><color:#D81B60>7. Cache read/write</color></back>
+ServiceLayer -[#8E24AA,thickness=2]down-> DatabaseLayer : <back:#FFFFFF><color:#8E24AA>8. DB read/write</color></back>
+ServiceLayer -[#F4511E,thickness=2]left-> MessageQueue : <back:#FFFFFF><color:#F4511E>9. Publish events</color></back>
+BackgroundWorkers -[#F4511E,thickness=2]up-> MessageQueue : <back:#FFFFFF><color:#F4511E>10. Consume events</color></back>
+BackgroundWorkers -[#00897B,thickness=2]right-> DatabaseLayer : <back:#FFFFFF><color:#00897B>11. Process data</color></back>
+ServiceLayer -[#5E35B1,thickness=2]-> MonitoringLogging : <back:#FFFFFF><color:#5E35B1>12. Log & metrics</color></back>
+ServiceLayer -[#3949AB,thickness=2]-> ServiceDiscoveryConfig : <back:#FFFFFF><color:#3949AB>13. Service discovery & config</color></back>
+BackupDR -[#00ACC1,thickness=2]-> DatabaseLayer : <back:#FFFFFF><color:#00ACC1>14. Backup & DR</color></back>
+
+note right of LoadBalancer
+    - Implements SSL termination
+    - Distributes traffic across API servers
+    - Integrates with API Gateway for routing
+    - Rate limiting to prevent abuse
 end note
 
-note right of RedisCluster #FFEBEE
-    Caching Strategy:
-    - Prioritize reading short URL mappings from Redis
-    - On cache miss, read from MongoDB and update cache
-    - Write operations update both Redis and MongoDB
+note right of SecurityLayer
+    - WAF for protection against common web attacks
+    - OAuth2 for secure authentication and authorization
 end note
 
-note right of MongoDBCluster #E8F5E9
-    Sharding Strategy:
-    - Shard based on short URL hash
-    - Read operations distributed across shards
-    - Write operations routed through MongoDB Router
+note right of ServiceLayer
+    - Microservices architecture
+    - Each service is independently scalable
+    - Implements business logic and data access
 end note
 
-note left of MessageQueue #FFF3E0
-    Message Queue Usage:
-    1. Asynchronous processing of visit statistics
-    2. Periodic cleanup of expired short URLs
-    3. Generation of analytical reports
-    4. Handling of long-running background tasks
+note bottom of CacheLayer
+    - Redis for short URL mappings and analytics
+    - Memcached for user sessions and rate limiting
+    - Implements cache aside pattern and write-through caching
 end note
 
-note bottom of APIServers #E1F5FE
-    API Server Responsibilities:
-    1. Handle short URL creation requests (write operations)
-    2. Process short URL redirection requests (read operations)
-    3. Implement caching strategy and read/write separation logic
+note right of DatabaseLayer
+    - MongoDB for URL mappings and user data
+    - Cassandra for time-series analytics data
+    - TimescaleDB for high-performance time-series data
+    - Sharding for horizontal scalability
+end note
+
+note left of MessageQueue
+    - Handles asynchronous processing
+    - Decouples services for better scalability
+    - Used for analytics, cleanup, and notifications
+end note
+
+note bottom of ServiceDiscoveryConfig
+    - Consul for service discovery and health checking
+    - Vault for secrets management and dynamic credentials
+end note
+
+note bottom of MonitoringLogging
+    - Centralized logging with ELK Stack
+    - Real-time metrics with Prometheus
+    - Visualization and alerting with Grafana
+    - Distributed tracing with Jaeger
+end note
+
+note bottom of BackupDR
+    - Regular backups of all databases
+    - Disaster recovery plan with multi-region failover
 end note
 
 @enduml
