@@ -1,92 +1,90 @@
 @startuml
-!define Component component
-!define Database database
-!define Queue queue
-
-skinparam backgroundColor #E6E6FA
-skinparam packageStyle rectangle
-skinparam componentStyle uml2
-
+!pragma layout dot
 allowmixing
 
-package "Uber System" {
-    Component "Load Balancer" as LB
+skinparam backgroundColor #FAFAFA
+skinparam componentStyle uml2
+skinparam defaultFontSize 16
+skinparam noteFontSize 14
+skinparam arrowFontSize 14
 
-    package "Application Layer" {
-        Component "User App\n(Passenger Interface)" as UserApp
-        Component "Driver App\n(Driver Interface)" as DriverApp
+rectangle "Uber System" as UberSystem {
+    rectangle "Client Layer" as ClientLayer #E6E6FA {
+        component "User App\n(Passenger)" as UserApp #D8BFD8
+        component "Driver App\n(Driver)" as DriverApp #D8BFD8
+        component "Web Interface" as WebInterface #D8BFD8
     }
 
-    package "API Gateway" as APIGateway {
-        Component "Rate Limiter" as RateLimiter
-        Component "Authentication" as Auth
+    rectangle "API Gateway & Load Balancing" as APIGatewayLB #98FB98 {
+        component "Global Load Balancer" as GLB #90EE90
+        component "Regional Load Balancers" as RLB #90EE90
+        component "API Gateway" as APIGateway #90EE90
+        component "Rate Limiter" as RateLimiter #90EE90
+        component "Authentication" as Auth #90EE90
     }
 
-    package "Microservices" {
-        Component "User Service" as UserService
-        Component "Driver Service" as DriverService
-        Component "Trip Service" as TripService
-        Component "Payment Service" as PaymentService
-        Component "Notification Service" as NotificationService
+    rectangle "Microservices" as Microservices #ADD8E6 {
+        component "User Service" as UserService #87CEFA
+        component "Driver Service" as DriverService #87CEFA
+        component "Trip Service" as TripService #87CEFA
+        component "Payment Service" as PaymentService #87CEFA
+        component "Notification Service" as NotificationService #87CEFA
+        component "Analytics Service" as AnalyticsService #87CEFA
     }
 
-    Component "Geolocation Service\n(Location & Routing)" as Geolocation
-    Component "Trip Matcher\n(Algorithm for Matching)" as Matcher
-    Component "Real-time Location Tracker" as LocationTracker
-
-    package "Data Storage Layer" {
-        Database "User DB" as UserDB
-        Database "Driver DB" as DriverDB
-        Database "Trip DB" as TripDB
-        Database "Payment DB" as PaymentDB
-        Queue "Message Queue" as MQ
-        Component "Redis Cache" as Redis
+    rectangle "Core Services" as CoreServices #FFA07A {
+        component "Geolocation Service" as Geolocation #FA8072
+        component "Trip Matcher" as Matcher #FA8072
+        component "Real-time Location Tracker" as LocationTracker #FA8072
+        component "Pricing Engine" as PricingEngine #FA8072
     }
 
-    LB -down-> APIGateway
-    APIGateway -down-> Microservices
-    Microservices -down-> "Data Storage Layer"
-    Microservices --> Geolocation
-    Microservices --> Matcher
-    Microservices --> LocationTracker
-    LocationTracker --> Redis : Update real-time locations
-    Matcher --> Redis : Access real-time data
-    UserApp -up-> LB
-    DriverApp -up-> LB
+    rectangle "Data Storage Layer" as DataStorageLayer #DDA0DD {
+        database "User DB\n(Sharded)" as UserDB #D8BFD8
+        database "Driver DB\n(Sharded)" as DriverDB #D8BFD8
+        database "Trip DB\n(Sharded)" as TripDB #D8BFD8
+        database "Payment DB\n(Sharded)" as PaymentDB #D8BFD8
+        database "Analytics DB" as AnalyticsDB #D8BFD8
+        queue "Kafka Cluster" as KafkaCluster #D8BFD8
+        database "Redis Cluster" as RedisCluster #D8BFD8
+    }
+
+    rectangle "Infrastructure" as Infrastructure #F0E68C {
+        component "Service Discovery" as ServiceDiscovery #EEE8AA
+        component "Config Management" as ConfigManagement #EEE8AA
+        component "Logging & Monitoring" as LoggingMonitoring #EEE8AA
+        component "CI/CD Pipeline" as CICD #EEE8AA
+    }
 }
 
-note right of UserDB
-  PK: user_id
-  Indexes: email, phone
-  Sort: registration_date
+ClientLayer -[#000000,thickness=2]down-> APIGatewayLB : <back:#FFFFFF><color:#000000>1. Requests</color></back>
+APIGatewayLB -[#000000,thickness=2]down-> Microservices : <back:#FFFFFF><color:#000000>2. Route</color></back>
+Microservices -[#0000FF,thickness=2]right-> CoreServices : <back:#FFFFFF><color:#0000FF>3. Core ops</color></back>
+Microservices -[#008000,thickness=2]down-> DataStorageLayer : <back:#FFFFFF><color:#008000>4. Data ops</color></back>
+CoreServices -[#008000,thickness=2]down-> DataStorageLayer : <back:#FFFFFF><color:#008000>5. R/W data</color></back>
+Microservices -[#FF0000,thickness=2]left-> Infrastructure : <back:#FFFFFF><color:#FF0000>6. Use infra</color></back>
+CoreServices -[#FF0000,thickness=2]left-> Infrastructure : <back:#FFFFFF><color:#FF0000>7. Use infra</color></back>
+
+note right of DataStorageLayer
+  Sharding:
+  - User DB: by user_id
+  - Driver DB: by driver_id
+  - Trip DB: by trip_id
+  - Payment DB: by payment_id
+  Redis: Caching, Real-time data
+  Kafka: Event streaming
 endnote
 
-note right of DriverDB
-  PK: driver_id
-  Indexes: email, phone, current_location
-  Sort: rating
-endnote
-
-note right of TripDB
-  PK: trip_id
-  FK: user_id, driver_id
-  Indexes: start_time, end_time, status
-  Sort: start_time DESC
-endnote
-
-note right of PaymentDB
-  PK: payment_id
-  FK: user_id, trip_id
-  Indexes: payment_date, status
-  Sort: payment_date DESC
-endnote
-
-note right of Redis
-  Sharding keys: user_id, driver_id, geohash
-endnote
-
-note bottom of MQ
-  Topics: notifications, trip_updates, payment_events
+note bottom of UberSystem
+Optimization suggestions:
+1. DB read replicas
+2. CDN for static assets
+3. Query optimization
+4. Horizontal scaling
+5. Multi-level caching
+6. Geospatial query optimization
+7. Async processing
+8. Circuit breakers
 endnote
 
 @enduml
