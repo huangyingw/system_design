@@ -1,8 +1,7 @@
 @startuml Twitter_Search_Recommendation_Overview
 
-!define LIGHTYELLOW #FFFACD
-!define LIGHTGREEN #90EE90
-!define LIGHTRED #FFB6C1
+!pragma layout dot
+allowmixing
 
 skinparam backgroundColor #E6F3FF
 skinparam shadowing false
@@ -11,56 +10,75 @@ skinparam ArrowColor 454645
 skinparam DefaultFontName Arial
 skinparam DefaultFontSize 11
 
-allowmixing
+rectangle "Load Balancing Layer" as LoadBalancingLayer #F0F8FF {
+    component "Geo-Load Balancer" as GeoLoadBalancer #FFFACD
+    component "API Gateway" as APIGateway #FFFACD
+}
 
-component "Geo-Load Balancer" as GeoLoadBalancer #FFFACD
-component "API Gateway" as APIGateway #FFFACD
+rectangle "Service Layer" as ServiceLayer #F0FFF0 {
+    component "Auth Service" as AuthService #90EE90
+    component "Search Service" as SearchService #90EE90
+    component "Recommendation Service" as RecommendationService #90EE90
+    component "Data Analysis Service" as DataAnalysis #90EE90
+    component "Logging Service" as LoggingService #90EE90
+    component "Monitoring Service" as MonitoringService #90EE90
+    component "Batch Processing Service" as BatchProcessing #90EE90
+}
 
-component "Auth Service" as AuthService #90EE90
-component "Search Service" as SearchService #90EE90
-component "Recommendation Service" as RecommendationService #90EE90
-component "Search Engine" as SearchEngine #FFB6C1
-component "Data Analysis" as DataAnalysis #90EE90
-component "Cache" as Cache #FFFACD
-component "Database" as Database #FFFACD
-component "Message Queue" as MessageQueue #FFFACD
-component "Logging Service" as LoggingService #90EE90
-component "Monitoring Service" as MonitoringService #90EE90
-component "Batch Processing" as BatchProcessing #90EE90
+rectangle "Data Layer" as DataLayer #FFF0F5 {
+    component "Search Engine" as SearchEngine #FFB6C1
+    component "Cache" as Cache #FFFACD
+    component "Database" as Database #FFFACD
+    component "Message Queue" as MessageQueue #FFFACD
+}
 
-' Relationships
-GeoLoadBalancer -down-> APIGateway : "1. Global routing"
-APIGateway -down-> AuthService : "2. Auth check"
-APIGateway -down-> SearchService : "3. Search request"
-APIGateway -down-> RecommendationService : "4. Recommendation request"
-SearchService -right-> Cache : "5. Cache access"
-SearchService -right-> SearchEngine : "6. Query/Index"
-RecommendationService -left-> DataAnalysis : "7. Generate"
-RecommendationService -left-> Cache : "8. Cache access"
-DataAnalysis -down-> Database : "9. User data"
-DataAnalysis -down-> MessageQueue : "10. Async tasks"
-MessageQueue -down-> RecommendationService : "11. Process tasks"
-RecommendationService -down-> BatchProcessing : "12. Trigger batch"
-SearchService -down-> LoggingService : "13. Log searches"
-RecommendationService -down-> LoggingService : "14. Log recommendations"
-MonitoringService -up-> SearchService : "15. Monitor"
-MonitoringService -up-> RecommendationService : "16. Monitor"
-MonitoringService -up-> MessageQueue : "17. Monitor queue"
-MonitoringService -up-> BatchProcessing : "18. Monitor jobs"
+GeoLoadBalancer -[#blue,thickness=2]down-> APIGateway : <back:#FFFFFF><color:#blue>1. Global routing</color></back>
+APIGateway -[#green,thickness=2]down-> AuthService : <back:#FFFFFF><color:#green>2. Auth check</color></back>
+APIGateway -[#red,thickness=2]down-> SearchService : <back:#FFFFFF><color:#red>3. Search request</color></back>
+APIGateway -[#purple,thickness=2]down-> RecommendationService : <back:#FFFFFF><color:#purple>4. Recommendation request</color></back>
 
-note right of Cache
+SearchService -[#orange,thickness=2]right-> Cache : <back:#FFFFFF><color:#orange>5. Cache access</color></back>
+SearchService -[#brown,thickness=2]right-> SearchEngine : <back:#FFFFFF><color:#brown>6. Query/Index</color></back>
+SearchService -[#pink,thickness=2]down-> LoggingService : <back:#FFFFFF><color:#pink>13. Log searches</color></back>
+
+RecommendationService -[#darkgreen,thickness=2]left-> DataAnalysis : <back:#FFFFFF><color:#darkgreen>7. Generate</color></back>
+RecommendationService -[#darkblue,thickness=2]right-> Cache : <back:#FFFFFF><color:#darkblue>8. Cache access</color></back>
+RecommendationService -[#gray,thickness=2]down-> BatchProcessing : <back:#FFFFFF><color:#gray>12. Trigger batch</color></back>
+RecommendationService -[#lightblue,thickness=2]down-> LoggingService : <back:#FFFFFF><color:#lightblue>14. Log recommendations</color></back>
+
+DataAnalysis -[#darkred,thickness=2]down-> Database : <back:#FFFFFF><color:#darkred>9. User data</color></back>
+DataAnalysis -[#darkorange,thickness=2]down-> MessageQueue : <back:#FFFFFF><color:#darkorange>10. Async tasks</color></back>
+
+MessageQueue -[#darkpurple,thickness=2]right-> RecommendationService : <back:#FFFFFF><color:#darkpurple>11. Process tasks</color></back>
+
+MonitoringService -[#lightgreen,thickness=2]up-> SearchService : <back:#FFFFFF><color:#lightgreen>15. Monitor</color></back>
+MonitoringService -[#lightyellow,thickness=2]up-> RecommendationService : <back:#FFFFFF><color:#lightyellow>16. Monitor</color></back>
+MonitoringService -[#lightpink,thickness=2]up-> MessageQueue : <back:#FFFFFF><color:#lightpink>17. Monitor queue</color></back>
+MonitoringService -[#lightgray,thickness=2]up-> BatchProcessing : <back:#FFFFFF><color:#lightgray>18. Monitor jobs</color></back>
+
+note top of Cache
   Key: ProductID/TweetID
   Value: ProductDetails/TweetDetails
 end note
 
-note right of Database
+note top of Database
   Indexed for fast retrieval
   Read-optimized
 end note
 
-note right of MessageQueue
+note top of MessageQueue
   Async processing
   Horizontal scaling
+end note
+
+note bottom of SearchEngine
+  Performance bottleneck:
+  Optimize indexing and query processing
+end note
+
+note top of RecommendationService
+  Scalability concern:
+  Implement caching and load balancing
 end note
 
 @enduml
