@@ -1,0 +1,81 @@
+@startuml Uber Real-time Location Tracking System
+!pragma layout dot
+allowmixing
+skinparam backgroundColor #F0F0F0
+
+title Uber Real-time Location Tracking System Architecture
+
+rectangle "Mobile Devices" as MobileDevices #E1F5FE {
+    component "Uber Driver App" as DriverApp #B3E5FC
+    component "Uber Rider App" as RiderApp #B3E5FC
+}
+
+rectangle "Location Services" as LocationServices #E8F5E9 {
+    component "GPS Data Processor" as GPSProcessor #C8E6C9
+    component "Geocoding Service" as GeocodingService #C8E6C9
+    component "Geofencing Service" as GeofencingService #C8E6C9
+}
+
+rectangle "Real-time Processing" as RealTimeProcessing #FFF3E0 {
+    component "Location Update Stream" as LocationStream #FFE0B2
+    component "Apache Kafka" as Kafka #FFE0B2
+    component "Apache Flink" as Flink #FFE0B2
+}
+
+rectangle "Data Storage" as DataStorage #F3E5F5 {
+    database "Location History DB" as LocationHistoryDB #E1BEE7
+    database "Real-time Location Cache" as LocationCache #E1BEE7
+}
+
+rectangle "Location-based Services" as LocationBasedServices #FFEBEE {
+    component "ETA Calculator" as ETACalculator #FFCDD2
+    component "Route Optimizer" as RouteOptimizer #FFCDD2
+    component "Nearby Drivers Finder" as NearbyDriversFinder #FFCDD2
+}
+
+rectangle "Map Services" as MapServices #E0F2F1 {
+    component "Map Rendering" as MapRendering #B2DFDB
+    component "Traffic Data Integration" as TrafficData #B2DFDB
+}
+
+cloud "External Services" as ExternalServices #ECEFF1 {
+    component "Google Maps API" as GoogleMapsAPI
+    component "OpenStreetMap" as OpenStreetMap
+}
+
+MobileDevices -[#0000FF,thickness=2]down-> LocationServices : <back:#FFFFFF><color:#0000FF>1. Send GPS data</color></back>
+LocationServices -[#006400,thickness=2]right-> RealTimeProcessing : <back:#FFFFFF><color:#006400>2. Process & stream data</color></back>
+RealTimeProcessing -[#8B4513,thickness=2]down-> DataStorage : <back:#FFFFFF><color:#8B4513>3. Store & cache data</color></back>
+RealTimeProcessing -[#4B0082,thickness=2]right-> LocationBasedServices : <back:#FFFFFF><color:#4B0082>4. Provide real-time data</color></back>
+LocationBasedServices -[#FF1493,thickness=2]up-> MapServices : <back:#FFFFFF><color:#FF1493>5. Update map data</color></back>
+MapServices -[#FF4500,thickness=2]right-> ExternalServices : <back:#FFFFFF><color:#FF4500>6. Fetch map & traffic data</color></back>
+MapServices -[#1E90FF,thickness=2]up-> MobileDevices : <back:#FFFFFF><color:#1E90FF>7. Render map & location info</color></back>
+
+note right of GPSProcessor
+  Handles raw GPS data
+  from mobile devices
+end note
+
+note right of GeocodingService
+  Converts GPS coordinates
+  to human-readable addresses
+end note
+
+note right of GeofencingService
+  Manages virtual geographic
+  boundaries for specific areas
+end note
+
+note bottom of LocationCache
+  Redis cluster for
+  high-performance caching
+  of current locations
+end note
+
+note bottom of Flink
+  Processes location updates
+  in real-time for immediate
+  use in the system
+end note
+
+@enduml
