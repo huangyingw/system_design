@@ -1,69 +1,105 @@
 @startuml Telegram_Multi_Device_Sync_Optimized
-!define RECTANGLE component
-!define DATABASE database
-!define QUEUE queue
+!pragma layout dot
+allowmixing
 
-skinparam backgroundColor #F0F0F0
-skinparam handwritten false
-skinparam monochrome true
-skinparam packageStyle rectangle
+skinparam backgroundColor #E8E8E8
 skinparam defaultFontName Arial
-skinparam defaultFontSize 12
+skinparam defaultFontSize 14
+skinparam componentStyle rectangle
+skinparam rectangleFontSize 16
+skinparam noteFontSize 15
 
-RECTANGLE "User Devices" {
-    [Mobile App]
-    [Desktop Client]
-    [Web Client]
+rectangle "User Devices" as UserDevices #E1F5FE {
+    component "Mobile App" as MobileApp
+    component "Desktop Client" as DesktopClient
+    component "Web Client" as WebClient
 }
 
-RECTANGLE "API Gateway" {
-    [Load Balancer]
-    [Rate Limiter]
-    [Auth Service]
+rectangle "API Gateway" as APIGateway #FFF9C4 {
+    component "Load Balancer" as LoadBalancer
+    component "Rate Limiter" as RateLimiter
+    component "Auth Service" as AuthService
 }
 
-RECTANGLE "Sync Service Cluster" {
-    [Device Manager]
-    [Message Synchronizer]
-    [State Reconciliation]
+rectangle "Sync Service Cluster" as SyncServiceCluster #E8F5E9 {
+    component "Device Manager" as DeviceManager
+    component "Message Synchronizer" as MessageSynchronizer
+    component "State Reconciliation" as StateReconciliation
+    component "Conflict Resolution" as ConflictResolution
 }
 
-DATABASE "Message Store" {
-    [Cassandra Cluster]
-    note right: Sharding Key: user_id
+rectangle "Message Store" as MessageStore #FFEBEE {
+    component "Cassandra Cluster" as CassandraCluster
 }
 
-DATABASE "Device Registry" {
-    [Redis Cluster]
-    note right: Key: user_id:device_id
+rectangle "Device Registry" as DeviceRegistry #F3E5F5 {
+    component "Redis Cluster" as RedisCluster
 }
 
-RECTANGLE "Key Management Service" {
-    [Key Distribution]
-    [Key Rotation]
-    [HSM]
+rectangle "Key Management Service" as KeyManagementService #FFF3E0 {
+    component "Key Distribution" as KeyDistribution
+    component "Key Rotation" as KeyRotation
+    component "HSM" as HSM
 }
 
-QUEUE "Message Queue" {
-    [Kafka Cluster]
+rectangle "Message Queue" as MessageQueue #E0F2F1 {
+    component "Kafka Cluster" as KafkaCluster
 }
 
-RECTANGLE "Push Notification Service" {
-    [Notification Dispatcher]
+rectangle "Push Notification Service" as PushNotificationService #F1F8E9 {
+    component "Notification Dispatcher" as NotificationDispatcher
 }
 
-RECTANGLE "Caching Layer" {
-    [Redis Cache]
+rectangle "Caching Layer" as CachingLayer #FAFAFA {
+    component "Redis Cache" as RedisCache
 }
 
-"User Devices" <--> "API Gateway" : HTTPS
-"API Gateway" <--> "Sync Service Cluster" : Internal API
-"Sync Service Cluster" <--> "Message Store" : Read/Write
-"Sync Service Cluster" <--> "Device Registry" : Manage Devices
-"Sync Service Cluster" <--> "Key Management Service" : Encryption Keys
-"Sync Service Cluster" --> "Message Queue" : Publish Changes
-"Message Queue" --> "Push Notification Service" : Consume Events
-"Push Notification Service" --> "User Devices" : Send Notifications
-"Sync Service Cluster" <--> "Caching Layer" : Cache Data
+rectangle "Analytics & Monitoring" as AnalyticsMonitoring #EFEBE9 {
+    component "Prometheus" as Prometheus
+    component "Grafana" as Grafana
+    component "ELK Stack" as ELKStack
+}
+
+UserDevices -[#1E88E5,thickness=2]-> APIGateway : <back:#FFFFFF><color:#1E88E5>1. HTTPS Requests</color></back>
+APIGateway -[#FBC02D,thickness=2]-> SyncServiceCluster : <back:#FFFFFF><color:#FBC02D>2. Internal API</color></back>
+SyncServiceCluster -[#4CAF50,thickness=2]-> MessageStore : <back:#FFFFFF><color:#4CAF50>3. Read/Write Messages</color></back>
+SyncServiceCluster -[#7B1FA2,thickness=2]-> DeviceRegistry : <back:#FFFFFF><color:#7B1FA2>4. Manage Devices</color></back>
+SyncServiceCluster -[#FF7043,thickness=2]-> KeyManagementService : <back:#FFFFFF><color:#FF7043>5. Encryption Keys</color></back>
+SyncServiceCluster -[#00ACC1,thickness=2]-> MessageQueue : <back:#FFFFFF><color:#00ACC1>6. Publish Changes</color></back>
+MessageQueue -[#8BC34A,thickness=2]-> PushNotificationService : <back:#FFFFFF><color:#8BC34A>7. Consume Events</color></back>
+PushNotificationService -[#9E9E9E,thickness=2]-> UserDevices : <back:#FFFFFF><color:#9E9E9E>8. Send Notifications</color></back>
+SyncServiceCluster <-[#795548,thickness=2]-> CachingLayer : <back:#FFFFFF><color:#795548>9. Cache Data</color></back>
+AnalyticsMonitoring -[#607D8B,thickness=2]-> SyncServiceCluster : <back:#FFFFFF><color:#607D8B>10. Collect Metrics</color></back>
+
+note bottom of SyncServiceCluster
+Performance bottlenecks and optimizations:
+1. High concurrency during peak hours
+   - Implement adaptive scaling
+   - Use load shedding techniques
+2. Message synchronization delays
+   - Optimize database queries
+   - Implement efficient caching strategies
+end note
+
+note bottom of MessageStore
+Optimization suggestions:
+1. Implement read replicas for improved read performance
+2. Use time-series optimized storage for older messages
+3. Implement data partitioning based on message age
+end note
+
+note bottom of CachingLayer
+Performance enhancements:
+1. Implement multi-level caching (L1: in-memory, L2: Redis)
+2. Use cache warming for frequently accessed data
+3. Implement cache invalidation strategies
+end note
+
+note bottom of MessageQueue
+Scalability improvements:
+1. Implement topic partitioning for better parallelism
+2. Use compacted topics for efficient state management
+3. Implement dead letter queues for error handling
+end note
 
 @enduml
