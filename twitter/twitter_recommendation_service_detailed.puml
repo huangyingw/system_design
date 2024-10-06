@@ -1,62 +1,105 @@
 @startuml Twitter_Recommendation_Service_Detailed
 
-!define LIGHTYELLOW #FFFACD
-!define LIGHTGREEN #90EE90
-!define LIGHTRED #FFB6C1
+!pragma layout dot
+allowmixing
 
 skinparam backgroundColor #E6F3FF
 skinparam shadowing false
 skinparam RoundCorner 8
 skinparam ArrowColor 454645
 skinparam DefaultFontName Arial
-skinparam DefaultFontSize 11
+skinparam DefaultFontSize 20
 
-allowmixing
-
-component "Recommendation Service" as RecommendationService #90EE90 {
-    component "Recommendation Engine" as RE
-    component "Result Caching" as REC
-    component "Push Notification Service" as PNS
-    component "Real-time Recommendation Engine" as RRE
+rectangle "Recommendation Service" as RecommendationService #90EE90 {
+    component "Batch Recommendation Engine" as BRE #D0F0C0
+    component "Real-time Recommendation Engine" as RRE #D0F0C0
+    component "Result Caching" as REC #D0F0C0
+    component "Push Notification Service" as PNS #D0F0C0
+    component "A/B Testing Module" as ABT #D0F0C0
+    component "Personalization Module" as PM #D0F0C0
 }
 
-component "Data Analysis" as DataAnalysis #90EE90
-component "Cache" as Cache #FFFACD {
-    component "Recommendation Cache" as RCache
+rectangle "Data Processing" as DataProcessing #FFD700 {
+    component "Data Analysis" as DataAnalysis #FFEC8B
+    component "Machine Learning Pipeline" as MLP #FFEC8B
+    component "Feature Engineering" as FE #FFEC8B
 }
-component "Database" as Database #FFFACD {
-    component "User Interaction Data" as UID
-    component "Content Data" as CD
+
+rectangle "Storage" as Storage #87CEFA {
+    component "Cache" as Cache #B0E0E6 {
+        component "Recommendation Cache" as RCache #ADD8E6
+        component "User Profile Cache" as UPCache #ADD8E6
+    }
+    component "Database" as Database #B0E0E6 {
+        component "User Interaction Data" as UID #ADD8E6
+        component "Content Data" as CD #ADD8E6
+        component "User Profile Data" as UPD #ADD8E6
+    }
 }
-component "API Gateway" as APIGateway #FFFACD
 
-' Recommendation Service Flow
-RE -down-> UID : Fetch user data
-RE -down-> CD : Fetch content data
-RE -up-> REC : Cache recommendations
-REC -down-> RCache : Store recommendations in cache
-PNS -down-> RCache : Fetch recommendations from cache
-PNS -right-> APIGateway : Push recommendations
-RRE -down-> UID : Analyze real-time data
-RRE -up-> REC : Update recommendations
+rectangle "External Services" as ExternalServices #FFA07A {
+    component "API Gateway" as APIGateway #FFB6C1
+    component "User Authentication Service" as UAS #FFB6C1
+    component "Content Moderation Service" as CMS #FFB6C1
+}
 
-DataAnalysis -down-> Database : Analyze user behavior
+rectangle "Monitoring and Logging" as MonitoringLogging #98FB98 {
+    component "Performance Monitoring" as PM #90EE90
+    component "Error Logging" as EL #90EE90
+    component "User Feedback Collection" as UFC #90EE90
+}
+
+' Connections
+BRE -[#blue,thickness=2]down-> UID : 1. Fetch user data
+BRE -[#blue,thickness=2]down-> CD : 2. Fetch content data
+BRE -[#green,thickness=2]up-> REC : 3. Cache recommendations
+REC -[#green,thickness=2]right-> RCache : 4. Store recommendations
+PNS -[#orange,thickness=2]down-> RCache : 5. Fetch recommendations
+PNS -[#orange,thickness=2]right-> APIGateway : 6. Push recommendations
+RRE -[#red,thickness=2]down-> UID : 7. Analyze real-time data
+RRE -[#red,thickness=2]up-> REC : 8. Update recommendations
+DataAnalysis -[#purple,thickness=2]down-> Database : 9. Analyze user behavior
+MLP -[#purple,thickness=2]right-> FE : 10. Generate features
+FE -[#purple,thickness=2]up-> BRE : 11. Provide features
+ABT -[#brown,thickness=2]left-> BRE : 12. Test recommendation strategies
+PM -[#brown,thickness=2]left-> RRE : 13. Personalize recommendations
+UAS -[#gray,thickness=2]up-> APIGateway : 14. Authenticate users
+CMS -[#gray,thickness=2]up-> CD : 15. Moderate content
 
 note right of RecommendationService
-  性能优化:
-  - 使用缓存减少推荐计算
-  - 优化推荐算法
-  - 增加推荐引擎计算资源
+  Performance optimization:
+  - Use caching to reduce recommendation calculations
+  - Optimize recommendation algorithms
+  - Increase computational resources for recommendation engines
 end note
 
 note right of RRE
-  基于用户实时行为进行推荐，
-  提高推荐的时效性和准确性
+  Real-time recommendations based on user behavior,
+  improving timeliness and accuracy
 end note
 
-note right of Database
-  Scalability concern:
-  Implement sharding
+note bottom of Database
+  Scalability:
+  - Implement sharding
+  - Use read replicas for heavy read operations
+end note
+
+note bottom of DataProcessing
+  Continuous improvement:
+  - Regular model retraining
+  - Feature importance analysis
+end note
+
+note right of ExternalServices
+  Security:
+  - Implement rate limiting
+  - Use OAuth 2.0 for authentication
+end note
+
+note left of MonitoringLogging
+  System health:
+  - Set up alerts for anomalies
+  - Implement distributed tracing
 end note
 
 @enduml
