@@ -1,79 +1,101 @@
 @startuml
-!define RECTANGLE class
-skinparam backgroundColor #F3F3F3
+!pragma layout dot
+allowmixing
+skinparam backgroundColor #E8E8E8
 
-RECTANGLE UserService {
-    :Authenticate Users;
-    :Manage User Info;
+rectangle "Client Layer" as ClientLayer #FFFACD {
+    component "Web App" as WebApp #87CEFA
+    component "Mobile App" as MobileApp #98FB98
 }
 
-RECTANGLE TweetService {
-    :Manage Tweets;
+rectangle "API Gateway Layer" as GatewayLayer #FFE4B5 {
+    component "API Gateway" as APIGateway #F0E68C
+    component "Load Balancer" as LoadBalancer #DDA0DD
 }
 
-RECTANGLE CommentService {
-    :CRUD Comments;
-    :Link to Tweets;
+rectangle "Service Layer" as ServiceLayer #E6E6FA {
+    component "User Service" as UserService #ADD8E6
+    component "Tweet Service" as TweetService #90EE90
+    component "Comment Service" as CommentService #FFA07A
+    component "Notification Service" as NotificationService #F0E68C
+    component "Search Service" as SearchService #D8BFD8
 }
 
-RECTANGLE NotificationService {
-    :Send Notifications;
-    :Async Processing;
+rectangle "Caching Layer" as CachingLayer #FFE4E1 {
+    component "Redis Cache" as CacheService #FF6347
+    component "Rate Limiter" as RateLimiter #4682B4
 }
 
-RECTANGLE CacheService <<Redis>> {
-    :Cache Hot Comments;
-    :Cache Tweets;
+rectangle "Database Layer" as DatabaseLayer #F0FFF0 {
+    component "PostgreSQL" as SQLDatabase #6495ED
+    component "Cassandra" as NoSQLDatabase #9ACD32
+    component "Elasticsearch" as ElasticsearchDB #FFA500
 }
 
-RECTANGLE RateLimiter <<Redis>> {
-    :Rate Limit User Requests;
+rectangle "Messaging Layer" as MessagingLayer #F5DEB3 {
+    component "Kafka" as Kafka #FF4500
 }
 
-RECTANGLE SQLDatabase <<PostgreSQL>> {
-    :Store Users;
-    :Store Tweets;
-    :Store Comments;
+rectangle "Monitoring Layer" as MonitoringLayer #E0FFFF {
+    component "Prometheus" as Prometheus #B0C4DE
+    component "ELK Stack" as ELKStack #20B2AA
 }
 
-RECTANGLE NoSQLDatabase <<Cassandra>> {
-    :High Concurrency Comments;
-}
+ClientLayer -[#000000,thickness=2]down-> GatewayLayer : <back:#FFFFFF><color:#000000>1. HTTP/HTTPS Requests</color></back>
 
-RECTANGLE SearchService <<Elasticsearch>> {
-    :Full-Text Search;
-}
+GatewayLayer -[#0000FF,thickness=2]down-> ServiceLayer : <back:#FFFFFF><color:#0000FF>2. Route Requests</color></back>
 
-RECTANGLE APIGateway {
-    :Handle Requests;
-    :Route to Services;
-    :Rate Limiting;
-}
+ServiceLayer -[#008000,thickness=2]right-> CachingLayer : <back:#FFFFFF><color:#008000>3. Check Cache/Rate Limit</color></back>
 
-RECTANGLE LoadBalancer {
-    :Distribute Traffic;
-}
+CachingLayer -[#FF0000,thickness=2]down-> DatabaseLayer : <back:#FFFFFF><color:#FF0000>4. Cache Miss</color></back>
 
-RECTANGLE MonitoringService <<Prometheus/ELK>> {
-    :Track Performance;
-    :Log Errors;
-}
+ServiceLayer -[#800080,thickness=2]down-> DatabaseLayer : <back:#FFFFFF><color:#800080>5. CRUD Operations</color></back>
 
-APIGateway --> LoadBalancer
-LoadBalancer --> CommentService
-LoadBalancer --> UserService
-LoadBalancer --> TweetService
-CommentService --> SQLDatabase
-CommentService --> NoSQLDatabase
-CommentService --> CacheService
-CommentService --> NotificationService
-UserService --> SQLDatabase
-TweetService --> SQLDatabase
-NotificationService --> SQLDatabase
-NotificationService --> NoSQLDatabase
-CacheService --> RateLimiter
-SearchService --> CommentService
-APIGateway --> RateLimiter
-MonitoringService --> CommentService
-MonitoringService --> UserService
+ServiceLayer -[#FFA500,thickness=2]down-> MessagingLayer : <back:#FFFFFF><color:#FFA500>6. Publish Events</color></back>
+
+MessagingLayer -[#8B4513,thickness=2]up-> ServiceLayer : <back:#FFFFFF><color:#8B4513>7. Consume Events (Async)</color></back>
+
+MonitoringLayer -[#4B0082,thickness=2]up-> ServiceLayer : <back:#FFFFFF><color:#4B0082>8. Monitor & Log</color></back>
+
+ServiceLayer -[#006400,thickness=2]up-> GatewayLayer : <back:#FFFFFF><color:#006400>9. Return Response</color></back>
+
+GatewayLayer -[#8B0000,thickness=2]up-> ClientLayer : <back:#FFFFFF><color:#8B0000>10. Send Response to Client</color></back>
+
+note right of ClientLayer
+  Supports web and mobile clients
+end note
+
+note right of APIGateway
+  Handles authentication, rate limiting,
+  and request routing
+end note
+
+note right of CommentService
+  Manages CRUD operations for comments,
+  integrates with other services
+end note
+
+note top of CacheService
+  key: tweet_id
+  value: {comments, metadata}
+end note
+
+note top of NoSQLDatabase
+  Stores high-volume comment data
+end note
+
+note top of Kafka
+  Enables asynchronous communication
+  between services
+end note
+
+note right of Prometheus
+  Collects metrics for real-time
+  monitoring and alerting
+end note
+
+note right of ELKStack
+  Centralized logging and analysis
+end note
+
 @enduml
