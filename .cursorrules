@@ -31,4 +31,7 @@
 错误处理：
     自动检测并修复类似错误
     如果告知错误已解决，总结原因并生成精简中文AI指令防止复发
-连线设计：-[#color,thickness=2]direction->格式，不同连线用不同颜色。文字用<back:#FFFFFF><color:#color>内容</color></back>格式，color为对应连线颜色。
+连线设计：
+    -[#color,thickness=2]direction->格式，不同连线用不同颜色
+    文字用<back:#FFFFFF><color:#color>内容</color></back>格式，color为对应连线颜色
+    避免连线重叠，保持图表清晰可读
