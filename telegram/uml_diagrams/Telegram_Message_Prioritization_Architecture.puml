@@ -1,145 +1,115 @@
 @startuml
-!define RECTANGLE class
-!define DATABASE database
-!define CLOUD cloud
+!pragma layout dot
+allowmixing
 
-skinparam backgroundColor #F0F0F0
-
-skinparam handwritten false
-skinparam shadowing false
+skinparam backgroundColor #FAFAFA
 skinparam defaultFontName Arial
-skinparam defaultFontSize 12
-skinparam arrowColor #2C3E50
+skinparam defaultFontSize 15
 skinparam arrowThickness 1.5
-
-skinparam rectangle {
-  BackgroundColor #3498DB
-  BorderColor #2980B9
-  FontColor #FFFFFF
-  BorderThickness 2
-}
-
-skinparam database {
-  BackgroundColor #E74C3C
-  BorderColor #C0392B
-  FontColor #FFFFFF
-}
-
-skinparam cloud {
-  BackgroundColor #95A5A6
-  BorderColor #7F8C8D
-  FontColor #FFFFFF
-}
-
-skinparam package {
-  BackgroundColor #9B59B6
-  BorderColor #8E44AD
-  FontColor #FFFFFF
-}
 
 title Telegram-like System Architecture with Read/Write Splitting and Sharding
 
-rectangle "Client Side" {
-  [Sender's Client]
-  [Receiver's Client]
+rectangle "Client Side" as ClientSide #E0F7FA {
+  component "Sender's Client" as SenderClient #4DD0E1
+  component "Receiver's Client" as ReceiverClient #4DD0E1
 }
 
-rectangle "Frontend Services" {
-  [Load Balancer]
-  [Service Instance]
+rectangle "Frontend Services" as FrontendServices #FFF3E0 {
+  component "Load Balancer" as LoadBalancer #FFB74D
+  component "Service Instance" as ServiceInstance #FFB74D
 }
 
-rectangle "Backend Services" {
-  package "Authorization Service" {
-    [Authorization & Permissions]
+rectangle "Backend Services" as BackendServices #E8F5E9 {
+  rectangle "Authorization Service" as AuthService #A5D6A7 {
+    component "Authorization & Permissions" as AuthPermissions #81C784
   }
   
-  package "Message System" {
-    [Kafka (Message Queue)]
-    [Kafka (Pub/Sub Model)]
-    [Message Worker]
+  rectangle "Message System" as MessageSystem #FFCDD2 {
+    component "Kafka (Message Queue)" as KafkaQueue #EF9A9A
+    component "Kafka (Pub/Sub Model)" as KafkaPubSub #EF9A9A
+    component "Message Worker" as MessageWorker #EF9A9A
   }
   
-  package "Notification Service" {
-    [Notification Handler]
-    [Push Notification Service]
+  rectangle "Notification Service" as NotificationService #B3E5FC {
+    component "Notification Handler" as NotificationHandler #4FC3F7
+    component "Push Notification Service" as PushNotificationService #4FC3F7
   }
 }
 
-database "Database System" {
-  package "MongoDB Cluster" {
-    database "Config Servers" {
-      [Metadata]
+rectangle "Database System" as DatabaseSystem #E1BEE7 {
+  rectangle "MongoDB Cluster" as MongoDBCluster #D1C4E9 {
+    component "Config Servers" as ConfigServers #B39DDB {
+      component "Metadata" as Metadata #9575CD
     }
-    package "Shard" {
-      database "Primary" {
-        [Write Operations]
+    rectangle "Shard" as Shard #D1C4E9 {
+      component "Primary" as Primary #9575CD {
+        component "Write Operations" as WriteOps #7E57C2
       }
-      database "Secondary 1" {
-        [Read Operations]
+      component "Secondary 1" as Secondary1 #9575CD {
+        component "Read Operations" as ReadOps1 #7E57C2
       }
-      database "Secondary 2" {
-        [Read Operations]
+      component "Secondary 2" as Secondary2 #9575CD {
+        component "Read Operations" as ReadOps2 #7E57C2
       }
     }
-    [MongoDB Router (mongos)]
+    component "MongoDB Router (mongos)" as MongoRouter #B39DDB
   }
-  database "Redis Cache" {
-    [Key-Value Store]
+  component "Redis Cache" as RedisCache #F8BBD0 {
+    component "Key-Value Store" as KeyValueStore #F48FB1
   }
 }
 
-cloud "Monitoring & Logging" {
-  [Monitoring]
-  [Logging]
+rectangle "Monitoring & Logging" as MonitoringLogging #CFD8DC {
+  component "Monitoring" as Monitoring #B0BEC5
+  component "Logging" as Logging #B0BEC5
 }
 
 ' 消息流
-[Sender's Client] -[#1ABC9C,bold]-> [Load Balancer]: 1. Send Message
-[Load Balancer] -[#1ABC9C,bold]-> [Service Instance]
-[Service Instance] -[#1ABC9C,bold]-> [Authorization & Permissions]: 2. Check Permission
-[Authorization & Permissions] -[#1ABC9C,bold]-> [Kafka (Message Queue)]: 3. Authorized Message
-[Kafka (Message Queue)] -[#1ABC9C,bold]-> [Message Worker]: 4. Process Message
-[Message Worker] -[#1ABC9C,bold]-> [MongoDB Router (mongos)]: 5. Store Message
-[MongoDB Router (mongos)] -[#1ABC9C,bold]-> [Primary]: 6. Write to Shard
-[Message Worker] -[#1ABC9C,bold]-> [Redis Cache]: 7. Update Cache
-[Message Worker] -[#1ABC9C,bold]-> [Kafka (Pub/Sub Model)]: 8. Publish Message Event
-[Kafka (Pub/Sub Model)] -[#1ABC9C,bold]-> [Notification Handler]: 9. Trigger Notification
-[Notification Handler] -[#1ABC9C,bold]-> [Push Notification Service]: 10. Send Push Notification
-[Push Notification Service] -[#1ABC9C,bold]-> [Receiver's Client]: 11. Deliver Notification
+SenderClient -[#1ABC9C,thickness=2]-> LoadBalancer: <back:#FFFFFF><color:#1ABC9C>1. Send Message</color></back>
+LoadBalancer -[#1ABC9C,thickness=2]-> ServiceInstance
+ServiceInstance -[#1ABC9C,thickness=2]-> AuthPermissions: <back:#FFFFFF><color:#1ABC9C>2. Check Permission</color></back>
+AuthPermissions -[#1ABC9C,thickness=2]-> KafkaQueue: <back:#FFFFFF><color:#1ABC9C>3. Authorized Message</color></back>
+KafkaQueue -[#1ABC9C,thickness=2]-> MessageWorker: <back:#FFFFFF><color:#1ABC9C>4. Process Message</color></back>
+MessageWorker -[#1ABC9C,thickness=2]-> MongoRouter: <back:#FFFFFF><color:#1ABC9C>5. Store Message</color></back>
+MongoRouter -[#1ABC9C,thickness=2]-> Primary: <back:#FFFFFF><color:#1ABC9C>6. Write to Shard</color></back>
+MessageWorker -[#1ABC9C,thickness=2]-> RedisCache: <back:#FFFFFF><color:#1ABC9C>7. Update Cache</color></back>
+MessageWorker -[#1ABC9C,thickness=2]-> KafkaPubSub: <back:#FFFFFF><color:#1ABC9C>8. Publish Message Event</color></back>
+KafkaPubSub -[#1ABC9C,thickness=2]-> NotificationHandler: <back:#FFFFFF><color:#1ABC9C>9. Trigger Notification</color></back>
+NotificationHandler -[#1ABC9C,thickness=2]-> PushNotificationService: <back:#FFFFFF><color:#1ABC9C>10. Send Push Notification</color></back>
+PushNotificationService -[#1ABC9C,thickness=2]-> ReceiverClient: <back:#FFFFFF><color:#1ABC9C>11. Deliver Notification</color></back>
 
 ' 读取消息流
-[Receiver's Client] -[#F39C12,bold]-> [Load Balancer]: 12. Request to Read Message
-[Service Instance] -[#F39C12,bold]-> [Redis Cache]: 13. Check Cache
-[Redis Cache] -[#F39C12,bold]-> [Service Instance]: 14. Return Cached Message (if available)
-[Service Instance] -[#F39C12,bold]-> [MongoDB Router (mongos)]: 15. Fetch Message (if not in cache)
-[MongoDB Router (mongos)] -[#F39C12,bold]-> [Secondary 1]: 16. Read from Shard
-[MongoDB Router (mongos)] -[#F39C12,bold]-> [Service Instance]: 17. Return Message
-[Service Instance] -[#F39C12,bold]-> [Receiver's Client]: 18. Deliver Message
+ReceiverClient -[#F39C12,thickness=2]-> LoadBalancer: <back:#FFFFFF><color:#F39C12>12. Request to Read Message</color></back>
+ServiceInstance -[#F39C12,thickness=2]-> RedisCache: <back:#FFFFFF><color:#F39C12>13. Check Cache</color></back>
+RedisCache -[#F39C12,thickness=2]-> ServiceInstance: <back:#FFFFFF><color:#F39C12>14. Return Cached Message (if available)</color></back>
+ServiceInstance -[#F39C12,thickness=2]-> MongoRouter: <back:#FFFFFF><color:#F39C12>15. Fetch Message (if not in cache)</color></back>
+MongoRouter -[#F39C12,thickness=2]-> Secondary1: <back:#FFFFFF><color:#F39C12>16. Read from Shard</color></back>
+MongoRouter -[#F39C12,thickness=2]-> ServiceInstance: <back:#FFFFFF><color:#F39C12>17. Return Message</color></back>
+ServiceInstance -[#F39C12,thickness=2]-> ReceiverClient: <back:#FFFFFF><color:#F39C12>18. Deliver Message</color></back>
 
 ' 复制
-[Primary] -[#8E44AD,bold]-> [Secondary 1]: Replicate
-[Primary] -[#8E44AD,bold]-> [Secondary 2]: Replicate
+Primary -[#8E44AD,thickness=2]-> Secondary1: <back:#FFFFFF><color:#8E44AD>Replicate</color></back>
+Primary -[#8E44AD,thickness=2]-> Secondary2: <back:#FFFFFF><color:#8E44AD>Replicate</color></back>
 
 ' 配置服务器
-[Config Servers] -[#27AE60,bold]-> [MongoDB Router (mongos)]: Provide Cluster Metadata
+ConfigServers -[#27AE60,thickness=2]-> MongoRouter: <back:#FFFFFF><color:#27AE60>Provide Cluster Metadata</color></back>
 
 ' 日志和监控
-[Service Instance] -[#95A5A6,bold]-> [Monitoring & Logging]: Log Events
+ServiceInstance -[#95A5A6,thickness=2]-> MonitoringLogging: <back:#FFFFFF><color:#95A5A6>Log Events</color></back>
 
-note right of [MongoDB Router (mongos)]
+note right of MongoRouter
   Sharding Key: user_id
   Improves query performance
   and scalability
 end note
 
-note right of [Redis Cache]
+note right of RedisCache
   Key: user_id:message_id
   Reduces database load
   and improves read speed
 end note
 
-note bottom of [Kafka (Message Queue)]
+note bottom of KafkaQueue
   Ensures reliable message
   delivery and scalability
 end note
