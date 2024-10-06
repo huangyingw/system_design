@@ -1,147 +1,140 @@
 @startuml DynamoDB-based Distributed Data Storage System
 
-!define FONTNAME Roboto
-!define FONTSIZE 18
-!define TITLEFONTSIZE 20
+!define RECTANGLE class
 
-skinparam backgroundColor #E0E8F0
+skinparam backgroundColor #FAFAFA
 skinparam handwritten false
-skinparam defaultFontName FONTNAME
-skinparam defaultFontSize FONTSIZE
-skinparam roundcorner 15
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam roundcorner 10
 skinparam shadowing false
 skinparam ArrowColor #2C3E50
 skinparam ArrowThickness 1.5
-skinparam rectangleBorderColor #34495E
-skinparam rectangleBackgroundColor #ECF0F1
 
-skinparam title {
-  FontSize TITLEFONTSIZE
-  FontColor #2C3E50
+skinparam rectangle {
+    BorderColor #34495E
+    BackgroundColor #ECF0F1
+}
+
+skinparam component {
+    BorderColor #34495E
+    BackgroundColor #ECF0F1
 }
 
 skinparam note {
-  BackgroundColor #F1C40F
-  BorderColor #F39C12
-  FontSize 20
+    BackgroundColor #F1C40F
+    BorderColor #F39C12
 }
 
 title DynamoDB-based Distributed Data Storage System Design
 
-rectangle "Client" as Client {
-    [Web Application]
-    [Mobile Application]
-    [IoT Device]
+allowmixing
+!pragma layout dot
+
+rectangle "Client Layer" as ClientLayer #E6F3FF {
+    component "Web Application" as WebApp
+    component "Mobile Application" as MobileApp
+    component "IoT Device" as IoTDevice
 }
 
-rectangle "API Gateway" as APIGateway {
-    [Request Routing]
-    [Authentication]
-    [Traffic Control]
+rectangle "API Gateway" as APIGateway #D5E8D4 {
+    component "Request Routing" as RequestRouting
+    component "Authentication" as Auth
+    component "Traffic Control" as TrafficControl
 }
 
-rectangle "Application Service" as AppService {
-    [Business Logic]
-    [Data Access Layer]
+rectangle "Application Service" as AppService #FFE6CC {
+    component "Business Logic" as BusinessLogic
+    component "Data Access Layer" as DataAccessLayer
 }
 
-database "DynamoDB" as DynamoDB {
-    rectangle "Table Design" as TableDesign {
-        [Primary Key Design]
-        [Secondary Index]
-        [Sparse Index]
-    }
-    rectangle "Partition Strategy" as PartitionStrategy {
-        [Hash Partition]
-        [Range Partition]
-    }
-    rectangle "Consistency Model" as ConsistencyModel {
-        [Eventually Consistent Read]
-        [Strongly Consistent Read]
-    }
+rectangle "DynamoDB" as DynamoDB #DAE8FC {
+    component "Table Design" as TableDesign
+    component "Partition Strategy" as PartitionStrategy
+    component "Consistency Model" as ConsistencyModel
 }
 
-rectangle "DynamoDB Streams" as DynamoDBStreams {
-    [Change Capture]
-    [Event Processing]
+rectangle "DynamoDB Streams" as DynamoDBStreams #F8CECC {
+    component "Change Capture" as ChangeCapture
+    component "Event Processing" as EventProcessing
 }
 
-rectangle "Lambda Functions" as LambdaFunctions {
-    [Stream Processing]
-    [Data Transformation]
-    [Triggers]
+rectangle "Lambda Functions" as LambdaFunctions #E1D5E7 {
+    component "Stream Processing" as StreamProcessing
+    component "Data Transformation" as DataTransformation
+    component "Triggers" as Triggers
 }
 
-rectangle "Cache Layer" as CacheLayer {
-    database "ElastiCache" as ElastiCache
-    database "DAX" as DAX
+rectangle "Cache Layer" as CacheLayer #FFF2CC {
+    component "ElastiCache" as ElastiCache
+    component "DAX" as DAX
 }
 
-rectangle "Data Analysis" as DataAnalysis {
-    [Athena]
-    [Redshift]
+rectangle "Data Analysis" as DataAnalysis #D5E8D4 {
+    component "Athena" as Athena
+    component "Redshift" as Redshift
 }
 
-rectangle "Monitoring" as Monitoring {
-    [CloudWatch]
-    [AWS Config]
+rectangle "Monitoring" as Monitoring #FFE6CC {
+    component "CloudWatch" as CloudWatch
+    component "AWS Config" as AWSConfig
 }
 
-rectangle "Security" as Security {
-    [IAM]
-    [KMS]
-    [VPC]
+rectangle "Security" as Security #F8CECC {
+    component "IAM" as IAM
+    component "KMS" as KMS
+    component "VPC" as VPC
 }
 
-Client -[#3498DB]down-> APIGateway
-APIGateway -[#3498DB]down-> AppService
-AppService -[#3498DB]down-> DynamoDB
-AppService -[#2ECC71]right-> CacheLayer
-DynamoDB -[#E74C3C]right-> DynamoDBStreams
-DynamoDBStreams -[#E74C3C]right-> LambdaFunctions
-DynamoDB -[#9B59B6]down-> DataAnalysis
-DynamoDB -[#F39C12]up-> Monitoring
-Security -[#1ABC9C]up-> DynamoDB
+ClientLayer -[#3498DB,thickness=2]-> APIGateway : <color:#3498DB>1. API Request
+APIGateway -[#3498DB,thickness=2]-> AppService : <color:#3498DB>2. Route Request
+AppService -[#3498DB,thickness=2]-> DynamoDB : <color:#3498DB>3. Query/Update Data
+AppService -[#2ECC71,thickness=2]-> CacheLayer : <color:#2ECC71>4. Cache Access
+DynamoDB -[#E74C3C,thickness=2,dashed]-> DynamoDBStreams : <color:#E74C3C>5. Stream Changes
+DynamoDBStreams -[#E74C3C,thickness=2,dashed]-> LambdaFunctions : <color:#E74C3C>6. Trigger Functions
+DynamoDB -[#9B59B6,thickness=2,dotted]-> DataAnalysis : <color:#9B59B6>7. Analyze Data
+DynamoDB .[#F39C12,thickness=2].> Monitoring : <color:#F39C12>8. Monitor Performance
+Security -[#1ABC9C,thickness=2]-> DynamoDB : <color:#1ABC9C>9. Secure Access
 
 note right of TableDesign
-  Table Design Considerations:
-  1. Avoid hot key issues
-  2. Optimize query efficiency
-  3. Support multiple access patterns
+  Table Design:
+  - Avoid hot partitions
+  - Optimize for query patterns
+  - Support multiple access patterns
 end note
 
 note right of PartitionStrategy
   Partition Strategy:
-  1. Distribute data evenly
-  2. Avoid partition skew
-  3. Support efficient queries
+  - Even data distribution
+  - Prevent partition skew
+  - Efficient query support
 end note
 
 note right of ConsistencyModel
-  Consistency Choice:
-  1. Balance performance and consistency
-  2. Choose based on business requirements
+  Consistency Model:
+  - Balance performance & consistency
+  - Choose per business needs
 end note
 
 note bottom of CacheLayer
   Caching Strategy:
-  1. Read-intensive workloads
-  2. Reduce DynamoDB load
-  3. Lower latency
+  - Optimize read-heavy workloads
+  - Reduce DynamoDB load
+  - Lower overall latency
 end note
 
 note left of LambdaFunctions
-  Lambda Applications:
-  1. Real-time data processing
-  2. Data synchronization
-  3. Trigger notifications
+  Lambda Use Cases:
+  - Real-time processing
+  - Data synchronization
+  - Event-driven notifications
 end note
 
 note bottom of Security
-  Security Considerations:
-  1. Fine-grained access control
-  2. Encrypt data in transit and at rest
-  3. Network isolation
+  Security Measures:
+  - Fine-grained access control
+  - End-to-end encryption
+  - Network isolation
 end note
 
 @enduml
