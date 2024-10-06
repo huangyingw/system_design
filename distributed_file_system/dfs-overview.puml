@@ -1,54 +1,91 @@
 @startuml dfs-overview
-!define RECTANGLE rectangle
-!define DATABASE database
-skinparam backgroundColor #FAFAFA
-skinparam handwritten false
-skinparam monochrome false
+!pragma layout dot
+allowmixing
+skinparam backgroundColor #D0D0D0
 skinparam defaultFontName Arial
 skinparam defaultFontSize 14
-skinparam roundCorner 25
-skinparam Padding 40
-skinparam ParticipantPadding 60
-skinparam BoxPadding 60
+skinparam roundCorner 15
+skinparam Padding 30
+skinparam ParticipantPadding 40
+skinparam BoxPadding 40
 skinparam shadowing false
 skinparam ArrowThickness 1.5
 skinparam NoteBackgroundColor #FFFAB1
 skinparam NoteBorderColor #7F7F00
-skinparam linetype polyline
+skinparam linetype ortho
 skinparam ArrowColor #2C3E50
 
-!define BLUE #0066CC
-!define GREEN #00A86B
-!define YELLOW #FFD700
-!define RED #FF4500
-!define PURPLE #8A2BE2
-!define ORANGE #FF6600
+rectangle "Client Applications" as Client #87CEEB
+rectangle "Load Balancer Cluster" as LB #FFA500 {
+    component "Load Balancer 1" as LB1
+    component "Load Balancer 2" as LB2
+}
+rectangle "Caching Layer" as CacheLayer #4169E1 {
+    component "Redis Cluster" as Redis
+    component "Memcached" as Memcached
+}
+rectangle "Name Node Cluster" as NameNodeCluster #32CD32 {
+    component "Primary Name Node" as PNN
+    component "Secondary Name Node" as SNN
+}
+rectangle "Data Node Cluster 1" as DataNodeCluster1 #FF6347 {
+    component "Data Node 1.1" as DN11
+    component "Data Node 1.2" as DN12
+}
+rectangle "Data Node Cluster 2" as DataNodeCluster2 #FF6347 {
+    component "Data Node 2.1" as DN21
+    component "Data Node 2.2" as DN22
+}
+rectangle "Admin Node" as AdminNode #DDA0DD {
+    component "Monitoring System" as Monitor
+    component "Configuration Manager" as Config
+}
 
-rectangle "Client" as Client #A9CCE3
-RECTANGLE "Load Balancer Cluster" as LB #F5B041
-RECTANGLE "Caching Layer" as CacheLayer #85C1E9
-RECTANGLE "Name Node Cluster" as NameNodeCluster #82E0AA
-RECTANGLE "Data Node Cluster 1" as DataNodeCluster1 #F1948A
-RECTANGLE "Data Node Cluster 2" as DataNodeCluster2 #F1948A
-RECTANGLE "Admin Node" as AdminNode #D7BDE2
+Client -[#0000FF,thickness=2]-> LB : <color:#0000FF>1. Client Request</color>
+LB .[#006400,thickness=2]..> CacheLayer : <color:#006400>2a. Read Cache</color>
+LB -[#006400,thickness=2]right-> NameNodeCluster : <color:#006400>2b. Write/Read Metadata</color>
+CacheLayer .[#B8860B,thickness=2].> NameNodeCluster : <color:#B8860B>3. Cache Miss</color>
+NameNodeCluster -[#8B0000,thickness=2]down-> DataNodeCluster1 : <color:#8B0000>4a. Data Operations</color>
+NameNodeCluster -[#8B0000,thickness=2]down-> DataNodeCluster2 : <color:#8B0000>4b. Data Operations</color>
+DataNodeCluster1 .[#4B0082,thickness=2].> CacheLayer : <color:#4B0082>5a. Update Cache</color>
+DataNodeCluster2 .[#4B0082,thickness=2].> CacheLayer : <color:#4B0082>5b. Update Cache</color>
+AdminNode -[#FF4500,thickness=2]up-> NameNodeCluster : <color:#FF4500>6a. Manage & Monitor</color>
+AdminNode -[#FF4500,thickness=2]up-> LB : <color:#FF4500>6b. Manage & Monitor</color>
+DataNodeCluster1 <-[#006400,thickness=2]right-> DataNodeCluster2 : <color:#006400>7. Replicate Data</color>
 
-Client -[#0066CC]-> LB : <color:#0066CC>1. Client Request</color>
-LB .[#00A86B]..> CacheLayer : <color:#00A86B>2a. Read</color>
-LB -[#00A86B]right-> NameNodeCluster : <color:#00A86B>2b. Write</color>
-CacheLayer .[#FFD700].> NameNodeCluster : <color:#FFD700>3. Cache Miss</color>
-NameNodeCluster -[#FF4500]down-> DataNodeCluster1 : <color:#FF4500>4. Data Operations</color>
-NameNodeCluster -[#FF4500]down-> DataNodeCluster2 : <color:#FF4500>4. Data Operations</color>
-DataNodeCluster1 .[#8A2BE2].> CacheLayer : <color:#8A2BE2>5. Update Cache</color>
-DataNodeCluster2 .[#8A2BE2].> CacheLayer : <color:#8A2BE2>5. Update Cache</color>
-AdminNode -[#FF6600]up-> NameNodeCluster : <color:#FF6600>6. Manage & Monitor</color>
-AdminNode -[#FF6600]up-> LB : <color:#FF6600>6. Manage & Monitor</color>
-DataNodeCluster1 <-[#00A86B]right-> DataNodeCluster2 : <color:#00A86B>7. Replicate</color>
+note bottom of Client #FFFACD
+    <color:#000000>Unified API for read/write operations
+    Supports multiple client protocols (e.g., REST, gRPC)</color>
+end note
 
-note bottom of Client : Unified interface for read/write operations
-note bottom of LB : Distributes requests and ensures fault tolerance
-note right of CacheLayer : Improves read performance
-note right of NameNodeCluster : Manages metadata and ensures data consistency
-note bottom of DataNodeCluster1 : Stores file data with built-in replication
-note left of AdminNode : System health and configuration management
+note bottom of LB
+    Distributes requests and ensures high availability
+    Implements health checks and automatic failover
+end note
+
+note right of CacheLayer
+    Improves read performance
+    Cache: key: file_id, value: file_content
+end note
+
+note right of NameNodeCluster
+    Manages metadata and ensures data consistency
+    Implements leader election for high availability
+end note
+
+note bottom of DataNodeCluster1
+    Stores file data with built-in replication
+    Implements data integrity checks
+end note
+
+note left of AdminNode
+    System health monitoring and configuration management
+    Provides centralized logging and alerting
+end note
+
+note bottom of DataNodeCluster1
+    Performance bottleneck: I/O operations
+    Optimization: SSD caching, data compression
+end note
 
 @enduml
