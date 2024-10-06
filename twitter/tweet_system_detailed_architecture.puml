@@ -1,13 +1,13 @@
 @startuml
 
-!pragma layout smetana
+!pragma layout dot
 skinparam backgroundColor #E6E6FA
 skinparam defaultFontName "Arial"
 skinparam defaultFontSize 16
 skinparam note {
   BackgroundColor #FFFACD
   BorderColor #DAA520
-  FontSize 14
+  FontSize 18
   FontName "Arial"
 }
 
