@@ -1,105 +1,113 @@
 @startuml
-!define RECTANGLE class
-skinparam rectangle {
-  BackgroundColor<<microservice>> LightBlue
-  BorderColor<<microservice>> Blue
-}
+!pragma layout dot
+allowmixing
 
-skinparam linetype ortho
-skinparam nodesep 120
-skinparam ranksep 120
-skinparam dpi 150
+' Component definitions
+rectangle "User Interface" as UI #E6F3FF
+component "Flight Search Service" as FSS #E1F5FE
+component "Booking Service" as BS #E8F5E9
+component "Payment Service" as PS #FFF3E0
+component "Notification Service" as NS #F3E5F5
+component "Airline API Integrator" as AAI #FFEBEE
+rectangle "Database" as DB #ECEFF1
+component "Scheduled Data Fetcher" as SDF #F1F8E9
+component "Cache" as CACHE #E0F2F1
 
-RECTANGLE "User Interface (UI)" as UI <<microservice>> {
-  note left
-    - Allows users to search flights
-    - Displays available options
-    - Handles booking process
-  end note
-}
+' External component
+rectangle "Airline APIs" as APIS #FAFAFA
 
-RECTANGLE "Flight Search Service (FSS)" as FSS <<microservice>> {
-  note right
-    - Handles flight search requests
-    - Queries Cache first
-    - Retrieves data from the Database if not found in Cache
-  end note
-}
+' Notes
+note right of UI
+  - Search flights
+  - Display options
+  - Handle booking
+end note
 
-RECTANGLE "Booking Service (BS)" as BS <<microservice>> {
-  note right
-    - Manages booking process
-    - Verifies flight availability
-    - Interacts with Payment Service
-    - Stores booking details
-  end note
-}
+note right of FSS
+  - Process search requests
+  - Query Cache first
+  - Fallback to Database
+end note
 
-RECTANGLE "Payment Service (PS)" as PS <<microservice>> {
-  note right
-    - Processes payments securely
-    - Stores payment transaction data
-  end note
-}
+note right of BS
+  - Manage bookings
+  - Verify availability
+  - Interact with Payment
+end note
 
-RECTANGLE "Notification Service (NS)" as NS <<microservice>> {
-  note right
-    - Sends booking confirmations
-    - Notifies users of booking status
-  end note
-}
+note right of PS
+  - Secure payment processing
+  - Store transactions
+end note
 
-RECTANGLE "Airline API Integrator (AAI)" as AAI <<microservice>> {
-  note right
-    - Integrates with multiple Airline APIs
-    - Fetches real-time flight data
-    - Updates the Database with latest info
-  end note
-}
+note right of NS
+  - Send confirmations
+  - Update booking status
+end note
 
-RECTANGLE "Database (DB)" as DB {
-  note left
-    - Stores flight, booking, and payment data
-    - Provides data retrieval for services
-  end note
-}
+note right of AAI
+  - Integrate multiple APIs
+  - Fetch real-time data
+  - Update Database
+end note
 
-RECTANGLE "Scheduled Data Fetcher (SDF)" as SDF <<microservice>> {
-  note bottom
-    - Periodically queries Airline API Integrator
-    - Prefetches and caches flight data
-    - Reduces load during peak times
-  end note
-}
+note left of DB
+  - Store flight, booking, payment data
+  - Provide data retrieval
+end note
 
-RECTANGLE "Cache" as CACHE <<microservice>> {
-  note left
-    - Stores frequently accessed flight data
-    - Reduces load on Database and API
-  end note
-}
+note bottom of SDF
+  - Periodic data prefetching
+  - Cache flight information
+  - Optimize for peak times
+end note
 
-UI -down-> FSS : "1. Search Flights"
-FSS -down-> CACHE : "2. Query Cache"
-CACHE -down-> DB : "3. Query DB if not in Cache"
-FSS -right-> AAI : "4. Fetch Flight Info"
-AAI -down-> "Airline APIs" : "5. Fetch Data"
-AAI -left-> DB : "6. Store Data"
-DB -left-> CACHE : "7. Update Cache"
-FSS -up-> UI : "8. Return Flights"
+note left of CACHE
+  key: value pairs
+  - Frequent flight data
+  - Reduce DB/API load
+end note
 
-UI -right-> BS : "9. Select Flight"
-BS -up-> FSS : "10. Verify Availability"
-BS -left-> DB : "11. Store Booking"
+' Connections
+UI -[#1E88E5,thickness=2]down-> FSS : <back:#FFFFFF><color:#1E88E5>1. Search Flights</color></back>
+FSS -[#00897B,thickness=2]right-> CACHE : <back:#FFFFFF><color:#00897B>2. Query Cache</color></back>
+CACHE -[#FFA000,thickness=2]down-> DB : <back:#FFFFFF><color:#FFA000>3. Query DB if not in Cache</color></back>
+FSS -[#E53935,thickness=2]down-> AAI : <back:#FFFFFF><color:#E53935>4. Fetch Flight Info</color></back>
+AAI -[#8E24AA,thickness=2]right-> APIS : <back:#FFFFFF><color:#8E24AA>5. Fetch Data</color></back>
+AAI -[#43A047,thickness=2]left-> DB : <back:#FFFFFF><color:#43A047>6. Store Data</color></back>
+DB -[#F4511E,thickness=2]up-> CACHE : <back:#FFFFFF><color:#F4511E>7. Update Cache</color></back>
+FSS -[#3949AB,thickness=2]up-> UI : <back:#FFFFFF><color:#3949AB>8. Return Flights</color></back>
 
-BS -down-> PS : "12. Process Payment"
-PS -up-> DB : "13. Store Payment"
-PS -right-> BS : "14. Confirm Payment"
+UI -[#D81B60,thickness=2]right-> BS : <back:#FFFFFF><color:#D81B60>9. Select Flight</color></back>
+BS -[#00ACC1,thickness=2]up-> FSS : <back:#FFFFFF><color:#00ACC1>10. Verify Availability</color></back>
+BS -[#7CB342,thickness=2]down-> DB : <back:#FFFFFF><color:#7CB342>11. Store Booking</color></back>
 
-BS -down-> NS : "15. Send Confirmation"
-NS -up-> UI : "16. Notify User"
+BS -[#FF7043,thickness=2]right-> PS : <back:#FFFFFF><color:#FF7043>12. Process Payment</color></back>
+PS -[#5E35B1,thickness=2]up-> DB : <back:#FFFFFF><color:#5E35B1>13. Store Payment</color></back>
+PS -[#039BE5,thickness=2]left-> BS : <back:#FFFFFF><color:#039BE5>14. Confirm Payment</color></back>
 
-SDF -right-> AAI : "17. Prefetch Data"
-SDF -down-> DB : "18. Cache Data"
+BS -[#C0CA33,thickness=2]down-> NS : <back:#FFFFFF><color:#C0CA33>15. Send Confirmation</color></back>
+NS -[#FB8C00,thickness=2]left-> UI : <back:#FFFFFF><color:#FB8C00>16. Notify User</color></back>
+
+SDF -[#8D6E63,thickness=2]right-> AAI : <back:#FFFFFF><color:#8D6E63>17. Prefetch Data</color></back>
+SDF -[#26A69A,thickness=2]down-> DB : <back:#FFFFFF><color:#26A69A>18. Cache Data</color></back>
+
+' Performance bottleneck and optimization suggestions
+note as N1
+  Performance Bottleneck:
+  - High load on Airline API during peak times
+  Optimization:
+  - Implement rate limiting and caching strategies
+end note
+
+note as N2
+  Performance Bottleneck:
+  - Database queries for frequent searches
+  Optimization:
+  - Optimize cache usage and implement query caching
+end note
+
+N1 .. AAI
+N2 .. DB
 
 @enduml
