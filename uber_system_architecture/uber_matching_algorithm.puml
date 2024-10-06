@@ -1,0 +1,80 @@
+@startuml Uber Matching Algorithm System
+!pragma layout dot
+allowmixing
+skinparam backgroundColor #F0F0F0
+
+title Uber Driver-Rider Matching Algorithm System
+
+rectangle "Input Data Sources" as InputSources #E1F5FE {
+    component "Real-time Location Data" as LocationData #B3E5FC
+    component "User Preferences" as UserPreferences #B3E5FC
+    component "Historical Trip Data" as HistoricalData #B3E5FC
+}
+
+rectangle "Preprocessing" as Preprocessing #E8F5E9 {
+    component "Data Cleansing" as DataCleansing #C8E6C9
+    component "Feature Extraction" as FeatureExtraction #C8E6C9
+}
+
+rectangle "Demand Prediction" as DemandPrediction #FFF3E0 {
+    component "Time Series Analysis" as TimeSeriesAnalysis #FFE0B2
+    component "Machine Learning Models" as MLModels #FFE0B2
+}
+
+rectangle "Pricing Engine" as PricingEngine #F3E5F5 {
+    component "Dynamic Pricing Algorithm" as DynamicPricing #E1BEE7
+    component "Surge Pricing Calculator" as SurgePricing #E1BEE7
+}
+
+rectangle "Matching Algorithm" as MatchingAlgorithm #FFEBEE {
+    component "Spatial Index" as SpatialIndex #FFCDD2
+    component "ETA Calculator" as ETACalculator #FFCDD2
+    component "Driver Ranking" as DriverRanking #FFCDD2
+    component "Rider-Driver Matcher" as Matcher #FFCDD2
+}
+
+rectangle "Optimization Engine" as OptimizationEngine #E0F2F1 {
+    component "Route Optimizer" as RouteOptimizer #B2DFDB
+    component "Supply-Demand Balancer" as SupplyDemandBalancer #B2DFDB
+}
+
+rectangle "Output Handlers" as OutputHandlers #ECEFF1 {
+    component "Notification Service" as NotificationService #CFD8DC
+    component "Booking Service" as BookingService #CFD8DC
+}
+
+database "Matching Results DB" as MatchingResultsDB #FFCCBC
+
+InputSources -[#0000FF,thickness=2]down-> Preprocessing : <back:#FFFFFF><color:#0000FF>1. Feed data</color></back>
+Preprocessing -[#006400,thickness=2]right-> DemandPrediction : <back:#FFFFFF><color:#006400>2. Processed data</color></back>
+Preprocessing -[#8B4513,thickness=2]down-> MatchingAlgorithm : <back:#FFFFFF><color:#8B4513>3. Cleaned data</color></back>
+DemandPrediction -[#4B0082,thickness=2]down-> PricingEngine : <back:#FFFFFF><color:#4B0082>4. Demand forecasts</color></back>
+PricingEngine -[#FF1493,thickness=2]right-> MatchingAlgorithm : <back:#FFFFFF><color:#FF1493>5. Price information</color></back>
+MatchingAlgorithm -[#FF4500,thickness=2]right-> OptimizationEngine : <back:#FFFFFF><color:#FF4500>6. Initial matches</color></back>
+OptimizationEngine -[#1E90FF,thickness=2]down-> OutputHandlers : <back:#FFFFFF><color:#1E90FF>7. Optimized matches</color></back>
+OutputHandlers -[#FF8C00,thickness=2]down-> MatchingResultsDB : <back:#FFFFFF><color:#FF8C00>8. Store results</color></back>
+
+note top of SpatialIndex
+  Efficiently indexes driver 
+  and rider locations
+end note
+
+note top of DriverRanking
+  Ranks drivers based on 
+  proximity, ratings, and 
+  other factors
+end note
+
+note bottom of RouteOptimizer
+  Optimizes routes for 
+  multiple pickups and 
+  drop-offs (e.g., UberPool)
+end note
+
+note bottom of SupplyDemandBalancer
+  Adjusts driver supply 
+  to meet rider demand 
+  across different areas
+end note
+
+@enduml
