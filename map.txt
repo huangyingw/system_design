@@ -7,6 +7,7 @@
     distributed_system_monitoring_and_alerting_architecture.puml
     fault_tolerant_and_high_availability_system_design.puml
     distributed_message_queue_system.puml
+    distributed_web_crawler_system_architecture.puml
 
 2. 微服务架构
     microservices_architecture_design.puml
@@ -32,14 +33,19 @@
     twitter/tweet_system_detailed_architecture.puml
     twitter/twitter_recommendation_service_detailed.puml
     twitter_comment_system_with_ml_moderation_and_real_time_processing.puml
+    twitter/twitter_search_service_detailed.puml
+    twitter/twitter_content_publishing_and_management.puml
 
 8. 文件传输和存储
-    telegram/uml_diagrams/Telegram_File_Transfer_And_Storage.puml
+    telegram/uml_diagrams/telegram_group_channel_management_and_moderation_system.puml
     big_file_upload_system/big_file_upload_system_architecture.puml
+    telegram/uml_diagrams/Telegram_File_Transfer_And_Storage.puml
 
 9. 视频处理和流媒体
     YouTube/YouTube_Video_Upload_and_Processing_Schema.puml
     YouTube/YouTube_Video_Playback_and_Interaction_Schema.puml
+    youtube_video_metadata_and_user_interaction_data_schema.puml
+    youtube_video_playback_and_recommendation_system_architecture.puml
 
 10. 在线广告系统
     online_advertising_system_architecture_with_optimizations.puml
@@ -68,3 +74,13 @@
 
 17. 协同编辑
     google_docs_architecture/google_docs_architecture.puml
+
+18. 打车系统
+    uber_system_architecture/uber_driver_rider_matching_algorithm_detailed_flow.puml
+    uber_system_architecture/uber_system_architecture.puml
+    uber_system_architecture/uber_matching_algorithm.puml
+    uber_system_architecture/uber_real_time_location_tracking.puml
+    uber_system_architecture/uber_system_database_design.puml
+
+19. 数据存储选项
+    architecture_diagrams/data_storage_options.puml
