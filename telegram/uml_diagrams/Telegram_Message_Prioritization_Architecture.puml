@@ -4,7 +4,7 @@ allowmixing
 
 skinparam backgroundColor #FAFAFA
 skinparam defaultFontName Arial
-skinparam defaultFontSize 15
+skinparam defaultFontSize 21
 skinparam arrowThickness 1.5
 
 title Telegram-like System Architecture with Read/Write Splitting and Sharding
@@ -112,6 +112,35 @@ end note
 note bottom of KafkaQueue
   Ensures reliable message
   delivery and scalability
+end note
+
+note bottom of LoadBalancer
+  Potential bottleneck
+  Consider using DNS round-robin
+  or hardware load balancing for
+  higher throughput
+end note
+
+note right of AuthPermissions
+  Cache frequently used permissions
+  to reduce latency and database load
+end note
+
+note bottom of MessageWorker
+  Optimize for parallel processing
+  Consider using a worker pool
+  to handle high message volumes
+end note
+
+note left of MongoDBCluster
+  Monitor replication lag
+  Implement read preferences
+  based on consistency requirements
+end note
+
+note bottom of PushNotificationService
+  Implement retry mechanism and
+  circuit breaker for reliability
 end note
 
 @enduml
