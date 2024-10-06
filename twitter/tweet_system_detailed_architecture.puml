@@ -1,6 +1,7 @@
 @startuml
 
-skinparam backgroundColor #D3D3D3
+!pragma layout smetana
+skinparam backgroundColor #E6E6FA
 skinparam defaultFontName "Arial"
 skinparam defaultFontSize 16
 skinparam note {
@@ -10,104 +11,111 @@ skinparam note {
   FontName "Arial"
 }
 
-title Enhanced Twitter System Architecture with Scalability and Performance Strategies
+allowmixing
 
-rectangle "Client" as Client
+title Enhanced Twitter System Architecture with Advanced Scalability and Performance Strategies
 
-rectangle "Core Services" as Core {
-    rectangle "Load Balancer & Web Server" as LBWS {
-        rectangle "Load Balancer" as LB
-        rectangle "Web Server" as WS
-    }
-    rectangle "Application & Monitoring Services" as AMS {
-        rectangle "Application Server" as AS
-        rectangle "Service Circuit Breaker" as SCB
-        rectangle "Service Auto-Scaling" as SAS
-    }
-}
+rectangle "Client" as Client #FFEFD5
 
-rectangle "Tweet Processing Service" as TPS {
-    rectangle "Tweet & Comment Handlers" as TCH {
-        rectangle "Text Processing" as TP
-        rectangle "Sensitive Word Filtering" as SWF
+rectangle "Core Services" as Core #E0FFFF {
+    rectangle "Load Balancer & API Gateway" as LBAG #98FB98 {
+        component "Load Balancer" as LB
+        component "API Gateway" as AG
     }
-    rectangle "Async Processing Queue (Kafka/RabbitMQ)" as APQ
-    rectangle "Workers for Processing" as Workers {
-        rectangle "Task Processing" as TProc
-        rectangle "Database Update" as DBU
-        rectangle "Cache Update" as CU
+    rectangle "Application & Monitoring Services" as AMS #87CEFA {
+        component "Application Server" as AS
+        component "Service Circuit Breaker" as SCB
+        component "Service Auto-Scaling" as SAS
+        component "Monitoring & Logging" as ML
     }
 }
 
-rectangle "Supporting Services" as SS {
-    rectangle "Search Service" as SSrv
-    rectangle "Notification Service" as NSrv
-    rectangle "Timeline Update Service" as TUS
-    rectangle "Content Delivery Network" as CDN
-}
-
-rectangle "Data Persistence Layer" as DPS {
-    rectangle "Caching (Redis Cluster)" as Cache {
-        rectangle "Tweet & Timeline Caches" as TTC
-        rectangle "Edge Caching (CDN)" as EC
+rectangle "Tweet Processing Service" as TPS #FFB6C1 {
+    rectangle "Tweet & Comment Handlers" as TCH #FFA07A {
+        component "Text Processing" as TP
+        component "Sensitive Word Filtering" as SWF
+        component "Media Processing" as MP
     }
-    rectangle "Databases (Sharded & Read-Replica)" as DB {
-        rectangle "Tweet & Comment Data" as TCD
-        rectangle "Data Partitioning & Sharding" as DPSH
+    rectangle "Async Processing Queue" as APQ #F0E68C {
+        component "Kafka Cluster" as KC
+    }
+    rectangle "Workers for Processing" as Workers #98FB98 {
+        component "Task Processing" as TProc
+        component "Database Update" as DBU
+        component "Cache Update" as CU
     }
 }
 
-' Define data flows
-Client -down-> LBWS : Sends Request
-LBWS -down-> AMS : Routes Request
-AMS -right-> TCH : Handles Tweet/Comment
-TCH -down-> APQ : Queues Tasks
-APQ -down-> Workers : Processes Tasks
-Workers -down-> DPS : Updates Data
-Workers -left-> SSrv : Updates Search
-Workers -left-> NSrv : Notifies
-TUS -down-> DPS : Updates Timelines
-Client -left-> LBWS : Requests Timeline
-AMS -down-> TUS : Fetches Timeline Data
-TUS -left-> Cache : Checks Cache
-Cache -down-> TUS : Returns Cached Data
-TUS -up-> AMS : Returns Timeline Data
-AMS -up-> LBWS : Sends Back Data
-LBWS -up-> Client : Returns Data/Updates Timeline
-CDN -[hidden]right-> SSrv
+rectangle "Supporting Services" as SS #DDA0DD {
+    component "Search Service" as SSrv
+    component "Notification Service" as NSrv
+    component "Timeline Update Service" as TUS
+    component "Content Delivery Network" as CDN
+    component "User Authentication Service" as UAS
+}
 
-note right of LB
-  **Load Balancer Optimization**:
-  - High-performance load balancer
-  - Multiple instance deployment
-end note
+rectangle "Data Persistence Layer" as DPS #B0E0E6 {
+    rectangle "Caching" as Cache #FAFAD2 {
+        component "Redis Cluster" as RC
+        component "Edge Caching (CDN)" as EC
+    }
+    rectangle "Databases" as DB #F0FFF0 {
+        component "Tweet & Comment Data (NoSQL)" as TCD
+        component "User Data (SQL)" as UD
+        component "Data Partitioning & Sharding" as DPSH
+    }
+}
 
-note right of Cache
-  **Cache Optimization**:
-  - Redis for caching hot data
-  - CDN for caching static resources
-end note
+Client -[#1E90FF,thickness=2]down-> LBAG : <back:#FFFFFF><color:#1E90FF>1. Sends Request</color></back>
+LBAG -[#32CD32,thickness=2]down-> AMS : <back:#FFFFFF><color:#32CD32>2. Routes Request</color></back>
+AMS -[#FF4500,thickness=2]right-> TCH : <back:#FFFFFF><color:#FF4500>3. Handles Tweet/Comment</color></back>
+TCH -[#8A2BE2,thickness=2]down-> APQ : <back:#FFFFFF><color:#8A2BE2>4. Queues Tasks</color></back>
+APQ -[#FF69B4,thickness=2]down-> Workers : <back:#FFFFFF><color:#FF69B4>5. Processes Tasks</color></back>
+Workers -[#20B2AA,thickness=2]down-> DPS : <back:#FFFFFF><color:#20B2AA>6. Updates Data</color></back>
+Workers -[#DAA520,thickness=2]left-> SSrv : <back:#FFFFFF><color:#DAA520>7. Updates Search</color></back>
+Workers -[#FF6347,thickness=2]left-> NSrv : <back:#FFFFFF><color:#FF6347>8. Notifies</color></back>
+TUS -[#4682B4,thickness=2]down-> DPS : <back:#FFFFFF><color:#4682B4>9. Updates Timelines</color></back>
+Client -[#9370DB,thickness=2]left-> LBAG : <back:#FFFFFF><color:#9370DB>10. Requests Timeline</color></back>
+AMS -[#3CB371,thickness=2]down-> TUS : <back:#FFFFFF><color:#3CB371>11. Fetches Timeline Data</color></back>
+TUS -[#CD5C5C,thickness=2]left-> Cache : <back:#FFFFFF><color:#CD5C5C>12. Checks Cache</color></back>
+Cache -[#4169E1,thickness=2]down-> TUS : <back:#FFFFFF><color:#4169E1>13. Returns Cached Data</color></back>
+TUS -[#FF8C00,thickness=2]up-> AMS : <back:#FFFFFF><color:#FF8C00>14. Returns Timeline Data</color></back>
+AMS -[#2E8B57,thickness=2]up-> LBAG : <back:#FFFFFF><color:#2E8B57>15. Sends Back Data</color></back>
+LBAG -[#8B008B,thickness=2]up-> Client : <back:#FFFFFF><color:#8B008B>16. Returns Data/Updates Timeline</color></back>
 
-note right of DB
-  **Database Optimization**:
-  - Sharding and read-write separation
-  - Index optimization for queries
-end note
-
-note right of APQ
-  **Asynchronous Processing**:
-  - Use message queues
-  - Increase number of consumers
+note right of LBAG
+  Load Balancer & API Gateway:
+  - Use HAProxy or NGINX for load balancing
+  - Implement rate limiting and request throttling
+  - API versioning and documentation
 end note
 
 note right of AMS
-  **Auto Scaling**:
-  - Configure auto-scaling strategies
+  Application & Monitoring:
+  - Implement distributed tracing (e.g., Jaeger)
+  - Use ELK stack for centralized logging
+  - Set up Prometheus & Grafana for monitoring
 end note
 
-note right of CDN
-  Use CDN to accelerate static content and media file delivery,
-  improving global user access speed
+note right of TPS
+  Tweet Processing:
+  - Implement content moderation AI
+  - Use Apache Flink for real-time stream processing
+  - Optimize media processing with FFmpeg
+end note
+
+note right of SS
+  Supporting Services:
+  - Implement Elasticsearch for efficient search
+  - Use WebSocket for real-time notifications
+  - Implement OAuth 2.0 and JWT for authentication
+end note
+
+note right of DPS
+  Data Persistence:
+  - Use Cassandra for tweet storage
+  - Implement read replicas for high availability
+  - Use database connection pooling
 end note
 
 @enduml
