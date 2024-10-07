@@ -7,8 +7,7 @@
     5: 检查一下已有设计里面有含有中文需要翻译成英文的.
     6: 在不遗失信息的前提下, .cursorrules文件还能不能再优化, 精简?
     7: 帮我逐个检查文件名是否能够如实反映文件的内容, 我比较喜欢长一点的文件名，要能够完整的描述这个设计/文件里面cover了哪些东西, 我的目标是快速地用关键词来搜索定位到我想要的文件. 相当于给每个文件打label.
-    8: 帮我更新 map.txt 文件, 来把文件放到对应的label下, 如果需要, 可以创建新的label, 或者修改删除现有label.
+    8: 帮我更新 map.txt 文件, 来把文件放到对应的label下, 如果需要, 可以创建新的label, 或者修改删除现有label. 一个文件可以有多个label.
 
 "./container_orchestration_system_design.puml"
-"./telegram/uml_diagrams/Telegram_Group_And_Channel_Management.puml"
 "./youtube_data_schema.puml"
