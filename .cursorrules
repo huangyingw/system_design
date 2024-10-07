@@ -35,3 +35,4 @@
     -[#color,thickness=2]direction->格式，不同连线用不同颜色
     文字用<back:#FFFFFF><color:#color>内容</color></back>格式，color为对应连线颜色
     避免连线重叠，保持图表清晰可读
+数据库选型：列举关系型和NoSQL数据库，说明特点、应用场景及混合使用策略
