@@ -76,7 +76,7 @@ RecoveryController -[#5E35B1,thickness=2]-> ConsistencyManager : <color:#5E35B1>
 ConsistencyManager -[#00897B,thickness=2]-> Primary : <color:#00897B>6. Sync data (Primary)
 ConsistencyManager -[#00897B,thickness=2]-> Backup : <color:#00897B>7. Sync data (Backup)
 
-note right of HealthChecker
+note top of HealthChecker
   Continuously monitors system health
   using various metrics and log analysis
 end note
@@ -91,7 +91,7 @@ note right of ConsistencyManager
   with conflict resolution strategies
 end note
 
-note right of RecoveryController
+note top of RecoveryController
   Automated recovery process:
   1. Detect failure
   2. Activate backup system
