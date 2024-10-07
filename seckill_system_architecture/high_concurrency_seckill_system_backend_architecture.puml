@@ -1,50 +1,48 @@
 @startuml High Concurrency Seckill System Backend Architecture
-
-!define RECTANGLE class
 !pragma layout dot
 
-skinparam backgroundColor #FEFEFE
-skinparam handwritten false
-skinparam defaultFontName Arial
-skinparam defaultFontSize 14
-skinparam roundcorner 20
-skinparam shadowing true
-
-title High Concurrency Seckill System Backend Architecture
-
 rectangle "Client Layer" as ClientLayer #E1F5FE
-rectangle "Entry Layer" as EntryLayer #FFEBEE
-rectangle "Security Layer" as SecurityLayer #E8F5E9
+rectangle "Entry Layer" as EntryLayer #FFEBEE {
+    component "CDN" as CDN #FFCDD2
+    component "Load Balancer" as LB #FFCDD2
+    component "API Gateway" as APIGW #FFCDD2
+}
+rectangle "Security Layer" as SecurityLayer #E8F5E9 {
+    component "Authentication" as Auth #C8E6C9
+    component "Rate Limiter" as RateLimiter #C8E6C9
+    component "DDoS Protection" as DDoS #C8E6C9
+}
 rectangle "Service Layer" as ServiceLayer #FFF3E0 {
     component "Command Service" as CommandService #FFE0B2
     component "Query Service" as QueryService #DCEDC8
 }
-
-rectangle "Cache Layer" as CacheLayer #F3E5F5
-queue "Message Queue" as MessageQueue #FAFAFA
-rectangle "Async Processing" as AsyncProcessing #FFFDE7
-rectangle "Data Layer" as DataLayer #E0F2F1 {
-    database "Relational DB" as RDB #FFCDD2
-    database "NoSQL DB" as NoDB #BBDEFB
+rectangle "Cache Layer" as CacheLayer #F3E5F5 {
+    component "Redis" as Redis #E1BEE7
+    component "Memcached" as Memcached #B3E5FC
 }
-
-note right of NoDB
-  NoSQL for specific data:
-  - Product inventory (Key-Value store, e.g., Redis)
-  - User session data (Document store, e.g., MongoDB)
-  - Real-time analytics (Column-family store, e.g., Cassandra)
-  - User activity logs (Time-series DB, e.g., InfluxDB)
-end note
+queue "Message Queue" as MessageQueue #FAFAFA
+rectangle "Async Processing" as AsyncProcessing #FFFDE7 {
+    component "Order Processor" as OrderProcessor #FFF9C4
+    component "Inventory Manager" as InventoryManager #FFF9C4
+    component "Cache Updater" as CacheUpdater #FFF9C4
+}
+rectangle "Data Layer" as DataLayer #E0F2F1 {
+    database "Main DB" as MainDB #B2DFDB
+    database "Read Replicas" as ReadReplicas #B2DFDB
+}
+rectangle "Monitoring & Logging" as MonitoringLogging #D1C4E9
 
 ClientLayer -[#0000FF,thickness=2]-> EntryLayer : "<color:#0000FF><b>1. Request</b></color>"
 EntryLayer -[#00AA00,thickness=2]-> SecurityLayer : "<color:#00AA00><b>2. Validate</b></color>"
 SecurityLayer -[#FF0000,thickness=2]-> ServiceLayer : "<color:#FF0000><b>3. Process</b></color>"
-ServiceLayer <-[#FF00FF,thickness=2]-> CacheLayer : "<color:#FF00FF><b>4. Cache R/W</b></color>"
-ServiceLayer -[#00AAAA,thickness=2]-> MessageQueue : "<color:#00AAAA><b>5. Publish</b></color>"
-AsyncProcessing <-[#AA00AA,thickness=2]- MessageQueue : "<color:#AA00AA><b>6. Consume</b></color>"
-ServiceLayer <-[#AAAA00,thickness=2]-> RDB : "<color:#AAAA00><b>7a. CRUD for structured data</b></color>"
-ServiceLayer -[#AAAA00,thickness=2]-> NoDB : "<color:#AAAA00><b>7b. CRUD for specific data</b></color>"
-AsyncProcessing <-[#FF6600,thickness=2]-> DataLayer : "<color:#FF6600><b>8. Update</b></color>"
+CommandService -[#AAAA00,thickness=2]-> MainDB : "<color:#AAAA00><b>4. Write to main DB</b></color>"
+CommandService -[#00AAAA,thickness=2]-> MessageQueue : "<color:#00AAAA><b>5. Publish changes</b></color>"
+CommandService -[#FF6600,thickness=2]-> CacheLayer : "<color:#FF6600><b>6. Direct cache update (critical data)</b></color>"
+AsyncProcessing <-[#AA00AA,thickness=2]- MessageQueue : "<color:#AA00AA><b>7. Consume events</b></color>"
+AsyncProcessing -[#FF6600,thickness=2]-> CacheLayer : "<color:#FF6600><b>8. Update cache</b></color>"
+AsyncProcessing -[#AAAA00,thickness=2]-> DataLayer : "<color:#AAAA00><b>9. Async DB updates</b></color>"
+QueryService <-[#FF00FF,thickness=2]-> CacheLayer : "<color:#FF00FF><b>10. Read from cache</b></color>"
+QueryService <-[#AAAA00,dashed,thickness=2]-> ReadReplicas : "<color:#AAAA00><b>11. Read from DB (rare cases)</b></color>"
 
 MonitoringLogging ..> ClientLayer : "Monitor"
 MonitoringLogging ..> EntryLayer : "Monitor"
@@ -72,7 +70,6 @@ note right of CacheLayer
   - Use Lua scripts for atomic inventory deduction
   - Implement distributed locks for concurrency control
   - Multi-level cache: L1 (local), L2 (distributed)
-  - Cache aside pattern for database synchronization
 end note
 
 note bottom of AsyncProcessing
@@ -80,43 +77,13 @@ note bottom of AsyncProcessing
   - Implement multi-level queues for order processing
   - Use separate queues for different stages (create, pay, notify)
   - Implement retry mechanisms with exponential backoff
-  - Event sourcing for order state management
 end note
 
-note bottom of DataLayer #FFEB3B
-  Performance bottleneck:
-  - Potential replication lag
-  - Uneven data distribution
-  Optimization:
-  - Implement multi-master replication
-  - Optimize sharding strategy
-  - Consider NoSQL solutions for specific data
-  - Use CQRS pattern to separate read and write operations
+note bottom of DataLayer
+  Performance optimization:
+  - Use read replicas for query operations
+  - Implement database sharding for write scalability
+  - Consider NoSQL solutions for specific data types
 end note
-
-note right of EntryLayer
-  Implement aggressive traffic shaping:
-  - Token bucket for rate limiting
-  - Request queuing and prioritization
-  - Dynamic throttling based on system load
-  - Circuit breaker for failing services
-end note
-
-note left of ServiceLayer
-  Optimize service processing:
-  - Use thread pools for concurrent processing
-  - Implement backpressure mechanisms
-  - Use reactive programming model
-  - Implement idempotency for key operations
-end note
-
-ClientLayer -[#FF0000,thickness=2]-> CommandService : "<color:#FF0000><b>3a. Write requests</b></color>"
-ClientLayer -[#0000FF,thickness=2]-> QueryService : "<color:#0000FF><b>3b. Read requests</b></color>"
-
-CommandService -[#AAAA00,thickness=2]-> RDB : "<color:#AAAA00><b>7a. Write to main DB</b></color>"
-QueryService -[#AAAA00,thickness=2]-> RDB : "<color:#AAAA00><b>7b. Read from replicas</b></color>"
-
-CommandService -[#00AAAA,thickness=2]-> MessageQueue : "<color:#00AAAA><b>5. Publish changes</b></color>"
-AsyncProcessing -[#AA00AA,thickness=2]-> QueryService : "<color:#AA00AA><b>6. Update read model</b></color>"
 
 @enduml
