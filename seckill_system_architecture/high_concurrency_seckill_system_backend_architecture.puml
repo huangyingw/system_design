@@ -1,89 +1,40 @@
-@startuml Seckill System Backend Architecture
+@startuml High Concurrency Seckill System Backend Architecture
+
+!define RECTANGLE class
 !pragma layout dot
-skinparam backgroundColor #FAFAFA
+
+skinparam backgroundColor #FEFEFE
+skinparam handwritten false
 skinparam defaultFontName Arial
-skinparam defaultFontSize 24
-skinparam roundcorner 8
-skinparam shadowing false
-skinparam padding 10
-skinparam componentPadding 10
-skinparam ArrowColor #666666
-skinparam ArrowFontColor #333333
-skinparam ArrowFontSize 20
-skinparam ArrowLabelDistance 10
-allowmixing
+skinparam defaultFontSize 14
+skinparam roundcorner 20
+skinparam shadowing true
 
-title Seckill System Backend Architecture
+title High Concurrency Seckill System Backend Architecture
 
-rectangle "Client Layer" as ClientLayer #E1F5FE {
-    component "Web Clients" as WebClients
-    component "Mobile Apps" as MobileApps
+rectangle "Client Layer" as ClientLayer #E1F5FE
+rectangle "Entry Layer" as EntryLayer #FFEBEE
+rectangle "Security Layer" as SecurityLayer #E8F5E9
+rectangle "Service Layer" as ServiceLayer #FFF3E0 {
+    component "Command Service" as CommandService #FFE0B2
+    component "Query Service" as QueryService #DCEDC8
 }
 
-rectangle "Entry Layer" as EntryLayer #FFCCBC {
-    component "CDN" as CDN
-    component "Load Balancer" as LoadBalancer
-    component "API Gateway" as APIGateway
-    component "Traffic Control" as TrafficControl
+rectangle "Cache Layer" as CacheLayer #F3E5F5
+queue "Message Queue" as MessageQueue #FAFAFA
+rectangle "Async Processing" as AsyncProcessing #FFFDE7
+rectangle "Data Layer" as DataLayer #E0F2F1 {
+    database "Relational DB" as RDB #FFCDD2
+    database "NoSQL DB" as NoDB #BBDEFB
 }
 
-rectangle "Security Layer" as SecurityLayer #FFE0B2 {
-    component "Authentication" as Authentication
-    component "Rate Limiting" as RateLimiting
-    component "DDoS Protection" as DDoSProtection
-}
-
-rectangle "Service Layer" as ServiceLayer #E8F5E9 {
-    component "Seckill Service" as SeckillService
-    component "Order Service" as OrderService
-    component "Inventory Service" as InventoryService
-    component "User Service" as UserService
-    component "Payment Service" as PaymentService
-}
-
-note right of ServiceLayer
-  Seckill-specific optimizations:
-  - Implement in-memory counters for real-time inventory tracking
-  - Use optimistic locking for order creation
-  - Employ request merging for batch processing
-  - Implement circuit breakers to prevent cascading failures
+note right of NoDB
+  NoSQL for specific data:
+  - Product inventory (Key-Value store, e.g., Redis)
+  - User session data (Document store, e.g., MongoDB)
+  - Real-time analytics (Column-family store, e.g., Cassandra)
+  - User activity logs (Time-series DB, e.g., InfluxDB)
 end note
-
-rectangle "Cache Layer" as CacheLayer #E0F7FA {
-    component "Redis Cluster" as RedisCluster
-    component "Local Cache" as LocalCache
-    component "Inventory Counter" as InventoryCounter
-}
-
-rectangle "Message Queue" as MessageQueue #F3E5F5 {
-    component "Kafka Cluster" as KafkaCluster
-    component "RocketMQ" as RocketMQ
-}
-
-rectangle "Async Processing" as AsyncProcessing #DCEDC8 {
-    component "Order Processor" as OrderProcessor
-    component "Inventory Updater" as InventoryUpdater
-    component "Payment Processor" as PaymentProcessor
-    component "Result Notifier" as ResultNotifier
-}
-
-rectangle "Data Layer" as DataLayer #FFF3E0 {
-    component "Master DB" as MasterDB
-    component "Read Replicas" as ReadReplicas
-    component "Sharding Proxy" as ShardingProxy
-    component "Write Buffer" as WriteBuffer
-}
-
-note bottom of DataLayer
-  DB optimizations for high concurrency:
-  - Write-behind caching with
-end note
-
-rectangle "Monitoring & Logging" as MonitoringLogging #ECEFF1 {
-    component "ELK Stack" as ELKStack
-    component "Prometheus" as Prometheus
-    component "Grafana" as Grafana
-}
 
 ClientLayer -[#0000FF,thickness=2]-> EntryLayer : "<color:#0000FF><b>1. Request</b></color>"
 EntryLayer -[#00AA00,thickness=2]-> SecurityLayer : "<color:#00AA00><b>2. Validate</b></color>"
@@ -91,7 +42,8 @@ SecurityLayer -[#FF0000,thickness=2]-> ServiceLayer : "<color:#FF0000><b>3. Proc
 ServiceLayer <-[#FF00FF,thickness=2]-> CacheLayer : "<color:#FF00FF><b>4. Cache R/W</b></color>"
 ServiceLayer -[#00AAAA,thickness=2]-> MessageQueue : "<color:#00AAAA><b>5. Publish</b></color>"
 AsyncProcessing <-[#AA00AA,thickness=2]- MessageQueue : "<color:#AA00AA><b>6. Consume</b></color>"
-ServiceLayer <-[#AAAA00,thickness=2]-> DataLayer : "<color:#AAAA00><b>7. CRUD</b></color>"
+ServiceLayer <-[#AAAA00,thickness=2]-> RDB : "<color:#AAAA00><b>7a. CRUD for structured data</b></color>"
+ServiceLayer -[#AAAA00,thickness=2]-> NoDB : "<color:#AAAA00><b>7b. CRUD for specific data</b></color>"
 AsyncProcessing <-[#FF6600,thickness=2]-> DataLayer : "<color:#FF6600><b>8. Update</b></color>"
 
 MonitoringLogging ..> ClientLayer : "Monitor"
@@ -119,6 +71,8 @@ note right of CacheLayer
   - Pre-warm inventory data in Redis
   - Use Lua scripts for atomic inventory deduction
   - Implement distributed locks for concurrency control
+  - Multi-level cache: L1 (local), L2 (distributed)
+  - Cache aside pattern for database synchronization
 end note
 
 note bottom of AsyncProcessing
@@ -126,6 +80,7 @@ note bottom of AsyncProcessing
   - Implement multi-level queues for order processing
   - Use separate queues for different stages (create, pay, notify)
   - Implement retry mechanisms with exponential backoff
+  - Event sourcing for order state management
 end note
 
 note bottom of DataLayer #FFEB3B
@@ -136,6 +91,7 @@ note bottom of DataLayer #FFEB3B
   - Implement multi-master replication
   - Optimize sharding strategy
   - Consider NoSQL solutions for specific data
+  - Use CQRS pattern to separate read and write operations
 end note
 
 note right of EntryLayer
@@ -143,18 +99,24 @@ note right of EntryLayer
   - Token bucket for rate limiting
   - Request queuing and prioritization
   - Dynamic throttling based on system load
+  - Circuit breaker for failing services
 end note
 
-rectangle "Global Control" as GlobalControl #FFECB3 {
-    component "Traffic Orchestrator" as TrafficOrchestrator
-    component "System Monitor" as SystemMonitor
-}
-
-note right of GlobalControl
-  Implement global traffic control:
-  - Dynamic adjustment of traffic based on system health
-  - Gradual increase of allowed traffic to prevent sudden spikes
-  - Real-time monitoring and automatic intervention
+note left of ServiceLayer
+  Optimize service processing:
+  - Use thread pools for concurrent processing
+  - Implement backpressure mechanisms
+  - Use reactive programming model
+  - Implement idempotency for key operations
 end note
+
+ClientLayer -[#FF0000,thickness=2]-> CommandService : "<color:#FF0000><b>3a. Write requests</b></color>"
+ClientLayer -[#0000FF,thickness=2]-> QueryService : "<color:#0000FF><b>3b. Read requests</b></color>"
+
+CommandService -[#AAAA00,thickness=2]-> RDB : "<color:#AAAA00><b>7a. Write to main DB</b></color>"
+QueryService -[#AAAA00,thickness=2]-> RDB : "<color:#AAAA00><b>7b. Read from replicas</b></color>"
+
+CommandService -[#00AAAA,thickness=2]-> MessageQueue : "<color:#00AAAA><b>5. Publish changes</b></color>"
+AsyncProcessing -[#AA00AA,thickness=2]-> QueryService : "<color:#AA00AA><b>6. Update read model</b></color>"
 
 @enduml
