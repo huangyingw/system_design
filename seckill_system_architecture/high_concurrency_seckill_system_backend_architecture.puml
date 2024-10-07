@@ -86,7 +86,20 @@ note bottom of DataLayer
   Performance optimization:
   - Use read replicas for query operations
   - Implement database sharding for write scalability
-  - Consider NoSQL solutions for specific data types
+  - Consider NoSQL solutions for specific data types:
+    1. Redis (Key-Value Store):
+       - Real-time inventory counts
+       - Session data and user tokens
+    2. MongoDB (Document Store):
+       - Product catalogs with flexible schemas
+       - User profiles and preferences
+    3. Cassandra (Wide-column Store):
+       - Time-series data for analytics
+       - High-volume write operations (e.g., click streams)
+    4. Neo4j (Graph Database):
+       - Social connections and recommendations
+    5. Elasticsearch (Search Engine):
+       - Full-text search for products and content
 end note
 
 @enduml
