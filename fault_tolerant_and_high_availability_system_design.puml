@@ -1,72 +1,24 @@
-@startuml Fault Tolerant System Recovery Design
+@startuml Fault Tolerant and High Availability System Design
 
-allowmixing
-!pragma layout dot
+!define RECTANGLE class
 
-skinparam {
-    backgroundColor #FAFAFA
-    handwritten false
-    defaultFontName Arial
-    defaultFontSize 16
-    roundcorner 10
-    shadowing false
-    ArrowColor #2C3E50
-    ActorBorderColor #2C3E50
-    LifeLineBorderColor #2C3E50
-    LifeLineBackgroundColor #A9DCDF
-    ParticipantBorderColor #2C3E50
-    ParticipantBackgroundColor #A9DCDF
-    ParticipantFontName Arial
-    ParticipantFontSize 12
-    ParticipantFontColor #2C3E50
-    ActorBackgroundColor #A9DCDF
-    ActorFontColor #2C3E50
-    ActorFontSize 12
-    ActorFontName Arial
-    NoteFontName Arial
-    NoteFontSize 16
-    NoteFontColor #333333
-    NoteBackgroundColor #FFFDE7
-    NoteBorderColor #FFC107
-}
+skinparam backgroundColor #FEFEFE
+skinparam handwritten false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam roundcorner 20
+skinparam shadowing true
 
-title Fault Tolerant System Recovery Design
+title Fault Tolerant and High Availability System Design
 
-rectangle "Primary System" as Primary #E1F5FE {
-    component "Service A" as ServiceA
-    component "Service B" as ServiceB
-    component "Service C" as ServiceC
-}
-
-rectangle "Backup System" as Backup #E8F5E9 {
-    component "Service A'" as ServiceA_Backup
-    component "Service B'" as ServiceB_Backup
-    component "Service C'" as ServiceC_Backup
-}
-
-rectangle "Health Checker" as HealthChecker #FFF3E0 {
-    component "Heartbeat Monitor" as HeartbeatMonitor
-    component "Performance Monitor" as PerformanceMonitor
-    component "Log Analyzer" as LogAnalyzer
-}
-
-rectangle "Fault Detector" as FaultDetector #FFEBEE {
-    component "Anomaly Detection" as AnomalyDetection
-    component "Error Pattern Recognition" as ErrorPatternRecognition
-    component "Threshold Analyzer" as ThresholdAnalyzer
-}
-
-rectangle "Consistency Manager" as ConsistencyManager #E8EAF6 {
-    component "Data Synchronization" as DataSync
-    component "Conflict Resolution" as ConflictResolution
-    component "Version Control" as VersionControl
-}
-
-rectangle "Recovery Controller" as RecoveryController #F3E5F5 {
-    component "Failover Orchestrator" as FailoverOrchestrator
-    component "State Transfer" as StateTransfer
-    component "Service Restart" as ServiceRestart
-}
+rectangle "Primary System" as Primary #E1F5FE
+rectangle "Backup System" as Backup #FFEBEE
+rectangle "Health Checker" as HealthChecker #E8F5E9
+rectangle "Fault Detector" as FaultDetector #FFF3E0
+rectangle "Recovery Controller" as RecoveryController #F3E5F5
+rectangle "Consistency Manager" as ConsistencyManager #FAFAFA
+rectangle "Load Balancer" as LoadBalancer #FFFDE7
+rectangle "Data Replication Service" as DataReplication #E0F2F1
 
 Primary -[#1E88E5,thickness=2]-> HealthChecker : <color:#1E88E5>1. Send health data
 HealthChecker -[#FFA000,thickness=2]-> FaultDetector : <color:#FFA000>2. Report anomalies
@@ -75,32 +27,57 @@ RecoveryController -[#7CB342,thickness=2]-> Backup : <color:#7CB342>4. Activate 
 RecoveryController -[#5E35B1,thickness=2]-> ConsistencyManager : <color:#5E35B1>5. Ensure data consistency
 ConsistencyManager -[#00897B,thickness=2]-> Primary : <color:#00897B>6. Sync data (Primary)
 ConsistencyManager -[#00897B,thickness=2]-> Backup : <color:#00897B>7. Sync data (Backup)
+LoadBalancer -[#FFB300,thickness=2]-> Primary : <color:#FFB300>8. Route traffic
+LoadBalancer -[#FFB300,thickness=2]-> Backup : <color:#FFB300>9. Route traffic (failover)
+Primary -[#00BCD4,thickness=2]-> DataReplication : <color:#00BCD4>10. Replicate data
+DataReplication -[#00BCD4,thickness=2]-> Backup : <color:#00BCD4>11. Update backup
 
-note top of HealthChecker
+note right of HealthChecker
   Continuously monitors system health
   using various metrics and log analysis
+  - CPU, Memory, Disk I/O
+  - Network latency and throughput
+  - Application-specific health checks
 end note
 
 note right of FaultDetector
   Uses ML algorithms to detect anomalies
   and predict potential failures
+  - Analyzes historical and real-time data
+  - Implements predictive maintenance
 end note
 
 note right of ConsistencyManager
-  Implements eventual consistency
-  with conflict resolution strategies
+  Implements distributed consistency protocols
+  - Two-Phase Commit (2PC) for strong consistency
+  - Eventual consistency with conflict resolution
+  - Quorum-based consistency for read/write operations
 end note
 
-note top of RecoveryController
+note right of RecoveryController
   Automated recovery process:
   1. Detect failure
   2. Activate backup system
   3. Transfer state and traffic
   4. Verify system integrity
   5. Notify administrators
+  - Implements circuit breaker pattern
+  - Manages graceful degradation
 end note
 
-note "Performance bottleneck:\nOptimize data synchronization\nfor large-scale systems" as PerformanceNote
-PerformanceNote .. ConsistencyManager
+note bottom of LoadBalancer
+  Intelligent traffic routing:
+  - Health-check based routing
+  - Sticky sessions for stateful applications
+  - Implements rate limiting and DDoS protection
+end note
+
+note bottom of DataReplication
+  Ensures data consistency across systems:
+  - Synchronous replication for critical data
+  - Asynchronous replication for less critical data
+  - Implements Write-Ahead Logging (WAL)
+  - Manages replication lag and catch-up
+end note
 
 @enduml
