@@ -1,0 +1,120 @@
+@startuml Telegram_Enhanced_Group_Chat_System_Architecture
+
+!pragma layout dot
+skinparam backgroundColor #F0F0F0
+skinparam handwritten false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 18
+skinparam roundCorner 10
+skinparam shadowing false
+skinparam ArrowColor #454645
+skinparam ArrowThickness 1.5
+allowmixing
+
+title Telegram Enhanced Group Chat System Architecture
+
+rectangle "Client Layer" as ClientLayer #E1F5FE {
+    component "Mobile App"
+    component "Desktop Client"
+    component "Web Client"
+}
+
+cloud "Global Load Balancer" as GLB #D1C4E9 {
+    component "DNS-based Routing"
+}
+
+rectangle "API Gateway" as APIGateway #B39DDB {
+    component "Authentication"
+    component "Rate Limiting"
+    component "Request Routing"
+}
+
+rectangle "Group Chat Service Cluster" as GroupChatService #A5D6A7 {
+    component "Group Creation"
+    component "Membership Management"
+    component "Permission Control"
+    component "Message Handler"
+    component "File Sharing"
+    component "Real-time Updates"
+}
+
+rectangle "Supporting Services" as SupportingServices #FFE0B2 {
+    component "Notification Service"
+    component "Search Service"
+    component "Analytics Service"
+    component "Content Moderation"
+}
+
+database "Data Storage" as DataStorage #FFCDD2 {
+    component "Cassandra Cluster" as CC
+    note right of CC : Sharding Key: group_id
+    component "MongoDB Cluster" as MC
+    note right of MC : Sharding Key: user_id
+    component "PostgreSQL Cluster" as PC
+    note right of PC : For transactional data
+}
+
+queue "Message Queue" as MessageQueue #F8BBD0 {
+    component "Kafka Cluster"
+}
+
+cloud "Content Delivery Network" as CDN #B2EBF2 {
+    component "Edge Servers"
+}
+
+database "Caching Layer" as CacheLayer #E0F7FA {
+    component "Redis Cluster"
+    note right: Key: group_id:message_id
+}
+
+rectangle "Monitoring & Logging" as MonitoringLogging #DCEDC8 {
+    component "Prometheus"
+    component "ELK Stack"
+}
+
+ClientLayer --> GLB : HTTPS
+GLB --> APIGateway : Route Requests
+APIGateway --> GroupChatService : Authenticated Requests
+GroupChatService <--> DataStorage : CRUD Operations
+GroupChatService --> MessageQueue : Publish Events
+MessageQueue --> SupportingServices : Consume Events
+GroupChatService <--> CDN : Store/Retrieve Media
+SupportingServices --> DataStorage : Read Data
+ClientLayer <--> CDN : Fetch Media
+GroupChatService <--> CacheLayer : Cache Data
+APIGateway --> MonitoringLogging : Log Requests
+GroupChatService --> MonitoringLogging : Log Events
+SupportingServices --> MonitoringLogging : Log Activities
+
+note right of GroupChatService
+  Enhanced features:
+  - Scalable microservices architecture
+  - Real-time messaging with WebSocket
+  - End-to-end encryption
+  - Multi-device sync
+  - Message threading and reactions
+  - Rich media sharing (images, videos, files)
+  - Group voice and video calls
+end note
+
+note right of SupportingServices
+  - Push notifications with FCM/APNS
+  - Elasticsearch for full-text search
+  - Machine learning for content recommendations
+  - Automated content moderation
+end note
+
+note bottom of DataStorage
+  - Multi-region deployment
+  - Automatic failover
+  - Regular backups
+  - Data encryption at rest
+end note
+
+note right of CacheLayer
+  - Distributed caching
+  - Cache invalidation strategy
+  - Separate caches for different data types
+end note
+
+@enduml
