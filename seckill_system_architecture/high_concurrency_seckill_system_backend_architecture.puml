@@ -1,6 +1,9 @@
 @startuml High Concurrency Seckill System Backend Architecture
 !pragma layout dot
 
+skinparam noteFontSize 16
+skinparam noteFontName Arial
+
 rectangle "Client Layer" as ClientLayer #E1F5FE
 rectangle "Entry Layer" as EntryLayer #FFEBEE {
     component "CDN" as CDN #FFCDD2
@@ -64,7 +67,7 @@ note right of SecurityLayer
   rate limiting, and DDoS protection
 end note
 
-note right of CacheLayer
+note bottom of CacheLayer
   Optimize inventory management:
   - Pre-warm inventory data in Redis
   - Use Lua scripts for atomic inventory deduction
