@@ -1,0 +1,77 @@
+@startuml distributed_task_scheduling_system_architecture
+
+!pragma layout smetana
+skinparam backgroundColor #FEFEFE
+skinparam handwritten false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+rectangle "Client Applications" as CA #E1F5FE
+
+rectangle "API Gateway" as AG #B3E5FC
+
+rectangle "Task Scheduler" as TS #81D4FA {
+    component "Task Queue" as TQ
+    component "Scheduling Algorithm" as SA
+}
+
+rectangle "Task Executor Cluster" as TEC #4FC3F7 {
+    component "Executor Node 1" as EN1
+    component "Executor Node 2" as EN2
+    component "Executor Node N" as ENN
+}
+
+rectangle "Task Store" as TST #03A9F4 {
+    database "Task Metadata DB" as TMDB
+    database "Task History DB" as THDB
+}
+
+rectangle "Monitoring & Logging" as ML #0288D1 {
+    component "Metrics Collector" as MC
+    component "Log Aggregator" as LA
+}
+
+rectangle "Fault Tolerance" as FT #01579B {
+    component "Task Rebalancer" as TR
+    component "Failure Detector" as FD
+}
+
+cloud "Distributed File System" as DFS #E1F5FE
+
+CA -[#FF5722,thickness=2]-> AG : <back:#FFFFFF><color:#FF5722>1. Submit Task</color></back>
+AG -[#FF5722,thickness=2]-> TS : <back:#FFFFFF><color:#FF5722>2. Route Task</color></back>
+TS -[#4CAF50,thickness=2]-> TQ : <back:#FFFFFF><color:#4CAF50>3. Enqueue Task</color></back>
+SA -[#4CAF50,thickness=2]-> TQ : <back:#FFFFFF><color:#4CAF50>4. Prioritize Tasks</color></back>
+TQ -[#2196F3,thickness=2]-> TEC : <back:#FFFFFF><color:#2196F3>5. Assign Tasks</color></back>
+TEC -[#9C27B0,thickness=2]-> TST : <back:#FFFFFF><color:#9C27B0>6. Update Status</color></back>
+TEC -[#795548,thickness=2]-> DFS : <back:#FFFFFF><color:#795548>7. Store Results</color></back>
+ML -[#FFC107,thickness=2]-> TEC : <back:#FFFFFF><color:#FFC107>8. Collect Metrics</color></back>
+FT -[#607D8B,thickness=2]-> TEC : <back:#FFFFFF><color:#607D8B>9. Detect Failures</color></back>
+FT -[#009688,thickness=2]-> TS : <back:#FFFFFF><color:#009688>10. Rebalance Tasks</color></back>
+
+note right of TS
+  Implements various scheduling algorithms:
+  - FIFO
+  - Priority-based
+  - Fair scheduling
+  - Deadline-based
+end note
+
+note bottom of TEC
+  Scalable cluster of worker nodes
+  that execute assigned tasks
+end note
+
+note right of TST
+  Stores task definitions, metadata,
+  execution history, and results
+end note
+
+note bottom of FT
+  Ensures system reliability:
+  - Detects node failures
+  - Reschedules failed tasks
+  - Rebalances workload
+end note
+
+@enduml
