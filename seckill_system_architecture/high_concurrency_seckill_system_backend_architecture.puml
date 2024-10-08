@@ -35,17 +35,17 @@ rectangle "Data Layer" as DataLayer #E0F2F1 {
 }
 rectangle "Monitoring & Logging" as MonitoringLogging #D1C4E9
 
-ClientLayer -[#0000FF,thickness=2]-> EntryLayer : "<color:#0000FF><b>1. Request</b></color>"
-EntryLayer -[#00AA00,thickness=2]-> SecurityLayer : "<color:#00AA00><b>2. Validate</b></color>"
-SecurityLayer -[#FF0000,thickness=2]-> ServiceLayer : "<color:#FF0000><b>3. Process</b></color>"
-CommandService -[#AAAA00,thickness=2]-> MainDB : "<color:#AAAA00><b>4. Write to main DB</b></color>"
-CommandService -[#00AAAA,thickness=2]-> MessageQueue : "<color:#00AAAA><b>5. Publish changes</b></color>"
-CommandService -[#FF6600,thickness=2]-> CacheLayer : "<color:#FF6600><b>6. Direct cache update (critical data)</b></color>"
-AsyncProcessing <-[#AA00AA,thickness=2]- MessageQueue : "<color:#AA00AA><b>7. Consume events</b></color>"
-AsyncProcessing -[#FF6600,thickness=2]-> CacheLayer : "<color:#FF6600><b>8. Update cache</b></color>"
-AsyncProcessing -[#AAAA00,thickness=2]-> DataLayer : "<color:#AAAA00><b>9. Async DB updates</b></color>"
-QueryService <-[#FF00FF,thickness=2]-> CacheLayer : "<color:#FF00FF><b>10. Read from cache</b></color>"
-QueryService <-[#AAAA00,dashed,thickness=2]-> ReadReplicas : "<color:#AAAA00><b>11. Read from DB (rare cases)</b></color>"
+ClientLayer -[#0000FF,thickness=2]-> EntryLayer : "<font size=19><color:#0000FF><b>1. Request</b></color></font>"
+EntryLayer -[#00AA00,thickness=2]-> SecurityLayer : "<font size=19><color:#00AA00><b>2. Validate</b></color></font>"
+SecurityLayer -[#FF0000,thickness=2]-> ServiceLayer : "<font size=19><color:#FF0000><b>3. Process</b></color></font>"
+CommandService -[#AAAA00,thickness=2]-> MainDB : "<font size=19><color:#AAAA00><b>4. Write to main DB</b></color></font>"
+CommandService -[#00AAAA,thickness=2]-> MessageQueue : "<font size=19><color:#00AAAA><b>5. Publish changes</b></color></font>"
+CommandService -[#FF6600,thickness=2]-> CacheLayer : "<font size=19><color:#FF6600><b>6. Direct cache update (critical data)</b></color></font>"
+AsyncProcessing <-[#AA00AA,thickness=2]- MessageQueue : "<font size=19><color:#AA00AA><b>7. Consume events</b></color></font>"
+AsyncProcessing -[#FF6600,thickness=2]-> CacheLayer : "<font size=19><color:#FF6600><b>8. Update cache</b></color></font>"
+AsyncProcessing -[#AAAA00,thickness=2]-> DataLayer : "<font size=19><color:#AAAA00><b>9. Async DB updates</b></color></font>"
+QueryService <-[#FF00FF,thickness=2]-> CacheLayer : "<font size=19><color:#FF00FF><b>10. Read from cache</b></color></font>"
+QueryService <-[#AAAA00,dashed,thickness=2]-> ReadReplicas : "<font size=19><color:#AAAA00><b>11. Read from DB (rare cases)</b></color></font>"
 
 MonitoringLogging ..> ClientLayer : "Monitor"
 MonitoringLogging ..> EntryLayer : "Monitor"
