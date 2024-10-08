@@ -1,0 +1,133 @@
+@startuml real_time_data_analysis_platform_architecture
+
+!pragma layout dot
+skinparam backgroundColor #FEFEFE
+skinparam handwritten false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+rectangle "Data Sources" as DS #E1F5FE {
+    component "IoT Devices" as IOT
+    component "Web Applications" as WA
+    component "Mobile Apps" as MA
+    component "Databases" as DB
+}
+
+rectangle "Data Ingestion Layer" as DIL #B3E5FC {
+    queue "Apache Kafka" as AK
+    component "Kafka Connect" as KC
+    component "Flume Agents" as FA
+}
+
+rectangle "Stream Processing Layer" as SPL #81D4FA {
+    component "Apache Flink" as AF
+    component "Spark Streaming" as SS
+    component "Apache Storm" as AS
+}
+
+rectangle "Real-time Storage" as RTS #4FC3F7 {
+    database "Apache Cassandra" as AC
+    database "Apache HBase" as AH
+    database "Redis" as RD
+}
+
+rectangle "Batch Processing Layer" as BPL #03A9F4 {
+    component "Apache Hadoop" as AHD
+    component "Apache Spark" as ASP
+}
+
+rectangle "Data Warehouse" as DW #0288D1 {
+    database "Amazon Redshift" as AR
+    database "Google BigQuery" as GB
+}
+
+rectangle "Analytics Engine" as AE #01579B {
+    component "Apache Druid" as AD
+    component "Apache Pinot" as AP
+}
+
+rectangle "Visualization Layer" as VL #80DEEA {
+    component "Grafana" as GF
+    component "Apache Superset" as ASS
+    component "Tableau" as TB
+}
+
+rectangle "Machine Learning" as ML #26C6DA {
+    component "TensorFlow" as TF
+    component "Scikit-learn" as SKL
+}
+
+rectangle "Metadata Management" as MM #00BCD4 {
+    component "Apache Atlas" as AA
+    database "Metadata Store" as MS
+}
+
+rectangle "Monitoring & Alerting" as MA #00ACC1 {
+    component "Prometheus" as PR
+    component "Alertmanager" as AM
+    component "ELK Stack" as ELK
+}
+
+actor "Data Analyst" as DA
+actor "Business User" as BU
+
+DS -[#FF5722,thickness=2]-> DIL : <back:#FFFFFF><color:#FF5722>1. Ingest Data</color></back>
+DIL -[#FF5722,thickness=2]-> SPL : <back:#FFFFFF><color:#FF5722>2. Stream Data</color></back>
+SPL -[#4CAF50,thickness=2]-> RTS : <back:#FFFFFF><color:#4CAF50>3. Store Real-time Data</color></back>
+SPL -[#4CAF50,thickness=2]-> AE : <back:#FFFFFF><color:#4CAF50>4. Real-time Analytics</color></back>
+DIL -[#2196F3,thickness=2]-> BPL : <back:#FFFFFF><color:#2196F3>5. Batch Processing</color></back>
+BPL -[#2196F3,thickness=2]-> DW : <back:#FFFFFF><color:#2196F3>6. Store Processed Data</color></back>
+AE -[#9C27B0,thickness=2]-> VL : <back:#FFFFFF><color:#9C27B0>7. Visualize Results</color></back>
+VL -[#9C27B0,thickness=2]up-> DA : <back:#FFFFFF><color:#9C27B0>8. Analyze Data</color></back>
+VL -[#9C27B0,thickness=2]up-> BU : <back:#FFFFFF><color:#9C27B0>8. View Dashboards</color></back>
+AE -[#795548,thickness=2]-> ML : <back:#FFFFFF><color:#795548>9. Feed ML Models</color></back>
+ML -[#795548,thickness=2]-> AE : <back:#FFFFFF><color:#795548>10. Predictions</color></back>
+MM -[#FFC107,thickness=2]-> DIL : <back:#FFFFFF><color:#FFC107>11. Manage Metadata</color></back>
+MM -[#FFC107,thickness=2]-> SPL : <back:#FFFFFF><color:#FFC107>11. Manage Metadata</color></back>
+MM -[#FFC107,thickness=2]-> BPL : <back:#FFFFFF><color:#FFC107>11. Manage Metadata</color></back>
+MA -[#607D8B,thickness=2]-> DIL : <back:#FFFFFF><color:#607D8B>12. Monitor & Alert</color></back>
+MA -[#607D8B,thickness=2]-> SPL : <back:#FFFFFF><color:#607D8B>12. Monitor & Alert</color></back>
+MA -[#607D8B,thickness=2]-> AE : <back:#FFFFFF><color:#607D8B>12. Monitor & Alert</color></back>
+DS -[#009688,thickness=2]-> ML : <back:#FFFFFF><color:#009688>13. Develop Models</color></back>
+
+note right of DIL
+  Handles high-volume, 
+  high-velocity data ingestion
+end note
+
+note right of SPL
+  Processes data in real-time
+  for immediate insights
+end note
+
+note bottom of RTS
+  Stores real-time data
+  for quick access and analysis
+end note
+
+note bottom of BPL
+  Processes large volumes of
+  historical data for deep analysis
+end note
+
+note right of AE
+  Provides fast querying and
+  aggregation capabilities
+end note
+
+note bottom of ML
+  Applies machine learning
+  for predictive analytics
+end note
+
+note bottom of MM
+  Manages data lineage,
+  governance, and catalog
+end note
+
+note bottom of MA
+  Ensures system health
+  and performance
+end note
+
+@enduml
