@@ -1,0 +1,84 @@
+@startuml service_mesh_architecture_with_istio_components
+
+!pragma layout dot
+skinparam backgroundColor #FEFEFE
+skinparam handwritten false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+rectangle "Kubernetes Cluster" as KC {
+    rectangle "Service A Pod" as SAP #E1F5FE {
+        component "Service A" as SA
+        component "Envoy Proxy" as EP1 #B3E5FC
+    }
+
+    rectangle "Service B Pod" as SBP #E1F5FE {
+        component "Service B" as SB
+        component "Envoy Proxy" as EP2 #B3E5FC
+    }
+
+    rectangle "Service C Pod" as SCP #E1F5FE {
+        component "Service C" as SC
+        component "Envoy Proxy" as EP3 #B3E5FC
+    }
+
+    rectangle "Istio Control Plane" as ICP #81D4FA {
+        component "Istiod" as ID {
+            component "Pilot" as PI
+            component "Citadel" as CI
+            component "Galley" as GA
+        }
+    }
+
+    rectangle "Ingress Gateway" as IG #4FC3F7
+    rectangle "Egress Gateway" as EG #4FC3F7
+}
+
+cloud "External Services" as ES #E1F5FE
+
+actor "User" as US
+
+US -[#FF5722,thickness=2]-> IG : <back:#FFFFFF><color:#FF5722>1. HTTPS Request</color></back>
+IG -[#FF5722,thickness=2]-> EP1 : <back:#FFFFFF><color:#FF5722>2. Route Request</color></back>
+EP1 -[#4CAF50,thickness=2]-> SA : <back:#FFFFFF><color:#4CAF50>3. Forward Request</color></back>
+SA -[#4CAF50,thickness=2]-> EP1 : <back:#FFFFFF><color:#4CAF50>4. Response</color></back>
+EP1 -[#2196F3,thickness=2]-> EP2 : <back:#FFFFFF><color:#2196F3>5. Inter-service Call</color></back>
+EP2 -[#2196F3,thickness=2]-> SB : <back:#FFFFFF><color:#2196F3>6. Forward Request</color></back>
+EP2 -[#9C27B0,thickness=2]-> EP3 : <back:#FFFFFF><color:#9C27B0>7. Inter-service Call</color></back>
+EP3 -[#9C27B0,thickness=2]-> SC : <back:#FFFFFF><color:#9C27B0>8. Forward Request</color></back>
+EP3 -[#795548,thickness=2]-> EG : <back:#FFFFFF><color:#795548>9. External Call</color></back>
+EG -[#795548,thickness=2]-> ES : <back:#FFFFFF><color:#795548>10. Route to External</color></back>
+
+ID -[#FFC107,thickness=2,dashed]-> EP1 : <back:#FFFFFF><color:#FFC107>Config & Certs</color></back>
+ID -[#FFC107,thickness=2,dashed]-> EP2 : <back:#FFFFFF><color:#FFC107>Config & Certs</color></back>
+ID -[#FFC107,thickness=2,dashed]-> EP3 : <back:#FFFFFF><color:#FFC107>Config & Certs</color></back>
+
+note right of ICP
+  Istio Control Plane:
+  - Pilot: Service discovery and config
+  - Citadel: Key and cert management
+  - Galley: Config validation and distribution
+end note
+
+note bottom of IG
+  Ingress Gateway:
+  - L7 load balancing
+  - TLS termination
+  - HTTP/2 and gRPC proxying
+end note
+
+note bottom of EG
+  Egress Gateway:
+  - Control outbound traffic
+  - Enhance security
+end note
+
+note right of EP1
+  Envoy Proxy:
+  - Service discovery
+  - Load balancing
+  - Traffic management
+  - Observability
+end note
+
+@enduml
