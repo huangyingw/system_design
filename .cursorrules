@@ -34,3 +34,4 @@
     -[#color,thickness=2]direction->格式，不同连线用不同颜色
     文字用<back:#FFFFFF><color:#color>内容</color></back>格式，color为对应连线颜色
     避免连线重叠，保持图表清晰可读
+    避免使用宏定义来设置箭头样式，直接在每个连线定义中设置样式
