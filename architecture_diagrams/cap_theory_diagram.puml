@@ -1,25 +1,39 @@
 @startuml
-skinparam backgroundColor #D3D3D3
+!pragma layout smetana
+skinparam backgroundColor #F0F0F0
+allowmixing
+
 ' 定义 CAP 理论的三个组成部分
-class Consistency {
-  +一致性
-}
-
-class Availability {
-  +可用性
-}
-
-class PartitionTolerance {
-  +分区容忍性
-}
+rectangle "Consistency" as C #E6F3FF
+rectangle "Availability" as A #FFF0E6
+rectangle "Partition Tolerance" as P #E6FFE6
 
 ' 创建关联性说明
-note right of Consistency : 系统在\n所有节点间\n保持数据一致
-note left of Availability : 系统响应\n用户请求的能力
-note right of PartitionTolerance : 系统在\n网络分区时\n的运行能力
+note right of C
+  Ensures data consistency
+  across all nodes in the system
+end note
+
+note left of A
+  System's ability to respond
+  to user requests
+end note
+
+note right of P
+  System's capability to operate
+  during network partitions
+end note
 
 ' 描述它们之间的关系
-Consistency -- Availability : 不能同时满足
-Consistency -- PartitionTolerance : 不能同时满足
-Availability -- PartitionTolerance : 不能同时满足
+C -[#FF0000,thickness=2]down-> A : <back:#FFFFFF><color:#FF0000>1. Cannot be fully satisfied simultaneously</color></back>
+A -[#00AA00,thickness=2]right-> P : <back:#FFFFFF><color:#00AA00>2. Trade-off required</color></back>
+P -[#0000FF,thickness=2]up-> C : <back:#FFFFFF><color:#0000FF>3. Must choose two out of three</color></back>
+
+note bottom of P
+  Performance bottleneck:
+  Achieving all three properties
+  simultaneously is impossible
+  in distributed systems
+end note
+
 @enduml
