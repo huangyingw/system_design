@@ -1,7 +1,7 @@
 @startuml High Concurrency Seckill System Backend Architecture
 !pragma layout dot
 
-skinparam noteFontSize 16
+skinparam noteFontSize 19
 skinparam noteFontName Arial
 
 rectangle "Client Layer" as ClientLayer #E1F5FE
@@ -68,18 +68,37 @@ note right of SecurityLayer
 end note
 
 note bottom of CacheLayer
-  Optimize inventory management:
+  Multi-level Cache Strategy:
+  - L1: Local cache (in-memory)
+  - L2: Distributed cache (Redis)
+  - L3: Global cache (Memcached)
+  
+  Inventory Management:
   - Pre-warm inventory data in Redis
   - Use Lua scripts for atomic inventory deduction
   - Implement distributed locks for concurrency control
-  - Multi-level cache: L1 (local), L2 (distributed)
 end note
 
 note bottom of AsyncProcessing
-  Enhance async processing:
-  - Implement multi-level queues for order processing
-  - Use separate queues for different stages (create, pay, notify)
-  - Implement retry mechanisms with exponential backoff
+  Inventory Preheating Strategy:
+  - Load inventory data into cache before sale starts
+  - Gradually increase cache capacity as sale approaches
+  - Use predictive algorithms to estimate required cache size
+
+  Distributed Transaction Handling:
+  - Implement 2PC (Two-Phase Commit) for critical operations
+  - Use Saga pattern for long-running transactions
+  - Implement compensating transactions for rollback scenarios
+
+  Rate Limiting and Circuit Breaking:
+  - Use token bucket algorithm for rate limiting
+  - Implement circuit breaker pattern to prevent system overload
+  - Dynamic adjustment of limits based on system load
+
+  User Behavior Analysis and Anti-fraud:
+  - Implement real-time user behavior monitoring
+  - Use machine learning models to detect suspicious activities
+  - Implement IP-based and device fingerprint-based restrictions
 end note
 
 note bottom of DataLayer
