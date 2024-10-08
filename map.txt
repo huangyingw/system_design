@@ -16,7 +16,7 @@
     service_discovery_and_registration_design.puml
 
 3. 数据处理和分析
-    real_time_data_stream_processing_system.puml
+    real_time_data_ingestion_processing_and_analysis_architecture.puml
     distributed_tracing_system_design.puml
     iot_log_collection_processing_and_alerting_system_architecture.puml
     imvu_system_architecture/imvu_kafka_spark_real_time_processing.puml
@@ -93,9 +93,11 @@
 
 20. 实时通讯
     telegram/uml_diagrams/Telegram_Message_Prioritization_Architecture.puml
+    telegram_real_time_chat_system.puml
 
 21. 系统监控和告警
     distributed_system_monitoring_and_alerting_architecture.puml
+    distributed_task_scheduling_system.puml
 
 22. 性能优化
     twitter/twitter_performance_bottlenecks_and_optimizations.puml
@@ -128,3 +130,33 @@
 30. 大规模数据处理
     distributed_web_crawler_system_architecture.puml
     youtube_video_playback_and_recommendation_system_architecture.puml
+
+31. 电子商务系统
+    ecommerce_order_payment_shipping_architecture.puml
+
+32. 支付系统
+    ecommerce_order_payment_shipping_architecture.puml
+    uber_payment_and_ride_management_system.puml
+
+33. 新闻推送系统
+    real_time_news_feed_architecture.puml
+
+34. 认证和授权
+    twitter/twitter_user_authentication_authorization_service.puml
+
+35. 评论系统
+    twitter/twitter_comment_system_architecture.puml
+
+36. 推荐系统
+    twitter/twitter_recommendation_service_detailed.puml
+
+37. 数据库设计
+    flight_booking/flight_booking_system_database.puml
+    big_file_upload_system/database_schema.puml
+    seckill_system_architecture/database_design.puml
+
+38. 限流系统
+    architecture_diagrams/rate_limiting_system_design.puml
+
+39. CAP理论
+    architecture_diagrams/cap_theory_diagram.puml
