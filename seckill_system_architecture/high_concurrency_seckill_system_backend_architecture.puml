@@ -1,6 +1,8 @@
 @startuml High Concurrency Seckill System Backend Architecture
 !pragma layout dot
 
+skinparam defaultFontSize 19
+skinparam defaultFontName Arial
 skinparam noteFontSize 19
 skinparam noteFontName Arial
 
