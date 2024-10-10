@@ -1,0 +1,60 @@
+@startuml Distributed ID Generator System Design
+allowmixing
+
+!define RECTANGLE class
+!define STORAGE database
+
+skinparam backgroundColor #FAFAFA
+skinparam handwritten false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam roundcorner 20
+skinparam shadowing false
+
+title Distributed ID Generator System Design
+
+rectangle "Client Applications" as ClientApps #E1F5FE
+
+rectangle "Load Balancer" as LB #B3E5FC
+
+rectangle "ID Generator Service Cluster" as IDGenCluster #81D4FA {
+    component "ID Generator Node 1" as IDGen1
+    component "ID Generator Node 2" as IDGen2
+    component "ID Generator Node N" as IDGenN
+}
+
+database "Zookeeper Cluster" as ZK #4FC3F7 {
+    component "Node Coordination"
+    component "Worker ID Assignment"
+}
+
+rectangle "Monitoring & Alerting" as Monitoring #03A9F4
+
+ClientApps -[#FF5722,thickness=2]down-> LB : <back:#FFFFFF><color:#FF5722>1. Request ID</color></back>
+LB -[#FF9800,thickness=2]down-> IDGenCluster : <back:#FFFFFF><color:#FF9800>2. Route Request</color></back>
+IDGenCluster -[#FFC107,thickness=2]right-> ZK : <back:#FFFFFF><color:#FFC107>3. Get Worker ID</color></back>
+IDGenCluster -[#4CAF50,thickness=2]up-> LB : <back:#FFFFFF><color:#4CAF50>4. Return Generated ID</color></back>
+LB -[#8BC34A,thickness=2]up-> ClientApps : <back:#FFFFFF><color:#8BC34A>5. Respond with ID</color></back>
+IDGenCluster -[#9C27B0,thickness=2]down-> Monitoring : <back:#FFFFFF><color:#9C27B0>6. Report Metrics</color></back>
+
+note right of IDGenCluster
+  ID Structure (64 bits):
+  - Timestamp: 41 bits
+  - Worker ID: 10 bits
+  - Sequence: 12 bits
+  - Sign bit: 1 bit (always 0)
+end note
+
+note bottom of ZK
+  Ensures unique worker IDs
+  across the cluster and
+  handles node failures
+end note
+
+note right of Monitoring
+  Tracks ID generation rate,
+  system health, and alerts
+  on anomalies
+end note
+
+@enduml
