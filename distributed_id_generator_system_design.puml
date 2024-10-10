@@ -46,9 +46,12 @@ note right of IDGenCluster
 end note
 
 note bottom of ZK
-  Ensures unique worker IDs
-  across the cluster and
-  handles node failures
+  Ensures unique worker IDs across the cluster:
+  1. Creates a sequential znode for each node
+  2. Assigns the znode's sequence number as Worker ID
+  3. Monitors node health with ephemeral znodes
+  4. Reassigns IDs on node failures
+  5. Prevents ID conflicts during scaling
 end note
 
 note right of Monitoring
