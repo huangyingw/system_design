@@ -1,0 +1,122 @@
+@startuml Dropbox-like Distributed Storage System Architecture
+
+!pragma layout dot
+skinparam backgroundColor #FAFAFA
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam roundCorner 10
+skinparam ArrowColor #2C3E50
+skinparam ArrowThickness 1.5
+
+allowmixing
+
+!define PRIMARY_COLOR #3498DB
+!define SECONDARY_COLOR #2ECC71
+!define TERTIARY_COLOR #E74C3C
+!define QUATERNARY_COLOR #F39C12
+!define QUINARY_COLOR #9B59B6
+
+rectangle "Client Applications" as ClientApps PRIMARY_COLOR {
+    component "Desktop Client" as DesktopClient
+    component "Mobile Client" as MobileClient
+    component "Web Interface" as WebInterface
+}
+
+cloud "Internet" as Internet SECONDARY_COLOR
+
+rectangle "Global Load Balancer" as GLB QUATERNARY_COLOR {
+    component "Geo-DNS" as GeoDNS
+    component "Traffic Distribution" as TrafficDist
+}
+
+rectangle "API Gateway" as APIGateway TERTIARY_COLOR {
+    component "Authentication" as Auth
+    component "Rate Limiting" as RateLimit
+    component "Request Routing" as ReqRouting
+}
+
+rectangle "Application Servers" as AppServers PRIMARY_COLOR {
+    component "File Sync Service" as FileSyncService
+    component "Sharing Service" as SharingService
+    component "Version Control" as VersionControl
+}
+
+rectangle "Metadata Management" as MetadataManagement SECONDARY_COLOR {
+    component "File Metadata DB" as FileMetadataDB
+    component "User Metadata DB" as UserMetadataDB
+}
+
+rectangle "Storage Layer" as StorageLayer QUINARY_COLOR {
+    component "Object Storage" as ObjectStorage
+    component "Block Storage" as BlockStorage
+}
+
+rectangle "Caching Layer" as CachingLayer QUATERNARY_COLOR {
+    component "Redis Cluster" as RedisCluster
+}
+
+rectangle "Notification Service" as NotificationService TERTIARY_COLOR {
+    component "Real-time Updates" as RealtimeUpdates
+    component "Push Notifications" as PushNotifications
+}
+
+rectangle "Analytics & Monitoring" as AnalyticsMonitoring PRIMARY_COLOR {
+    component "Usage Analytics" as UsageAnalytics
+    component "System Monitoring" as SystemMonitoring
+}
+
+ClientApps -[#000000,thickness=2]-> Internet : <back:#FFFFFF><color:#000000>1. User Requests</color></back>
+Internet -[#1E8449,thickness=2]-> GLB : <back:#FFFFFF><color:#1E8449>2. Route Requests</color></back>
+GLB -[#922B21,thickness=2]-> APIGateway : <back:#FFFFFF><color:#922B21>3. Authenticate & Route</color></back>
+APIGateway -[#7D3C98,thickness=2]-> AppServers : <back:#FFFFFF><color:#7D3C98>4. Process Requests</color></back>
+AppServers -[#2E86C1,thickness=2]-> MetadataManagement : <back:#FFFFFF><color:#2E86C1>5. Query/Update Metadata</color></back>
+AppServers -[#D35400,thickness=2]-> StorageLayer : <back:#FFFFFF><color:#D35400>6. Read/Write Files</color></back>
+AppServers -[#1ABC9C,thickness=2]-> CachingLayer : <back:#FFFFFF><color:#1ABC9C>7. Cache Data</color></back>
+AppServers -[#8E44AD,thickness=2]-> NotificationService : <back:#FFFFFF><color:#8E44AD>8. Send Updates</color></back>
+NotificationService -[#2980B9,thickness=2]-> ClientApps : <back:#FFFFFF><color:#2980B9>9. Push Notifications</color></back>
+AnalyticsMonitoring -[#27AE60,thickness=2]-> AppServers : <back:#FFFFFF><color:#27AE60>10. Monitor & Analyze</color></back>
+
+note right of ClientApps
+  Clients sync files and
+  receive real-time updates
+end note
+
+note right of GLB
+  Distributes traffic based on
+  geographic location and load
+end note
+
+note right of APIGateway
+  Handles authentication, rate limiting,
+  and routes requests to appropriate services
+end note
+
+note right of AppServers
+  Core services for file synchronization,
+  sharing, and version control
+end note
+
+note right of MetadataManagement
+  Stores and manages file and user metadata
+end note
+
+note right of StorageLayer
+  Scalable storage for file contents
+  using object and block storage
+end note
+
+note right of CachingLayer
+  Improves performance by caching
+  frequently accessed data
+end note
+
+note right of NotificationService
+  Provides real-time updates and
+  push notifications to clients
+end note
+
+note right of AnalyticsMonitoring
+  Tracks system health and user behavior
+end note
+
+@enduml
