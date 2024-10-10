@@ -3,8 +3,8 @@
 组件定义和注释说明：
     统一使用rectangle定义容器，component定义组件，不使用方括号[]定义任何元素
     避免note over对单个组件注释，使用note添加注释
-    定义颜色变量时，颜色代码前面要有#，如 !define DC_COLOR #F8C471
-    在组件定义中使用颜色变量时，直接写变量名，不需要在前面加#符号
+    定义颜色变量时，颜色代码前面要有#，如 !define DC_COLOR #F8C471 
+    在组件定义中使用颜色变量时，直接写变量名，不需要#符号
     正确用法：rectangle "Client Apps" as ClientApps PRIMARY_COLOR
     错误用法：rectangle "Client Apps" as ClientApps #PRIMARY_COLOR
     容器内仅包含组件，连接在容器外处理
