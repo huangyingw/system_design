@@ -11,7 +11,7 @@
     容器内仅包含组件，连接在容器外处理
     使用完整组件定义、标准命名及箭头符号
     图表美观、紧凑，信息密度高，减少空白
-    使用allowmixing指令，不使用PlantUML主题
+    使用allowmixing指令（不带感叹号），不使用PlantUML主题
     遵循'[rectangle|component] "描述" as 标识符 颜色变量'格式
     确保所有组件先定义后使用，名称保持一致
     缓存组件标注key: value配对
