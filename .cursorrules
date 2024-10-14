@@ -1,7 +1,7 @@
 用中文回答
 使用PlantUML绘制系统架构图，仅使用英文，包括组件名称、注释和评论
 组件定义和容器说明：
-    统一使用rectangle定义容器，component定义组件
+    统一使用rectangle定义容器，component定义内部组件，不使用`!define RECTANGLE class`
     所有容器（包括rectangle和database）内部均使用component定义元素，不使用class或方括号[]
     避免note over对单个组件注释，使用note添加注释
     定义颜色变量时，颜色代码前面要有#，如 !define DC_COLOR #F8C471 
@@ -15,7 +15,6 @@
     遵循'[rectangle|component] "描述" as 标识符 颜色变量'格式
     确保所有组件先定义后使用，名称保持一致
     缓存组件标注key: value配对
-    用`rectangle`代替`!define RECTANGLE class`避免渲染错误
     使用浅色调定义组件背景，确保与文字有足够对比度
     合理安排注释位置，避免虚线重叠或挤在一起，保持图表清晰
     先定义所有组件，然后再添加注释，避免"Not known"错误
