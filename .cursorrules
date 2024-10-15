@@ -38,3 +38,12 @@
     文字用<back:#FFFFFF><color:#color>内容</color></back>格式，color为对应连线颜色
     避免连线重叠，保持图表清晰可读
     避免使用宏定义来设置箭头样式，直接在每个连线定义中设置样式
+颜色选择：
+    使用深色调定义组件和连线颜色，确保与背景有足够对比度
+    推荐使用以下颜色方案或类似的深色调：
+        PRIMARY_COLOR: #E67E22 (深橙色)
+        SECONDARY_COLOR: #3498DB (深蓝色)
+        TERTIARY_COLOR: #F1C40F (深黄色)
+        QUATERNARY_COLOR: #8E44AD (深紫色)
+        QUINARY_COLOR: #16A085 (深青色)
+    背景色保持浅色，如 #FDFEFE，以提高整体可读性
