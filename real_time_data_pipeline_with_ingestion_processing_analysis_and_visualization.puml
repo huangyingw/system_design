@@ -4,7 +4,9 @@
 skinparam backgroundColor #FEFEFE
 skinparam handwritten false
 skinparam defaultFontName Arial
-skinparam defaultFontSize 12
+skinparam defaultFontSize 18
+skinparam noteFontSize 18
+skinparam arrowFontSize 18
 
 rectangle "Data Sources" as DS #E1F5FE {
     component "IoT Devices" as IOT
@@ -90,7 +92,7 @@ MA -[#607D8B,thickness=2]-> SPL : <back:#FFFFFF><color:#607D8B>12. Monitor & Ale
 MA -[#607D8B,thickness=2]-> AE : <back:#FFFFFF><color:#607D8B>12. Monitor & Alert</color></back>
 DS -[#009688,thickness=2]-> ML : <back:#FFFFFF><color:#009688>13. Develop Models</color></back>
 
-note right of DIL
+note top of DIL
   Handles high-volume, 
   high-velocity data ingestion
 end note
@@ -110,7 +112,7 @@ note bottom of BPL
   historical data for deep analysis
 end note
 
-note right of AE
+note bottom of AE
   Provides fast querying and
   aggregation capabilities
 end note
