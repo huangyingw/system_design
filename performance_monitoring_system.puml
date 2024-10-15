@@ -16,6 +16,12 @@ rectangle "Data Pipeline" as DP PRIMARY_COLOR {
     component "Analytics Engine" as AE
 }
 
+rectangle "Instrumentation" as IN TERTIARY_COLOR {
+    component "Metrics Collectors" as MC
+    component "Distributed Tracing" as DT
+    component "Log Aggregators" as LA
+}
+
 rectangle "Monitoring System" as MS SECONDARY_COLOR {
     component "Prometheus" as PR
     component "Grafana" as GR
@@ -23,17 +29,11 @@ rectangle "Monitoring System" as MS SECONDARY_COLOR {
     component "ELK Stack" as ELK
 }
 
-rectangle "Instrumentation" as IN TERTIARY_COLOR {
-    component "Metrics Collectors" as MC
-    component "Distributed Tracing" as DT
-    component "Log Aggregators" as LA
-}
-
 rectangle "Performance Indicators" as PI QUATERNARY_COLOR {
-    component "Latency Metrics" as LM
-    component "Throughput Counters" as TC
-    component "Error Rate Tracking" as ERT
-    component "Resource Utilization" as RU
+    component "Latency (ms)" as LM
+    component "Throughput (req/s)" as TC
+    component "Error Rate (%)" as ERT
+    component "CPU/Memory Usage (%)" as RU
 }
 
 rectangle "Alerting System" as AS QUINARY_COLOR {
@@ -41,30 +41,51 @@ rectangle "Alerting System" as AS QUINARY_COLOR {
     component "Notification Service" as NS
 }
 
+rectangle "User Interface" as UI PRIMARY_COLOR {
+    component "Dashboard" as DB
+    component "Alert Configuration" as AC
+}
+
 DP -[PRIMARY_COLOR,thickness=2]-> IN : <back:#FFFFFF><color:PRIMARY_COLOR>1. Instrument</color></back>
 IN -[SECONDARY_COLOR,thickness=2]-> MS : <back:#FFFFFF><color:SECONDARY_COLOR>2. Collect Data</color></back>
 MS -[TERTIARY_COLOR,thickness=2]-> PI : <back:#FFFFFF><color:TERTIARY_COLOR>3. Calculate KPIs</color></back>
 PI -[QUATERNARY_COLOR,thickness=2]-> AS : <back:#FFFFFF><color:QUATERNARY_COLOR>4. Trigger Alerts</color></back>
 AS -[QUINARY_COLOR,thickness=2]-> NS : <back:#FFFFFF><color:QUINARY_COLOR>5. Notify</color></back>
+MS -[PRIMARY_COLOR,thickness=2]-> UI : <back:#FFFFFF><color:PRIMARY_COLOR>6. Visualize</color></back>
+UI -[SECONDARY_COLOR,thickness=2]-> AS : <back:#FFFFFF><color:SECONDARY_COLOR>7. Configure</color></back>
+
+note right of DP
+  Process and analyze
+  incoming data
+end note
 
 note right of IN
-  Instruments code with metrics,
-  tracing, and logging
+  Add performance monitoring
+  metrics, distributed tracing,
+  and log collection to code
 end note
 
 note right of MS
-  Collects and stores
-  performance data
+  Collect, store, and
+  process performance data
 end note
 
 note right of PI
-  Calculates key performance
-  indicators
+  Calculate key performance
+  indicators such as response
+  time, throughput, etc.
 end note
 
 note right of AS
-  Triggers alerts based on
-  predefined thresholds
+  Trigger alerts based on
+  preset thresholds, notify
+  relevant personnel
+end note
+
+note right of UI
+  Provide user interface to
+  view monitoring data and
+  configure alert rules
 end note
 
 @enduml
