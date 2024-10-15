@@ -1,51 +1,69 @@
 @startuml Distributed Cache System with Consistency Strategies
 
+!pragma layout dot
 
+allowmixing
 
-skinparam {
-    backgroundColor #F0F0F0
-    handwritten false
-    defaultFontName Arial
-    defaultFontSize 14
-    roundcorner 20
-    shadowing false
-    ArrowColor #2C3E50
-    RectangleBackgroundColor #FFFFFF
-    NoteFontName Arial
-    NoteFontSize 12
-    NoteFontColor #333333
-    NoteBackgroundColor #FFFDE7
-    NoteBorderColor #FFC107
+' 定义颜色变量
+!define PRIMARY_COLOR #E67E22
+!define SECONDARY_COLOR #3498DB
+!define TERTIARY_COLOR #F1C40F
+!define QUATERNARY_COLOR #8E44AD
+!define QUINARY_COLOR #16A085
+!define BG_COLOR #CCE8CF
+
+skinparam backgroundColor BG_COLOR
+
+' 定义组件
+rectangle "Client" as Client PRIMARY_COLOR {
+    component "Client App" as ClientApp
 }
 
-title Distributed Cache System with Consistency Strategies
+rectangle "Load Balancer" as LB SECONDARY_COLOR {
+    component "Request Router" as RequestRouter
+}
 
-RECTANGLE "Client" as Client #E1F5FE
-RECTANGLE "Load Balancer" as LB #FFF3E0
-RECTANGLE "Cache Cluster" as CC #E8F5E9
-RECTANGLE "Consistency Manager" as CM #FFEBEE
-RECTANGLE "Persistence Store" as PS #E0F7FA
-RECTANGLE "Cache Warmer" as CW #F3E5F5
-RECTANGLE "Bloom Filter" as BF #FFF8E1
-RECTANGLE "Monitoring & Alerts" as MA #FFCCBC
+rectangle "Cache Cluster" as CC TERTIARY_COLOR {
+    component "Cache Nodes" as CacheNodes
+    component "Eviction Policy" as EvictionPolicy
+}
 
-' Request flow
-Client -[#4CAF50,thickness=2]down-> LB : <color:#4CAF50>1. Request</color>
-LB -[#2196F3,thickness=2]down-> CC : <color:#2196F3>2. Route request</color>
-CC -[#FF5722,thickness=2]right-> BF : <color:#FF5722>3. Filter non-existent keys</color>
-BF -[#9C27B0,thickness=2]right-> CM : <color:#9C27B0>4. Ensure consistency</color>
-CM -[#795548,thickness=2]down-> PS : <color:#795548>5. Sync if needed</color>
-CC -[#FFC107,thickness=2]down-> PS : <color:#FFC107>6. Read/Write through</color>
+rectangle "Consistency Manager" as CM QUATERNARY_COLOR {
+    component "Consistency Checker" as ConsistencyChecker
+}
 
-' Response flow
-PS -[#00BCD4,thickness=2,dashed]up-> CC : <color:#00BCD4>7. Return data (if not in cache)</color>
-CC -[#E91E63,thickness=2,dashed]up-> LB : <color:#E91E63>8. Return cached/fetched data</color>
-LB -[#9C27B0,thickness=2,dashed]up-> Client : <color:#9C27B0>9. Return response to client</color>
+rectangle "Persistence Store" as PS QUINARY_COLOR {
+    component "Database" as Database
+}
 
-' Other operations
-CW -[#00BCD4,thickness=2]left-> CC : <color:#00BCD4>10. Preload hot data</color>
-MA -[#E91E63,thickness=2]-> CC : <color:#E91E63>11. Monitor performance</color>
+rectangle "Cache Warmer" as CW PRIMARY_COLOR {
+    component "Data Preloader" as DataPreloader
+}
 
+rectangle "Bloom Filter" as BF SECONDARY_COLOR {
+    component "Key Filter" as KeyFilter
+}
+
+rectangle "Monitoring & Alerts" as MA TERTIARY_COLOR {
+    component "Performance Monitor" as PerformanceMonitor
+}
+
+' 连接和流程
+Client -[PRIMARY_COLOR,thickness=2]-> LB : <back:#FFFFFF><color:PRIMARY_COLOR>1. Request</color></back>
+LB -[SECONDARY_COLOR,thickness=2]-> CC : <back:#FFFFFF><color:SECONDARY_COLOR>2. Route request</color></back>
+CC -[TERTIARY_COLOR,thickness=2]-> BF : <back:#FFFFFF><color:TERTIARY_COLOR>3. Filter non-existent keys</color></back>
+BF -[QUATERNARY_COLOR,thickness=2]-> CM : <back:#FFFFFF><color:QUATERNARY_COLOR>4. Ensure consistency</color></back>
+CM -[QUINARY_COLOR,thickness=2]-> PS : <back:#FFFFFF><color:QUINARY_COLOR>5. Sync if needed</color></back>
+CC -[PRIMARY_COLOR,thickness=2]-> PS : <back:#FFFFFF><color:PRIMARY_COLOR>6. Read/Write through</color></back>
+
+PS -[SECONDARY_COLOR,thickness=2,dashed]-> CC : <back:#FFFFFF><color:SECONDARY_COLOR>7. Return data (if not in cache)</color></back>
+CC -[TERTIARY_COLOR,thickness=2,dashed]-> LB : <back:#FFFFFF><color:TERTIARY_COLOR>8. Return cached/fetched data</color></back>
+LB -[QUATERNARY_COLOR,thickness=2,dashed]-> Client : <back:#FFFFFF><color:QUATERNARY_COLOR>9. Return response to client</color></back>
+
+CW -[QUINARY_COLOR,thickness=2]-> CC : <back:#FFFFFF><color:QUINARY_COLOR>10. Preload hot data</color></back>
+MA -[PRIMARY_COLOR,thickness=2]-> CC : <back:#FFFFFF><color:PRIMARY_COLOR>11. Monitor performance</color></back>
+
+' 注释
 note bottom of CM
   Consistency strategies:
   - Strong consistency
