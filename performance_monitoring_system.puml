@@ -1,0 +1,70 @@
+@startuml Performance Monitoring System
+
+!define PRIMARY_COLOR E67E22
+!define SECONDARY_COLOR 3498DB
+!define TERTIARY_COLOR F1C40F
+!define QUATERNARY_COLOR 8E44AD
+!define QUINARY_COLOR 16A085
+
+!pragma layout dot
+allowmixing
+skinparam backgroundColor #CCE8CF
+
+rectangle "Data Pipeline" as DP PRIMARY_COLOR {
+    component "Data Ingestion" as DI
+    component "Stream Processing" as SP
+    component "Analytics Engine" as AE
+}
+
+rectangle "Monitoring System" as MS SECONDARY_COLOR {
+    component "Prometheus" as PR
+    component "Grafana" as GR
+    component "Jaeger" as JA
+    component "ELK Stack" as ELK
+}
+
+rectangle "Instrumentation" as IN TERTIARY_COLOR {
+    component "Metrics Collectors" as MC
+    component "Distributed Tracing" as DT
+    component "Log Aggregators" as LA
+}
+
+rectangle "Performance Indicators" as PI QUATERNARY_COLOR {
+    component "Latency Metrics" as LM
+    component "Throughput Counters" as TC
+    component "Error Rate Tracking" as ERT
+    component "Resource Utilization" as RU
+}
+
+rectangle "Alerting System" as AS QUINARY_COLOR {
+    component "Alert Manager" as AM
+    component "Notification Service" as NS
+}
+
+DP -[PRIMARY_COLOR,thickness=2]-> IN : <back:#FFFFFF><color:PRIMARY_COLOR>1. Instrument</color></back>
+IN -[SECONDARY_COLOR,thickness=2]-> MS : <back:#FFFFFF><color:SECONDARY_COLOR>2. Collect Data</color></back>
+MS -[TERTIARY_COLOR,thickness=2]-> PI : <back:#FFFFFF><color:TERTIARY_COLOR>3. Calculate KPIs</color></back>
+PI -[QUATERNARY_COLOR,thickness=2]-> AS : <back:#FFFFFF><color:QUATERNARY_COLOR>4. Trigger Alerts</color></back>
+AS -[QUINARY_COLOR,thickness=2]-> NS : <back:#FFFFFF><color:QUINARY_COLOR>5. Notify</color></back>
+
+note right of IN
+  Instruments code with metrics,
+  tracing, and logging
+end note
+
+note right of MS
+  Collects and stores
+  performance data
+end note
+
+note right of PI
+  Calculates key performance
+  indicators
+end note
+
+note right of AS
+  Triggers alerts based on
+  predefined thresholds
+end note
+
+@enduml
