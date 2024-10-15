@@ -1,0 +1,107 @@
+@startuml CI CD and DevOps Pipeline Architecture
+
+!define PRIMARY_COLOR #E67E22
+!define SECONDARY_COLOR #3498DB
+!define TERTIARY_COLOR #F1C40F
+!define QUATERNARY_COLOR #8E44AD
+!define QUINARY_COLOR #16A085
+
+skinparam backgroundColor #CCE8CF
+skinparam handwritten false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam roundcorner 20
+skinparam shadowing false
+
+title CI/CD and DevOps Pipeline Architecture with Zero Downtime Deployment
+
+allowmixing
+!pragma layout smetana
+
+rectangle "Version Control" as VC PRIMARY_COLOR {
+    component "Git Repository" as GitRepo
+    component "Branch Management" as BranchMgmt
+}
+
+rectangle "Continuous Integration" as CI SECONDARY_COLOR {
+    component "Build Server" as BuildServer
+    component "Automated Tests" as AutoTests
+    component "Code Quality Analysis" as CodeQuality
+}
+
+rectangle "Artifact Management" as AM TERTIARY_COLOR {
+    component "Artifact Repository" as ArtifactRepo
+    component "Version Tagging" as VersionTag
+}
+
+rectangle "Continuous Delivery" as CD QUATERNARY_COLOR {
+    component "Deployment Automation" as DeployAuto
+    component "Environment Management" as EnvMgmt
+    component "Configuration Management" as ConfigMgmt
+}
+
+rectangle "Production Environment" as PE QUINARY_COLOR {
+    component "Blue Environment" as BlueEnv
+    component "Green Environment" as GreenEnv
+    component "Load Balancer" as LoadBalancer
+}
+
+rectangle "Monitoring & Feedback" as MF #FF6B6B {
+    component "Performance Monitoring" as PerfMon
+    component "Log Analysis" as LogAnalysis
+    component "Alerting System" as AlertSystem
+}
+
+VC -[PRIMARY_COLOR,thickness=2]down-> CI : <back:#FFFFFF><color:PRIMARY_COLOR>1. Trigger Build</color></back>
+CI -[SECONDARY_COLOR,thickness=2]right-> AM : <back:#FFFFFF><color:SECONDARY_COLOR>2. Store Artifact</color></back>
+AM -[TERTIARY_COLOR,thickness=2]down-> CD : <back:#FFFFFF><color:TERTIARY_COLOR>3. Deploy Artifact</color></back>
+CD -[QUATERNARY_COLOR,thickness=2]right-> PE : <back:#FFFFFF><color:QUATERNARY_COLOR>4. Update Environment</color></back>
+PE -[QUINARY_COLOR,thickness=2]up-> MF : <back:#FFFFFF><color:QUINARY_COLOR>5. Collect Metrics</color></back>
+MF -[#FF6B6B,thickness=2]left-> VC : <back:#FFFFFF><color:#FF6B6B>6. Feedback Loop</color></back>
+
+note right of VC
+  Version Control:
+  - Feature branching
+  - Pull request reviews
+  - Automated merge checks
+end note
+
+note right of CI
+  Continuous Integration:
+  - Parallel test execution
+  - Security scans
+  - Docker image building
+end note
+
+note right of AM
+  Artifact Management:
+  - Immutable artifacts
+  - Dependency management
+  - Artifact promotion
+end note
+
+note right of CD
+  Continuous Delivery:
+  - Infrastructure as Code
+  - Canary releases
+  - Feature flags
+end note
+
+note bottom of PE
+  Zero Downtime Deployment:
+  1. Deploy to inactive environment
+  2. Run smoke tests
+  3. Switch traffic gradually
+  4. Monitor for issues
+  5. Rollback if necessary
+end note
+
+note bottom of MF
+  Monitoring & Feedback:
+  - Real-time dashboards
+  - Automated rollback triggers
+  - A/B testing analysis
+end note
+
+@enduml
+
