@@ -1,0 +1,113 @@
+@startuml Database Optimization and Sharding Strategies
+
+skinparam backgroundColor #FAFAFA
+skinparam handwritten false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam roundcorner 20
+skinparam shadowing false
+
+title Database Optimization and Sharding Strategies
+
+rectangle "Database Optimization" as DBOpt #E1F5FE {
+    component "Query Optimization" as QueryOpt
+    component "Indexing Strategy" as IndexStrat
+    component "Caching Layer" as CacheLayer
+    component "Read/Write Separation" as RWSepar
+}
+
+rectangle "Sharding Strategies" as ShardStrat #B3E5FC {
+    component "Range-Based Sharding" as RangeSharding
+    component "Hash-Based Sharding" as HashSharding
+    component "Directory-Based Sharding" as DirSharding
+}
+
+rectangle "Data Consistency" as DataCons #81D4FA {
+    component "Eventual Consistency" as EventCons
+    component "Strong Consistency" as StrongCons
+    component "Quorum-Based Consistency" as QuorumCons
+}
+
+rectangle "High Availability" as HighAvail #4FC3F7 {
+    component "Replication" as Replication
+    component "Failover Mechanism" as Failover
+    component "Load Balancing" as LoadBal
+}
+
+database "Primary Database" as PrimaryDB #03A9F4
+database "Shard 1" as Shard1 #29B6F6
+database "Shard 2" as Shard2 #29B6F6
+database "Shard N" as ShardN #29B6F6
+
+PrimaryDB -[#FF5722,thickness=2]down-> Shard1 : <back:#FFFFFF><color:#FF5722>1. Distribute Data</color></back>
+PrimaryDB -[#FF5722,thickness=2]down-> Shard2 : <back:#FFFFFF><color:#FF5722>1. Distribute Data</color></back>
+PrimaryDB -[#FF5722,thickness=2]down-> ShardN : <back:#FFFFFF><color:#FF5722>1. Distribute Data</color></back>
+
+DBOpt -[#FF9800,thickness=2]right-> ShardStrat : <back:#FFFFFF><color:#FF9800>2. Apply Sharding</color></back>
+ShardStrat -[#FFC107,thickness=2]right-> DataCons : <back:#FFFFFF><color:#FFC107>3. Ensure Consistency</color></back>
+DataCons -[#4CAF50,thickness=2]right-> HighAvail : <back:#FFFFFF><color:#4CAF50>4. Maintain Availability</color></back>
+
+note bottom of DBOpt
+  Query Optimization:
+  - Use EXPLAIN to analyze query execution plans
+  - Optimize complex queries and joins
+  - Use appropriate data types
+
+  Indexing Strategy:
+  - Create indexes on frequently queried columns
+  - Use composite indexes for multi-column queries
+  - Regularly analyze and update indexes
+
+  Caching Layer:
+  - Implement application-level caching (e.g., Redis)
+  - Use database query cache wisely
+
+  Read/Write Separation:
+  - Direct reads to replicas
+  - Use write-through or write-behind caching
+end note
+
+note bottom of ShardStrat
+  Range-Based Sharding:
+  - Shard by date ranges or alphabetical ranges
+  - Good for time-series data or geographically distributed data
+
+  Hash-Based Sharding:
+  - Use a hash function to determine shard
+  - Ensures even distribution but can complicate range queries
+
+  Directory-Based Sharding:
+  - Use a lookup service to map data to shards
+  - Flexible but adds complexity and potential bottleneck
+end note
+
+note bottom of DataCons
+  Eventual Consistency:
+  - Faster writes, but reads may be stale
+  - Suitable for systems that can tolerate temporary inconsistencies
+
+  Strong Consistency:
+  - Ensures all reads reflect the latest write
+  - Can impact performance and availability
+
+  Quorum-Based Consistency:
+  - Balance between consistency and availability
+  - Configurable read/write quorums
+end note
+
+note bottom of HighAvail
+  Replication:
+  - Implement master-slave or multi-master replication
+  - Consider read replicas for scaling read operations
+
+  Failover Mechanism:
+  - Implement automatic failover to standby nodes
+  - Use health checks to detect node failures
+
+  Load Balancing:
+  - Distribute queries across multiple database instances
+  - Consider connection pooling for efficient resource use
+end note
+
+@enduml
+
