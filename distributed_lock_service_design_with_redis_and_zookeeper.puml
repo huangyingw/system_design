@@ -1,0 +1,74 @@
+@startuml Distributed Lock Service Design
+
+!define RECTANGLE class
+!define STORAGE database
+
+skinparam backgroundColor #FAFAFA
+skinparam handwritten false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam roundcorner 20
+skinparam shadowing false
+
+title Distributed Lock Service Design with Redis and Zookeeper
+
+rectangle "Client Applications" as ClientApps #E1F5FE
+
+rectangle "Distributed Lock Service" as LockService #B3E5FC {
+    component "Lock Manager" as LockManager
+    component "Lock Monitor" as LockMonitor
+    component "Deadlock Detector" as DeadlockDetector
+}
+
+rectangle "Redis Cluster" as RedisCluster #81D4FA {
+    STORAGE "Lock Data" as RedisLockData
+}
+
+rectangle "Zookeeper Ensemble" as ZookeeperEnsemble #4FC3F7 {
+    STORAGE "Lock Znodes" as ZKLockData
+}
+
+rectangle "Metrics & Monitoring" as Monitoring #03A9F4 {
+    component "Lock Acquisition Metrics" as LockMetrics
+    component "Performance Monitor" as PerfMonitor
+}
+
+ClientApps -[#FF5722,thickness=2]-> LockService : <back:#FFFFFF><color:#FF5722>1. Request Lock</color></back>
+LockService -[#FF9800,thickness=2]-> RedisCluster : <back:#FFFFFF><color:#FF9800>2a. Acquire Redis Lock</color></back>
+LockService -[#FFC107,thickness=2]-> ZookeeperEnsemble : <back:#FFFFFF><color:#FFC107>2b. Create Znode</color></back>
+LockMonitor -[#4CAF50,thickness=2]-> RedisCluster : <back:#FFFFFF><color:#4CAF50>3a. Monitor Lock TTL</color></back>
+LockMonitor -[#8BC34A,thickness=2]-> ZookeeperEnsemble : <back:#FFFFFF><color:#8BC34A>3b. Watch Znode</color></back>
+DeadlockDetector -[#2196F3,thickness=2]-> LockService : <back:#FFFFFF><color:#2196F3>4. Detect & Resolve Deadlocks</color></back>
+LockService -[#3F51B5,thickness=2]-> ClientApps : <back:#FFFFFF><color:#3F51B5>5. Grant/Deny Lock</color></back>
+LockService -[#9C27B0,thickness=2]-> Monitoring : <back:#FFFFFF><color:#9C27B0>6. Report Metrics</color></back>
+
+note right of RedisCluster
+  Redis-based Lock:
+  - Fast, low-latency operations
+  - Automatic expiration with TTL
+  - Suitable for high-concurrency
+end note
+
+note right of ZookeeperEnsemble
+  Zookeeper-based Lock:
+  - Strong consistency
+  - Built-in leader election
+  - Suitable for long-lived locks
+end note
+
+note bottom of LockService
+  Hybrid Approach:
+  1. Use Redis for short-lived, high-concurrency locks
+  2. Use Zookeeper for long-lived, critical locks
+  3. Implement lock escalation strategy
+end note
+
+note bottom of DeadlockDetector
+  Deadlock Prevention:
+  1. Implement timeout mechanism
+  2. Use global lock ordering
+  3. Detect cycles in lock graph
+end note
+
+@enduml
+
