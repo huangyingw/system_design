@@ -1,0 +1,108 @@
+@startuml
+!pragma layout dot
+allowmixing
+
+' 定义更深的颜色
+!define PRIMARY_COLOR #E67E22
+!define SECONDARY_COLOR #3498DB
+!define TERTIARY_COLOR #F1C40F
+!define QUATERNARY_COLOR #8E44AD
+!define QUINARY_COLOR #16A085
+!define P2P_COLOR #27AE60
+
+' 背景颜色
+skinparam backgroundColor #CCE8CF
+
+rectangle "Client Devices" as ClientDevices PRIMARY_COLOR {
+    component "Web Browser" as WebBrowser
+    component "Mobile App" as MobileApp
+    component "Desktop App" as DesktopApp
+}
+
+rectangle "Frontend Services" as FrontendServices SECONDARY_COLOR {
+    component "User Interface" as UI
+    component "WebRTC Client" as WebRTCClient
+    component "Media Capture" as MediaCapture
+}
+
+rectangle "Signaling Server" as SignalingServer TERTIARY_COLOR {
+    component "WebSocket Handler" as WebSocketHandler
+    component "Session Management" as SessionManagement
+    component "Presence Service" as PresenceService
+}
+
+rectangle "Media Server" as MediaServer QUATERNARY_COLOR {
+    component "SFU (Selective Forwarding Unit)" as SFU
+    component "MCU (Multipoint Control Unit)" as MCU
+    component "Media Processing" as MediaProcessing
+}
+
+rectangle "Backend Services" as BackendServices QUINARY_COLOR {
+    component "User Authentication" as UserAuth
+    component "Call Management" as CallManagement
+    component "Analytics Service" as AnalyticsService
+}
+
+database "Database" as DB {
+    component "User Profiles" as UserProfiles
+    component "Call Logs" as CallLogs
+    component "Analytics Data" as AnalyticsData
+}
+
+cloud "TURN/STUN Servers" as TURNSTUNServers {
+    component "TURN Server" as TURNServer
+    component "STUN Server" as STUNServer
+}
+
+' 添加第二个客户端设备以表示P2P连接
+rectangle "Client Devices (Peer)" as ClientDevicesPeer PRIMARY_COLOR {
+    component "Peer Device" as PeerDevice
+}
+
+ClientDevices -[PRIMARY_COLOR,thickness=2]-> FrontendServices : <back:#FFFFFF><color:PRIMARY_COLOR>1. Access</color></back>
+FrontendServices -[SECONDARY_COLOR,thickness=2]-> SignalingServer : <back:#FFFFFF><color:SECONDARY_COLOR>2. Establish connection</color></back>
+SignalingServer -[TERTIARY_COLOR,thickness=2]-> BackendServices : <back:#FFFFFF><color:TERTIARY_COLOR>3. Authenticate & manage calls</color></back>
+BackendServices -[QUINARY_COLOR,thickness=2]-> DB : <back:#FFFFFF><color:QUINARY_COLOR>4. Store/retrieve data</color></back>
+FrontendServices -[SECONDARY_COLOR,thickness=2]-> MediaServer : <back:#FFFFFF><color:SECONDARY_COLOR>5. Media transmission</color></back>
+MediaServer -[QUATERNARY_COLOR,thickness=2]-> TURNSTUNServers : <back:#FFFFFF><color:QUATERNARY_COLOR>6. NAT traversal</color></back>
+SignalingServer -[TERTIARY_COLOR,thickness=2]-> MediaServer : <back:#FFFFFF><color:TERTIARY_COLOR>7. Coordinate media flow</color></back>
+
+' 添加P2P连接
+ClientDevices <-[P2P_COLOR,thickness=2]-> ClientDevicesPeer : <back:#FFFFFF><color:P2P_COLOR>8. P2P Communication</color></back>
+
+note right of ClientDevices
+  Supports various client types
+  for wide accessibility
+end note
+
+note bottom of FrontendServices
+  Handles user interactions and
+  media capture/rendering
+end note
+
+note right of SignalingServer
+  Manages real-time communication
+  setup and tear-down
+end note
+
+note right of MediaServer
+  Optimizes media routing and
+  processing for scalability
+end note
+
+note bottom of BackendServices
+  Manages user accounts, call
+  records, and system analytics
+end note
+
+note bottom of TURNSTUNServers
+  Facilitates peer connections
+  through firewalls and NATs
+end note
+
+note bottom of ClientDevices
+  Direct P2P connection established
+  after initial signaling
+end note
+
+@enduml
