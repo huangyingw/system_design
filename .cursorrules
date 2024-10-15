@@ -46,4 +46,4 @@
         TERTIARY_COLOR: #F1C40F (深黄色)
         QUATERNARY_COLOR: #8E44AD (深紫色)
         QUINARY_COLOR: #16A085 (深青色)
-    背景色保持浅色，如 #FDFEFE，以提高整体可读性
+    背景色保持浅色，如 #CCE8CF，以提高整体可读性
