@@ -1,0 +1,96 @@
+@startuml Hybrid and Multi-Cloud Architecture
+
+!pragma layout dot
+allowmixing
+
+skinparam backgroundColor #CCE8CF
+skinparam handwritten false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam roundcorner 20
+skinparam shadowing false
+
+!define PRIMARY_COLOR #E67E22
+!define SECONDARY_COLOR #3498DB
+!define TERTIARY_COLOR #F1C40F
+!define QUATERNARY_COLOR #8E44AD
+!define QUINARY_COLOR #16A085
+
+title Hybrid and Multi-Cloud Architecture with Data Sync and Failover
+
+rectangle "On-Premises" as OnPrem PRIMARY_COLOR {
+    component "Legacy Systems" as LegacySystems
+    component "Private Cloud" as PrivateCloud
+    database "On-Prem Database" as OnPremDB
+}
+
+cloud "Public Cloud Provider A" as CloudA SECONDARY_COLOR {
+    component "Cloud Services A" as ServicesA
+    database "Cloud Database A" as CloudDBA
+    component "Load Balancer A" as LBA
+}
+
+cloud "Public Cloud Provider B" as CloudB TERTIARY_COLOR {
+    component "Cloud Services B" as ServicesB
+    database "Cloud Database B" as CloudDBB
+    component "Load Balancer B" as LBB
+}
+
+rectangle "Global Traffic Manager" as GTM QUATERNARY_COLOR {
+    component "DNS-based Routing" as DNSRouting
+    component "Health Checking" as HealthCheck
+}
+
+rectangle "Data Sync & Replication" as DataSync QUINARY_COLOR {
+    component "Data Synchronization Service" as SyncService
+    component "Conflict Resolution" as ConflictResolution
+}
+
+GTM -[QUATERNARY_COLOR,thickness=2]down-> OnPrem : <back:#FFFFFF><color:QUATERNARY_COLOR>1. Route Traffic</color></back>
+GTM -[QUATERNARY_COLOR,thickness=2]down-> CloudA : <back:#FFFFFF><color:QUATERNARY_COLOR>1. Route Traffic</color></back>
+GTM -[QUATERNARY_COLOR,thickness=2]down-> CloudB : <back:#FFFFFF><color:QUATERNARY_COLOR>1. Route Traffic</color></back>
+
+OnPrem -[PRIMARY_COLOR,thickness=2]right-> DataSync : <back:#FFFFFF><color:PRIMARY_COLOR>2. Sync Data</color></back>
+CloudA -[SECONDARY_COLOR,thickness=2]down-> DataSync : <back:#FFFFFF><color:SECONDARY_COLOR>2. Sync Data</color></back>
+CloudB -[TERTIARY_COLOR,thickness=2]left-> DataSync : <back:#FFFFFF><color:TERTIARY_COLOR>2. Sync Data</color></back>
+
+DataSync -[QUINARY_COLOR,thickness=2]-> OnPremDB : <back:#FFFFFF><color:QUINARY_COLOR>3. Replicate</color></back>
+DataSync -[QUINARY_COLOR,thickness=2]-> CloudDBA : <back:#FFFFFF><color:QUINARY_COLOR>3. Replicate</color></back>
+DataSync -[QUINARY_COLOR,thickness=2]-> CloudDBB : <back:#FFFFFF><color:QUINARY_COLOR>3. Replicate</color></back>
+
+note right of GTM
+  Global Traffic Manager:
+  - Geo-based routing
+  - Failover management
+  - Load distribution
+end note
+
+note right of DataSync
+  Data Sync & Replication:
+  - Multi-master replication
+  - Eventual consistency
+  - Conflict detection and resolution
+end note
+
+note bottom of OnPrem
+  On-Premises:
+  - Gradual cloud migration
+  - Compliance-sensitive workloads
+  - Legacy system integration
+end note
+
+note bottom of CloudA
+  Cloud Provider A:
+  - Primary public cloud
+  - Scalable compute resources
+  - Managed services utilization
+end note
+
+note bottom of CloudB
+  Cloud Provider B:
+  - Secondary public cloud
+  - Disaster recovery site
+  - Vendor lock-in prevention
+end note
+
+@enduml
