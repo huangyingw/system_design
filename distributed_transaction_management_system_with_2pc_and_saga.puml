@@ -1,0 +1,69 @@
+@startuml Distributed Transaction Management System
+
+skinparam backgroundColor #FAFAFA
+skinparam handwritten false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam roundcorner 20
+skinparam shadowing false
+
+!define PRIMARY_COLOR #E67E22
+!define SECONDARY_COLOR #3498DB
+!define TERTIARY_COLOR #F1C40F
+!define QUATERNARY_COLOR #8E44AD
+!define QUINARY_COLOR #16A085
+
+title Distributed Transaction Management System with 2PC and SAGA
+
+rectangle "Client Applications" as ClientApps PRIMARY_COLOR
+
+rectangle "API Gateway" as APIGateway SECONDARY_COLOR {
+    component "Request Router" as RequestRouter
+    component "Authentication" as Auth
+}
+
+rectangle "Transaction Coordinator" as TxCoordinator TERTIARY_COLOR {
+    component "2PC Manager" as TwoPCManager
+    component "SAGA Orchestrator" as SAGAOrchestrator
+    component "Transaction Log" as TxLog
+}
+
+rectangle "Microservices" as Microservices QUATERNARY_COLOR {
+    component "Order Service" as OrderService
+    component "Payment Service" as PaymentService
+    component "Inventory Service" as InventoryService
+}
+
+database "Distributed Database" as DistributedDB QUINARY_COLOR {
+    component "Transaction Store" as TxStore
+    component "State Store" as StateStore
+}
+
+ClientApps -[PRIMARY_COLOR,thickness=2]down-> APIGateway : <back:#FFFFFF><color:PRIMARY_COLOR>1. Initiate Transaction</color></back>
+APIGateway -[SECONDARY_COLOR,thickness=2]down-> TxCoordinator : <back:#FFFFFF><color:SECONDARY_COLOR>2. Coordinate Transaction</color></back>
+TxCoordinator -[TERTIARY_COLOR,thickness=2]right-> Microservices : <back:#FFFFFF><color:TERTIARY_COLOR>3. Execute Operations</color></back>
+Microservices -[QUATERNARY_COLOR,thickness=2]down-> DistributedDB : <back:#FFFFFF><color:QUATERNARY_COLOR>4. Update State</color></back>
+TxCoordinator -[QUINARY_COLOR,thickness=2]down-> DistributedDB : <back:#FFFFFF><color:QUINARY_COLOR>5. Log Transaction</color></back>
+
+note right of TwoPCManager
+  Two-Phase Commit (2PC):
+  1. Prepare Phase
+  2. Commit/Abort Phase
+  Ensures atomicity across services
+end note
+
+note right of SAGAOrchestrator
+  SAGA Pattern:
+  - Sequence of local transactions
+  - Compensating transactions for rollback
+  Maintains data consistency in long-running transactions
+end note
+
+note bottom of DistributedDB
+  Distributed Database:
+  - Stores transaction states
+  - Maintains consistency across nodes
+  - Supports horizontal scaling
+end note
+
+@enduml
