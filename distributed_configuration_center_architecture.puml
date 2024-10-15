@@ -1,0 +1,64 @@
+@startuml Distributed Configuration Center
+
+!define PRIMARY_COLOR #4CAF50
+!define SECONDARY_COLOR #FFA000
+!define ACCENT_COLOR #00BCD4
+!define DARK_COLOR #607D8B
+!define LIGHT_COLOR #ECEFF1
+
+skinparam backgroundColor #FAFAFA
+allowmixing
+!pragma layout dot
+
+rectangle "Client Applications" as ClientApps PRIMARY_COLOR {
+    component "Web App" as WebApp
+    component "Mobile App" as MobileApp
+    component "Microservices" as Microservices
+}
+
+rectangle "Configuration Center" as ConfigCenter SECONDARY_COLOR {
+    component "API Gateway" as APIGateway
+    component "Config Service" as ConfigService
+    component "Version Control" as VersionControl
+    component "Change Notifier" as ChangeNotifier
+    component "Environment Manager" as EnvManager
+    component "Access Control" as AccessControl
+}
+
+database "Configuration Storage" as ConfigStorage ACCENT_COLOR {
+    component "Config Data" as ConfigData
+    component "Version History" as VersionHistory
+}
+
+rectangle "Admin Interface" as AdminInterface DARK_COLOR {
+    component "Web Console" as WebConsole
+    component "CLI Tool" as CLITool
+}
+
+ClientApps -[PRIMARY_COLOR,thickness=2]-> APIGateway : <back:#FFFFFF><color:PRIMARY_COLOR>1. Request config</color></back>
+APIGateway -[SECONDARY_COLOR,thickness=2]-> ConfigService : <back:#FFFFFF><color:SECONDARY_COLOR>2. Fetch config</color></back>
+ConfigService -[ACCENT_COLOR,thickness=2]-> ConfigStorage : <back:#FFFFFF><color:ACCENT_COLOR>3. Read/Write</color></back>
+AdminInterface -[DARK_COLOR,thickness=2]-> APIGateway : <back:#FFFFFF><color:DARK_COLOR>4. Manage configs</color></back>
+ChangeNotifier -[SECONDARY_COLOR,thickness=2]-> ClientApps : <back:#FFFFFF><color:SECONDARY_COLOR>5. Push updates</color></back>
+
+note right of VersionControl
+  Manages config versions
+  and enables rollbacks
+end note
+
+note bottom of EnvManager
+  Handles multiple environments
+  (dev, staging, production)
+end note
+
+note left of AccessControl
+  Controls access rights
+  for different users/apps
+end note
+
+note bottom of ChangeNotifier
+  Pushes real-time updates
+  to subscribed clients
+end note
+
+@enduml
