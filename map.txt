@@ -10,6 +10,12 @@
     distributed_message_queue_system_with_pub_sub_and_persistence.puml
     distributed_web_crawler_system_architecture.puml
     container_orchestration_system_design_with_scaling_and_load_balancing.puml
+    distributed_cache_system_with_consistency_eviction_and_cache_warming_strategies.puml
+    distributed_configuration_center_with_version_control_and_real_time_updates.puml
+    distributed_configuration_center_with_caching_and_change_notification.puml
+    distributed_file_storage_and_sync_system_with_metadata_management_and_analytics.puml
+    distributed_task_scheduling_system_architecture.puml
+    distributed_id_generator_system_design_with_snowflake_algorithm_zookeeper_and_monitoring.puml
 
 2. 微服务架构
     microservices_architecture_design.puml
@@ -100,6 +106,7 @@
 21. 系统监控和告警
     distributed_system_monitoring_and_alerting_architecture.puml
     distributed_task_scheduling_system_with_fault_tolerance_and_load_balancing.puml
+    comprehensive_distributed_system_monitoring_alerting_and_log_analysis_architecture.puml
 
 22. 性能优化
     twitter/twitter_performance_bottlenecks_and_optimizations.puml
@@ -107,6 +114,7 @@
 
 23. 缓存系统
     distributed_cache_system_with_consistency_strategies.puml
+    distributed_cache_system_with_consistency_eviction_and_cache_warming_strategies.puml
 
 24. 容器编排
     container_orchestration_system_design_with_scaling_and_load_balancing.puml
@@ -120,6 +128,7 @@
 
 27. 数据一致性
     distributed_cache_system_with_consistency_strategies.puml
+    distributed_cache_system_with_consistency_eviction_and_cache_warming_strategies.puml
 
 28. 实时处理
     real_time_data_stream_processing_system_with_kafka_and_spark.puml
@@ -144,6 +153,7 @@
 
 34. 评论系统
     twitter/twitter_comment_system_architecture_with_moderation_and_threading.puml
+    twitter_comment_system_with_ml_moderation_and_real_time_processing.puml
 
 35. 推荐系统
     twitter/twitter_recommendation_service_detailed.puml
@@ -158,3 +168,17 @@
 
 38. CAP理论
     architecture_diagrams/cap_theory_diagram_with_practical_examples.puml
+    distributed_system_cap_theorem_illustration.puml
+
+39. 配置中心
+    distributed_configuration_center_with_version_control_and_real_time_updates.puml
+    distributed_configuration_center_with_caching_and_change_notification.puml
+
+40. ��布式ID生成
+    distributed_id_generator_system_design_with_snowflake_algorithm_zookeeper_and_monitoring.puml
+
+41. 任务调度
+    distributed_task_scheduling_system_architecture.puml
+
+42. 文件同步
+    distributed_file_storage_and_sync_system_with_metadata_management_and_analytics.puml
