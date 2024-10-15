@@ -1,10 +1,10 @@
 @startuml Performance Monitoring System
 
-!define PRIMARY_COLOR E67E22
-!define SECONDARY_COLOR 3498DB
-!define TERTIARY_COLOR F1C40F
-!define QUATERNARY_COLOR 8E44AD
-!define QUINARY_COLOR 16A085
+!define PRIMARY_COLOR #E67E22
+!define SECONDARY_COLOR #3498DB
+!define TERTIARY_COLOR #F1C40F
+!define QUATERNARY_COLOR #8E44AD
+!define QUINARY_COLOR #16A085
 
 !pragma layout dot
 allowmixing
