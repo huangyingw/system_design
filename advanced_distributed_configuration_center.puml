@@ -9,11 +9,11 @@
 !define CACHE_COLOR #FF9800
 
 skinparam backgroundColor #F0F0F0
-skinparam defaultFontSize 14
-skinparam componentFontSize 16
-skinparam noteFontSize 14
+skinparam defaultFontSize 18
+skinparam componentFontSize 18
+skinparam noteFontSize 18
 allowmixing
-!pragma layout smetana
+!pragma layout dot
 
 rectangle "Client Applications" as ClientApps PRIMARY_COLOR {
     component "Web App" as WebApp
