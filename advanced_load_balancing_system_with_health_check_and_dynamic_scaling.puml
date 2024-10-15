@@ -1,0 +1,82 @@
+@startuml Load Balancing System
+
+!pragma layout dot
+!define PRIMARY_COLOR #4CAF50
+!define SECONDARY_COLOR #FFA726
+!define ACCENT_COLOR #29B6F6
+!define GRAY_COLOR #BDBDBD
+
+skinparam backgroundColor #FAFAFA
+skinparam handwritten false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+allowmixing
+
+rectangle "Client Apps" as ClientApps PRIMARY_COLOR {
+    component "Web Browser" as WebBrowser
+    component "Mobile App" as MobileApp
+    component "API Client" as APIClient
+}
+
+rectangle "Load Balancer" as LoadBalancer SECONDARY_COLOR {
+    component "LB Algorithms" as LBAlgorithms
+    component "Health Check" as HealthCheck
+    component "Session Persistence" as SessionPersistence
+    component "SSL Termination" as SSLTermination
+    component "Dynamic Config" as DynamicConfig
+}
+
+rectangle "Backend Servers" as BackendServers ACCENT_COLOR {
+    component "Server 1" as Server1
+    component "Server 2" as Server2
+    component "Server 3" as Server3
+    component "Server N" as ServerN
+}
+
+database "Config Store" as ConfigStore GRAY_COLOR {
+    component "Server Config" as ServerConfig
+    component "Algorithm Settings" as AlgorithmSettings
+}
+
+database "Session Store" as SessionStore GRAY_COLOR {
+    component "User Sessions" as UserSessions
+}
+
+ClientApps -[#FF5722,thickness=2]down-> LoadBalancer : <back:#FFFFFF><color:#FF5722>1. Send Request</color></back>
+LoadBalancer -[#2196F3,thickness=2]right-> ConfigStore : <back:#FFFFFF><color:#2196F3>2. Read Config</color></back>
+LoadBalancer -[#4CAF50,thickness=2]down-> BackendServers : <back:#FFFFFF><color:#4CAF50>3. Distribute Request</color></back>
+LoadBalancer -[#9C27B0,thickness=2]left-> SessionStore : <back:#FFFFFF><color:#9C27B0>4. Store/Retrieve Session</color></back>
+BackendServers -[#FFC107,thickness=2]up-> LoadBalancer : <back:#FFFFFF><color:#FFC107>5. Return Response</color></back>
+LoadBalancer -[#795548,thickness=2]up-> ClientApps : <back:#FFFFFF><color:#795548>6. Send Response</color></back>
+
+note top of LBAlgorithms
+    Supports multiple algorithms:
+    - Round Robin
+    - Weighted Round Robin
+    - Least Connections
+    - IP Hash
+    - URL Hash
+end note
+
+note bottom of HealthCheck
+    Regularly checks backend server health
+    Automatically removes unhealthy servers
+end note
+
+note top of SessionPersistence
+    Ensures requests from the same client
+    are sent to the same backend server
+end note
+
+note top of SSLTermination
+    Offloads SSL processing
+    Reduces backend server load
+end note
+
+note bottom of DynamicConfig
+    Supports real-time configuration updates
+    and server pool management
+end note
+
+@enduml
