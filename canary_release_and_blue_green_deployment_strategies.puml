@@ -1,0 +1,85 @@
+@startuml Distributed System Deployment Strategies
+
+!pragma layout dot
+
+skinparam backgroundColor #CCE8CF
+skinparam handwritten false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam roundcorner 20
+skinparam shadowing false
+
+!define PRIMARY_COLOR #E67E22
+!define SECONDARY_COLOR #3498DB
+!define TERTIARY_COLOR #F1C40F
+!define QUATERNARY_COLOR #8E44AD
+!define QUINARY_COLOR #16A085
+
+allowmixing
+
+title Distributed System Deployment Strategies: Canary Release and Blue-Green Deployment
+
+rectangle "Load Balancer" as LoadBalancer PRIMARY_COLOR {
+    component "Traffic Router" as TrafficRouter
+    component "Health Checker" as HealthChecker
+}
+
+rectangle "Canary Release" as CanaryRelease SECONDARY_COLOR {
+    component "Version A (90%)" as VersionA
+    component "Version B (10%)" as VersionB
+}
+
+rectangle "Blue-Green Deployment" as BlueGreenDeployment TERTIARY_COLOR {
+    component "Blue Environment" as BlueEnv
+    component "Green Environment" as GreenEnv
+}
+
+rectangle "Monitoring & Analytics" as Monitoring QUATERNARY_COLOR {
+    component "Performance Metrics" as PerformanceMetrics
+    component "Error Rates" as ErrorRates
+    component "User Feedback" as UserFeedback
+}
+
+rectangle "Deployment Pipeline" as DeploymentPipeline QUINARY_COLOR {
+    component "CI/CD System" as CICD
+    component "Automated Tests" as AutomatedTests
+    component "Rollback Mechanism" as RollbackMechanism
+}
+
+LoadBalancer -[PRIMARY_COLOR,thickness=2]down-> CanaryRelease : <back:#FFFFFF><color:PRIMARY_COLOR>1. Route Traffic</color></back>
+LoadBalancer -[PRIMARY_COLOR,thickness=2]right-> BlueGreenDeployment : <back:#FFFFFF><color:PRIMARY_COLOR>2. Switch Environment</color></back>
+CanaryRelease -[SECONDARY_COLOR,thickness=2]right-> Monitoring : <back:#FFFFFF><color:SECONDARY_COLOR>3. Monitor Performance</color></back>
+BlueGreenDeployment -[TERTIARY_COLOR,thickness=2]down-> Monitoring : <back:#FFFFFF><color:TERTIARY_COLOR>4. Compare Environments</color></back>
+DeploymentPipeline -[QUINARY_COLOR,thickness=2]up-> CanaryRelease : <back:#FFFFFF><color:QUINARY_COLOR>5. Deploy New Version</color></back>
+DeploymentPipeline -[QUINARY_COLOR,thickness=2]right-> BlueGreenDeployment : <back:#FFFFFF><color:QUINARY_COLOR>6. Prepare New Environment</color></back>
+Monitoring -[QUATERNARY_COLOR,thickness=2]left-> DeploymentPipeline : <back:#FFFFFF><color:QUATERNARY_COLOR>7. Trigger Rollback if Needed</color></back>
+
+note right of CanaryRelease
+  Canary Release:
+  - Gradually roll out new version
+  - Limit potential impact of issues
+  - Easy to rollback if problems occur
+end note
+
+note right of BlueGreenDeployment
+  Blue-Green Deployment:
+  - Two identical production environments
+  - Instant cutover between versions
+  - Zero downtime deployments
+end note
+
+note bottom of Monitoring
+  Monitoring & Analytics:
+  - Real-time performance tracking
+  - Automated alerts for anomalies
+  - User experience feedback loop
+end note
+
+note bottom of DeploymentPipeline
+  Deployment Pipeline:
+  - Automated build, test, and deploy
+  - Consistent deployment process
+  - Quick rollback capabilities
+end note
+
+@enduml
