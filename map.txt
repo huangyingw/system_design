@@ -2,13 +2,14 @@
     blockchain_system_detailed_architecture_with_components.puml
     kubernetes_based_container_orchestration_system_architecture.puml
     distributed_cache_system_with_consistency_strategies.puml
-    distributed_file_system/system_architecture.puml
+    distributed_file_system/distributed_file_system_architecture_with_replication_and_fault_tolerance.puml
+    distributed_file_system/distributed_file_system_overview_with_components_and_data_flow.puml
     distributed_system_cap_theorem_illustration.puml
     distributed_system_monitoring_and_alerting_architecture.puml
     fault_tolerant_and_high_availability_system_design.puml
-    distributed_message_queue_system.puml
+    distributed_message_queue_system_with_pub_sub_and_persistence.puml
     distributed_web_crawler_system_architecture.puml
-    container_orchestration_system_design.puml
+    container_orchestration_system_design_with_scaling_and_load_balancing.puml
 
 2. 微服务架构
     microservices_architecture_design.puml
@@ -20,9 +21,10 @@
     distributed_tracing_system_design.puml
     iot_log_collection_processing_and_alerting_system_architecture.puml
     imvu_system_architecture/imvu_kafka_spark_real_time_processing.puml
+    real_time_data_stream_processing_system_with_kafka_and_spark.puml
 
 4. 全球化部署
-    global_deployment_architecture_design.puml
+    global_deployment_architecture_design_with_cdn_and_geo_routing.puml
 
 5. 分布式协调
     distributed_lock_service_design.puml
@@ -50,36 +52,36 @@
     YouTube/YouTube_Video_Playback_and_Interaction_Schema.puml
     youtube_video_metadata_and_user_interaction_data_schema.puml
     youtube_video_playback_and_recommendation_system_architecture.puml
-    youtube_data_schema.puml
+    youtube_data_schema_with_video_metadata_and_user_interactions.puml
 
 10. 在线广告系统
     online_advertising_system_architecture_with_optimizations.puml
 
 11. 分布式计算
-    distributed_computing_system_for_password_cracking.puml
+    distributed_computing_system_for_password_cracking_with_gpu_acceleration.puml
 
 12. 高并发系统
-    seckill_system_frontend_architecture.puml
-    seckill_system_backend_architecture.puml
-    seckill_system_data_layer_architecture.puml
+    seckill_system_frontend_architecture_with_caching_and_rate_limiting.puml
+    seckill_system_backend_architecture_with_queue_and_inventory_management.puml
+    seckill_system_data_layer_architecture_with_sharding_and_replication.puml
     seckill_system_architecture/high_concurrency_seckill_system_backend_architecture.puml
 
 13. 数据库优化
     database_performance_optimization_strategies_and_techniques.puml
-    dynamodb_distributed_storage_system.puml
+    dynamodb_distributed_storage_system_with_partitioning_and_consistency_models.puml
 
 14. 搜索系统
     twitter/twitter_search_service_detailed.puml
 
 15. 日历系统
     high_traffic_calendar/high_traffic_calendar_optimized_architecture.puml
-    high_traffic_calendar/high_traffic_calendar_mongodb_design.puml
+    high_traffic_calendar/high_traffic_calendar_mongodb_design_with_sharding_and_indexing.puml
 
 16. URL缩短服务
-    url_shortener_system_architecture/url_shortener_system_architecture.puml
+    url_shortener_system_architecture/url_shortener_system_architecture_with_caching_and_analytics.puml
 
 17. 协同编辑
-    google_docs_architecture/google_docs_architecture.puml
+    google_docs_architecture/google_docs_architecture_with_real_time_collaboration_and_version_control.puml
 
 18. 打车系统
     uber_system_architecture/uber_driver_rider_matching_algorithm_detailed_flow.puml
@@ -89,15 +91,15 @@
     uber_system_architecture/uber_system_database_design.puml
 
 19. 数据存储选项
-    architecture_diagrams/data_storage_options.puml
+    architecture_diagrams/data_storage_options_comparison_and_use_cases.puml
 
 20. 实时通讯
     telegram/uml_diagrams/Telegram_Message_Prioritization_Architecture.puml
-    telegram_real_time_chat_system.puml
+    telegram_real_time_chat_system_with_message_queuing_and_delivery_guarantees.puml
 
 21. 系统监控和告警
     distributed_system_monitoring_and_alerting_architecture.puml
-    distributed_task_scheduling_system.puml
+    distributed_task_scheduling_system_with_fault_tolerance_and_load_balancing.puml
 
 22. 性能优化
     twitter/twitter_performance_bottlenecks_and_optimizations.puml
@@ -106,57 +108,53 @@
 23. 缓存系统
     distributed_cache_system_with_consistency_strategies.puml
 
-24. 分布式文件系统
-    distributed_file_system/system_architecture.puml
-    distributed_file_system/dfs-overview.puml
-
-25. 容器编排
-    container_orchestration_system_design.puml
+24. 容器编排
+    container_orchestration_system_design_with_scaling_and_load_balancing.puml
     kubernetes_based_container_orchestration_system_architecture.puml
 
-26. 消息队列
-    distributed_message_queue_system.puml
+25. 消息队列
+    distributed_message_queue_system_with_pub_sub_and_persistence.puml
 
-27. 负载均衡
-    global_deployment_architecture_design.puml
+26. 负载均衡
+    global_deployment_architecture_design_with_cdn_and_geo_routing.puml
 
-28. 数据一致性
+27. 数据一致性
     distributed_cache_system_with_consistency_strategies.puml
 
-29. 实时处理
-    real_time_data_stream_processing_system.puml
+28. 实时处理
+    real_time_data_stream_processing_system_with_kafka_and_spark.puml
     imvu_system_architecture/imvu_kafka_spark_real_time_processing.puml
 
-30. 大规模数据处理
+29. 大规模数据处理
     distributed_web_crawler_system_architecture.puml
     youtube_video_playback_and_recommendation_system_architecture.puml
 
-31. 电子商务系统
-    ecommerce_order_payment_shipping_architecture.puml
+30. 电子商务系统
+    ecommerce_order_payment_shipping_architecture_with_inventory_management.puml
 
-32. 支付系统
-    ecommerce_order_payment_shipping_architecture.puml
-    uber_payment_and_ride_management_system.puml
+31. 支付系统
+    ecommerce_order_payment_shipping_architecture_with_inventory_management.puml
+    uber_payment_and_ride_management_system_with_fraud_detection.puml
 
-33. 新闻推送系统
-    real_time_news_feed_architecture.puml
+32. 新闻推送系统
+    real_time_news_feed_architecture_with_personalization_and_caching.puml
 
-34. 认证和授权
-    twitter/twitter_user_authentication_authorization_service.puml
+33. 认证和授权
+    twitter/twitter_user_authentication_authorization_service_with_oauth_and_jwt.puml
 
-35. 评论系统
-    twitter/twitter_comment_system_architecture.puml
+34. 评论系统
+    twitter/twitter_comment_system_architecture_with_moderation_and_threading.puml
 
-36. 推荐系统
+35. 推荐系统
     twitter/twitter_recommendation_service_detailed.puml
 
-37. 数据库设计
-    flight_booking/flight_booking_system_database.puml
-    big_file_upload_system/database_schema.puml
-    seckill_system_architecture/database_design.puml
+36. 数据库设计
+    flight_booking/flight_booking_system_database_with_inventory_and_pricing.puml
+    big_file_upload_system/database_schema_with_chunking_and_metadata.puml
+    seckill_system_architecture/database_design_with_inventory_locking_and_caching.puml
 
-38. 限流系统
-    architecture_diagrams/rate_limiting_system_design.puml
+37. 限流系统
+    architecture_diagrams/rate_limiting_system_design_with_token_bucket_and_leaky_bucket_algorithms.puml
 
-39. CAP理论
-    architecture_diagrams/cap_theory_diagram.puml
+38. CAP理论
+    architecture_diagrams/cap_theory_diagram_with_practical_examples.puml
