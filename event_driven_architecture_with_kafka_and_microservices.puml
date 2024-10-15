@@ -1,0 +1,85 @@
+@startuml Event-Driven Architecture with Kafka and Microservices
+
+!define RECTANGLE class
+!define STORAGE database
+
+skinparam backgroundColor #FAFAFA
+skinparam handwritten false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam roundcorner 20
+skinparam shadowing false
+
+title Event-Driven Architecture with Kafka and Microservices
+
+rectangle "Client Applications" as ClientApps #E1F5FE
+
+rectangle "API Gateway" as APIGateway #B3E5FC {
+    component "Request Routing" as RequestRouting
+    component "Authentication" as Auth
+    component "Rate Limiting" as RateLimit
+}
+
+rectangle "Event Producer Services" as ProducerServices #81D4FA {
+    component "Order Service" as OrderService
+    component "User Service" as UserService
+    component "Product Service" as ProductService
+}
+
+queue "Apache Kafka" as Kafka #4FC3F7 {
+    component "Topics" as Topics
+}
+
+rectangle "Event Consumer Services" as ConsumerServices #03A9F4 {
+    component "Inventory Service" as InventoryService
+    component "Notification Service" as NotificationService
+    component "Analytics Service" as AnalyticsService
+}
+
+database "Data Stores" as DataStores #0288D1 {
+    STORAGE "Order DB" as OrderDB
+    STORAGE "User DB" as UserDB
+    STORAGE "Product DB" as ProductDB
+    STORAGE "Inventory DB" as InventoryDB
+}
+
+rectangle "Monitoring & Logging" as Monitoring #01579B {
+    component "ELK Stack" as ELK
+    component "Prometheus" as Prometheus
+    component "Grafana" as Grafana
+}
+
+ClientApps -[#FF5722,thickness=2]-> APIGateway : <back:#FFFFFF><color:#FF5722>1. API Request</color></back>
+APIGateway -[#FF9800,thickness=2]-> ProducerServices : <back:#FFFFFF><color:#FF9800>2. Route Request</color></back>
+ProducerServices -[#FFC107,thickness=2]-> Kafka : <back:#FFFFFF><color:#FFC107>3. Produce Event</color></back>
+Kafka -[#4CAF50,thickness=2]-> ConsumerServices : <back:#FFFFFF><color:#4CAF50>4. Consume Event</color></back>
+ProducerServices -[#2196F3,thickness=2]-> DataStores : <back:#FFFFFF><color:#2196F3>5. Read/Write Data</color></back>
+ConsumerServices -[#3F51B5,thickness=2]-> DataStores : <back:#FFFFFF><color:#3F51B5>6. Read/Write Data</color></back>
+ProducerServices -[#9C27B0,thickness=2]-> Monitoring : <back:#FFFFFF><color:#9C27B0>7. Log & Metrics</color></back>
+ConsumerServices -[#E91E63,thickness=2]-> Monitoring : <back:#FFFFFF><color:#E91E63>8. Log & Metrics</color></back>
+
+note right of Kafka
+  Event Topics:
+  - OrderCreated
+  - UserRegistered
+  - ProductUpdated
+  - InventoryChanged
+  - NotificationSent
+end note
+
+note right of ConsumerServices
+  Event Consumers:
+  - Process events asynchronously
+  - Scale independently
+  - Loose coupling with producers
+end note
+
+note bottom of Monitoring
+  Monitoring & Logging:
+  - Centralized logging with ELK
+  - Metrics collection with Prometheus
+  - Visualization with Grafana
+end note
+
+@enduml
+
