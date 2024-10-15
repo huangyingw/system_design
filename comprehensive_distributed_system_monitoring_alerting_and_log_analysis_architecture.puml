@@ -1,68 +1,75 @@
 @startuml Distributed System Monitoring Architecture
 
-skinparam backgroundColor #FAFAFA
+skinparam backgroundColor #CCE8CF
 skinparam handwritten false
 skinparam defaultFontName Arial
 skinparam defaultFontSize 12
 skinparam roundcorner 20
 skinparam shadowing true
 allowmixing
+!pragma layout dot
 
 title Distributed System Monitoring Architecture
 
+!define PRIMARY_COLOR #E67E22
+!define SECONDARY_COLOR #3498DB
+!define TERTIARY_COLOR #F1C40F
+!define QUATERNARY_COLOR #8E44AD
+!define QUINARY_COLOR #16A085
+
 ' 监控代理
-rectangle "Monitoring Agent" as Agent #4EC9B0 {
-    component "Metric Collector" #9CDCFE
-    component "Log Collector" #9CDCFE
-    component "Health Checker" #9CDCFE
+rectangle "Monitoring Agent" as Agent PRIMARY_COLOR {
+    component "Metric Collector" 
+    component "Log Collector" 
+    component "Health Checker" 
 }
 
 ' 数据收集和传输
-queue "Message Queue" as MQ #DCDCAA
-component "Data Ingestion Service" as Ingestion #FF6B6B
+queue "Message Queue" as MQ SECONDARY_COLOR
+component "Data Ingestion Service" as Ingestion TERTIARY_COLOR
 
 ' 数据存储
-database "Time Series DB\n(Metrics)" as TSDB #CE9178
-database "Log Storage\n(Event Logs)" as LogDB #CE9178
+database "Time Series DB\n(Metrics)" as TSDB QUATERNARY_COLOR
+database "Log Storage\n(Event Logs)" as LogDB QUINARY_COLOR
 
 ' 数据处理和分析
-rectangle "Data Processing" as Processing #4EC9B0 {
-    component "Stream Processing" #9CDCFE
-    component "Batch Processing" #9CDCFE
-    component "Log Analyzer" #9CDCFE
-    component "Metric Analyzer" #9CDCFE
+rectangle "Data Processing" as Processing PRIMARY_COLOR {
+    component "Stream Processing" 
+    component "Batch Processing" 
+    component "Log Analyzer" 
+    component "Metric Analyzer" 
 }
 
 ' 告警系统
-rectangle "Alert Manager" as AlertManager #FF6B6B {
-    component "Rule Engine" #9CDCFE
-    component "Notification Service" #9CDCFE
+rectangle "Alert Manager" as AlertManager SECONDARY_COLOR {
+    component "Rule Engine" 
+    component "Notification Service" 
 }
 
 ' 可视化
-rectangle "Visualization" as Viz #4EC9B0 {
-    component "Dashboard" #9CDCFE
-    component "Report Generator" #9CDCFE
+rectangle "Visualization" as Viz TERTIARY_COLOR {
+    component "Dashboard" 
+    component "Report Generator" 
 }
 
 ' API网关
-rectangle "API Gateway" as Gateway
+rectangle "API Gateway" as Gateway QUATERNARY_COLOR
 
 ' 用户界面
 actor "Admin/User" as User
 
 ' 关系
-Agent -down-> MQ : Send data
-MQ -down-> Ingestion : Consume data
-Ingestion -down-> TSDB : Store metrics
-Ingestion -down-> LogDB : Store logs
-TSDB -right-> Processing : Query metrics
-LogDB -right-> Processing : Query logs
-Processing -up-> AlertManager : Trigger alerts
-Processing -down-> Viz : Provide processed data
+Agent -[PRIMARY_COLOR,thickness=2]down-> MQ : <back:#FFFFFF><color:PRIMARY_COLOR>1. Send data</color></back>
+MQ -[SECONDARY_COLOR,thickness=2]down-> Ingestion : <back:#FFFFFF><color:SECONDARY_COLOR>2. Consume data</color></back>
+Ingestion -[TERTIARY_COLOR,thickness=2]down-> TSDB : <back:#FFFFFF><color:TERTIARY_COLOR>3. Store metrics</color></back>
+Ingestion -[QUATERNARY_COLOR,thickness=2]down-> LogDB : <back:#FFFFFF><color:QUATERNARY_COLOR>4. Store logs</color></back>
+TSDB -[QUINARY_COLOR,thickness=2]right-> Processing : <back:#FFFFFF><color:QUINARY_COLOR>5. Query metrics</color></back>
+LogDB -[PRIMARY_COLOR,thickness=2]right-> Processing : <back:#FFFFFF><color:PRIMARY_COLOR>6. Query logs</color></back>
+Processing -[SECONDARY_COLOR,thickness=2]up-> AlertManager : <back:#FFFFFF><color:SECONDARY_COLOR>7. Trigger alerts</color></back>
+Processing -[TERTIARY_COLOR,thickness=2]down-> Viz : <back:#FFFFFF><color:TERTIARY_COLOR>8. Provide processed data</color></back>
 
 ' 数据存储之间的关系
-LogDB ..> TSDB : Extract metrics
+LogDB ..[QUATERNARY_COLOR,thickness=2]> TSDB : <back:#FFFFFF><color:QUATERNARY_COLOR>9. Extract metrics</color></back>
 
 note right of TSDB
   Stores time-based numerical data
