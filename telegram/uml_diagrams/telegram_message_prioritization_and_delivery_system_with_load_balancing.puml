@@ -6,6 +6,7 @@ skinparam backgroundColor #FAFAFA
 skinparam defaultFontName Arial
 skinparam defaultFontSize 21
 skinparam arrowThickness 1.5
+skinparam noteFontSize 21 
 
 title Telegram-like System Architecture with Read/Write Splitting and Sharding
 
@@ -97,7 +98,7 @@ ConfigServers -[#27AE60,thickness=2]-> MongoRouter: <back:#FFFFFF><color:#27AE60
 ' 日志和监控
 ServiceInstance -[#95A5A6,thickness=2]-> MonitoringLogging: <back:#FFFFFF><color:#95A5A6>Log Events</color></back>
 
-note right of MongoRouter
+note top of MongoRouter
   Sharding Key: user_id
   Improves query performance
   and scalability
@@ -132,7 +133,7 @@ note bottom of MessageWorker
   to handle high message volumes
 end note
 
-note left of MongoDBCluster
+note top of MongoDBCluster
   Monitor replication lag
   Implement read preferences
   based on consistency requirements
