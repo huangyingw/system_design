@@ -1,0 +1,101 @@
+@startuml Large Scale Geographic Information System Architecture
+
+!define PRIMARY_COLOR #E67E22
+!define SECONDARY_COLOR #3498DB
+!define TERTIARY_COLOR #F1C40F
+!define QUATERNARY_COLOR #8E44AD
+!define QUINARY_COLOR #16A085
+
+!pragma layout dot
+allowmixing
+
+skinparam backgroundColor #CCE8CF
+
+rectangle "Client Applications" as ClientApps PRIMARY_COLOR {
+    component "Web Interface" as WebUI
+    component "Mobile App" as MobileApp
+    component "Desktop GIS Tool" as DesktopGIS
+}
+
+rectangle "API Gateway" as APIGateway SECONDARY_COLOR {
+    component "Authentication" as Auth
+    component "Rate Limiting" as RateLimit
+    component "Request Routing" as RequestRouting
+}
+
+rectangle "GIS Services" as GISServices TERTIARY_COLOR {
+    component "Spatial Query Service" as SpatialQuery
+    component "Geocoding Service" as Geocoding
+    component "Map Rendering Service" as MapRendering
+    component "Data Import/Export Service" as DataIO
+}
+
+rectangle "Data Processing" as DataProcessing QUATERNARY_COLOR {
+    component "ETL Pipeline" as ETL
+    component "Spatial Index Builder" as IndexBuilder
+    component "Data Validation" as DataValidation
+}
+
+rectangle "Storage" as Storage QUINARY_COLOR {
+    database "Spatial Database" as SpatialDB {
+        component "PostGIS" as PostGIS
+    }
+    database "Object Storage" as ObjectStorage {
+        component "S3 Compatible" as S3
+    }
+    component "Distributed Cache" as Cache {
+        component "Redis" as Redis
+    }
+}
+
+rectangle "Analytics" as Analytics PRIMARY_COLOR {
+    component "Spatial Analysis" as SpatialAnalysis
+    component "Reporting Engine" as Reporting
+}
+
+ClientApps -[PRIMARY_COLOR,thickness=2]down-> APIGateway : <back:#FFFFFF><color:#E67E22>1. Send requests</color></back>
+APIGateway -[SECONDARY_COLOR,thickness=2]down-> GISServices : <back:#FFFFFF><color:#3498DB>2. Route requests</color></back>
+GISServices -[TERTIARY_COLOR,thickness=2]right-> DataProcessing : <back:#FFFFFF><color:#F1C40F>3. Process data</color></back>
+GISServices -[TERTIARY_COLOR,thickness=2]down-> Storage : <back:#FFFFFF><color:#F1C40F>4. Query/Store data</color></back>
+DataProcessing -[QUATERNARY_COLOR,thickness=2]down-> Storage : <back:#FFFFFF><color:#8E44AD>5. Read/Write data</color></back>
+GISServices -[TERTIARY_COLOR,thickness=2]left-> Analytics : <back:#FFFFFF><color:#F1C40F>6. Perform analysis</color></back>
+Analytics -[PRIMARY_COLOR,thickness=2]down-> Storage : <back:#FFFFFF><color:#E67E22>7. Read data for analysis</color></back>
+
+note right of ClientApps
+  Multiple interfaces for
+  different user needs
+end note
+
+note bottom of APIGateway
+  Centralized entry point
+  for all client requests
+end note
+
+note right of GISServices
+  Core GIS functionalities
+  as microservices
+end note
+
+note right of DataProcessing
+  Handles data ingestion
+  and preprocessing
+end note
+
+note bottom of Storage
+  Optimized for spatial
+  data storage and retrieval
+end note
+
+note left of Analytics
+  Advanced spatial analysis
+  and reporting capabilities
+end note
+
+note "Performance bottleneck:\nOptimize spatial queries\nand indexing for large datasets" as PerformanceNote
+PerformanceNote .. SpatialQuery
+PerformanceNote .. IndexBuilder
+
+note "Scalability concern:\nImplement sharding for\nhorizontal scaling of spatial data" as ScalabilityNote
+ScalabilityNote .. SpatialDB
+
+@enduml
