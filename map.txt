@@ -10,7 +10,7 @@
     distributed_message_queue_system_with_pub_sub_and_persistence.puml
     distributed_web_crawler_system_architecture.puml
     container_orchestration_system_design_with_scaling_and_load_balancing.puml
-    distributed_cache_system_with_consistency_eviction_and_cache_warming_strategies.puml
+    distributed_cache_system_with_consistency_eviction_cache_warming_and_bloom_filter.puml
     distributed_configuration_center_with_version_control_and_real_time_updates.puml
     distributed_configuration_center_with_caching_and_change_notification.puml
     distributed_file_storage_and_sync_system_with_metadata_management_and_analytics.puml
@@ -33,7 +33,7 @@
     global_deployment_architecture_design_with_cdn_and_geo_routing.puml
 
 5. 分布式协调
-    distributed_lock_service_design.puml
+    distributed_lock_service_design_with_redis_zookeeper_and_deadlock_prevention.puml
 
 6. 内容分发网络
     cdn/cdn_performance_optimization_strategies.puml
@@ -57,7 +57,7 @@
     YouTube/YouTube_Video_Upload_and_Processing_Schema.puml
     YouTube/YouTube_Video_Playback_and_Interaction_Schema.puml
     youtube_video_metadata_and_user_interaction_data_schema.puml
-    youtube_video_playback_and_recommendation_system_architecture.puml
+    youtube_video_playback_and_recommendation_system_with_cdn_analytics_ml_personalization_and_content_delivery_optimization.puml
     youtube_data_schema_with_video_metadata_and_user_interactions.puml
 
 10. 在线广告系统
@@ -114,7 +114,7 @@
 
 23. 缓存系统
     distributed_cache_system_with_consistency_strategies.puml
-    distributed_cache_system_with_consistency_eviction_and_cache_warming_strategies.puml
+    distributed_cache_system_with_consistency_eviction_cache_warming_and_bloom_filter.puml
 
 24. 容器编排
     container_orchestration_system_design_with_scaling_and_load_balancing.puml
@@ -128,7 +128,7 @@
 
 27. 数据一致性
     distributed_cache_system_with_consistency_strategies.puml
-    distributed_cache_system_with_consistency_eviction_and_cache_warming_strategies.puml
+    distributed_cache_system_with_consistency_eviction_cache_warming_and_bloom_filter.puml
 
 28. 实时处理
     real_time_data_stream_processing_system_with_kafka_and_spark.puml
@@ -136,7 +136,7 @@
 
 29. 大规模数据处理
     distributed_web_crawler_system_architecture.puml
-    youtube_video_playback_and_recommendation_system_architecture.puml
+    youtube_video_playback_and_recommendation_system_with_cdn_analytics_ml_personalization_and_content_delivery_optimization.puml
 
 30. 电子商务系统
     ecommerce_order_payment_shipping_architecture_with_inventory_management.puml
@@ -174,7 +174,7 @@
     distributed_configuration_center_with_version_control_and_real_time_updates.puml
     distributed_configuration_center_with_caching_and_change_notification.puml
 
-40. ��布式ID生成
+40. 分布式ID生成
     distributed_id_generator_system_design_with_snowflake_algorithm_zookeeper_and_monitoring.puml
 
 41. 任务调度
@@ -182,3 +182,6 @@
 
 42. 文件同步
     distributed_file_storage_and_sync_system_with_metadata_management_and_analytics.puml
+
+43. 地理信息系统
+    large_scale_geographic_information_system_architecture_with_microservices_and_spatial_data_processing.puml
