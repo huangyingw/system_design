@@ -71,12 +71,12 @@ note bottom of APIGateway
   for all client requests
 end note
 
-note right of GISServices
+note top of GISServices
   Core GIS functionalities
   as microservices
 end note
 
-note right of DataProcessing
+note bottom of DataProcessing
   Handles data ingestion
   and preprocessing
 end note
@@ -86,7 +86,7 @@ note bottom of Storage
   data storage and retrieval
 end note
 
-note left of Analytics
+note top of Analytics
   Advanced spatial analysis
   and reporting capabilities
 end note
