@@ -1,5 +1,5 @@
 {
-  "language": "English",
+  "language": "Chinese",
   "plantUML": {
     "basicStandards": {
       "containerDefinition": "Use rectangle for all container definitions",
@@ -44,20 +44,37 @@
         "Syntax error validation",
         "Component connection integrity check",
         "Naming convention verification",
-        "Layout rationality assessment"
+        "Layout rationality assessment",
+        "Diagram compilation validation",
+        "Connection consistency check"
       ],
       "errorHandling": [
         "Automatic error detection",
         "Provide specific error location and description",
-        "Suggest fixes",
-        "Implement automatic fixes when appropriate"
+        "Implement automatic fixes for all detected errors",
+        "Repeat error checking and fixing until no errors remain",
+        "Verify fixes do not introduce new issues"
       ],
       "validationSteps": [
         "Verify file compilation",
         "Validate component relationships",
         "Confirm annotation completeness",
-        "Check style compliance"
-      ]
+        "Check style compliance",
+        "Ensure all text is in English",
+        "Validate diagram structure integrity",
+        "Test automatic layout optimization"
+      ],
+      "autoFixProcess": {
+        "iterativeFixing": true,
+        "fixPriorities": [
+          "Syntax errors",
+          "Connection issues",
+          "Component placement",
+          "Style violations",
+          "Layout optimization"
+        ],
+        "verificationAfterFix": true
+      }
     }
   }
 } 
