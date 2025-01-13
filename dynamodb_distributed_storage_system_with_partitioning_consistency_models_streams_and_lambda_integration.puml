@@ -1,140 +1,94 @@
-@startuml DynamoDB-based Distributed Data Storage System
-
-!define RECTANGLE class
-
+@startuml
+skinparam componentStyle rectangle
 skinparam backgroundColor #FAFAFA
-skinparam handwritten false
-skinparam defaultFontName Arial
 skinparam defaultFontSize 14
-skinparam roundcorner 10
-skinparam shadowing false
+skinparam defaultFontName Arial
 skinparam ArrowColor #2C3E50
-skinparam ArrowThickness 1.5
+skinparam PackageBackgroundColor #FAFAFA
+skinparam PackageBorderColor #CCCCCC
 
-skinparam rectangle {
-    BorderColor #34495E
-    BackgroundColor #ECF0F1
-}
+title DynamoDB-based Distributed Data Storage System
 
-skinparam component {
-    BorderColor #34495E
-    BackgroundColor #ECF0F1
-}
-
-skinparam note {
-    BackgroundColor #F1C40F
-    BorderColor #F39C12
-}
-
-title DynamoDB-based Distributed Data Storage System Design
-
-allowmixing
-!pragma layout dot
-
-rectangle "Client Layer" as ClientLayer #E6F3FF {
+package "Client Layer" {
     component "Web Application" as WebApp
     component "Mobile Application" as MobileApp
     component "IoT Device" as IoTDevice
 }
 
-rectangle "API Gateway" as APIGateway #D5E8D4 {
+package "API Gateway" {
     component "Request Routing" as RequestRouting
     component "Authentication" as Auth
     component "Traffic Control" as TrafficControl
 }
 
-rectangle "Application Service" as AppService #FFE6CC {
+package "Application Service" {
     component "Business Logic" as BusinessLogic
     component "Data Access Layer" as DataAccessLayer
 }
 
-rectangle "DynamoDB" as DynamoDB #DAE8FC {
+package "DynamoDB" {
     component "Table Design" as TableDesign
     component "Partition Strategy" as PartitionStrategy
     component "Consistency Model" as ConsistencyModel
 }
 
-rectangle "DynamoDB Streams" as DynamoDBStreams #F8CECC {
+package "DynamoDB Streams" {
     component "Change Capture" as ChangeCapture
     component "Event Processing" as EventProcessing
 }
 
-rectangle "Lambda Functions" as LambdaFunctions #E1D5E7 {
+package "Lambda Functions" {
     component "Stream Processing" as StreamProcessing
     component "Data Transformation" as DataTransformation
     component "Triggers" as Triggers
 }
 
-rectangle "Cache Layer" as CacheLayer #FFF2CC {
+package "Cache Layer" {
     component "ElastiCache" as ElastiCache
     component "DAX" as DAX
 }
 
-rectangle "Data Analysis" as DataAnalysis #D5E8D4 {
+package "Data Analysis" {
     component "Athena" as Athena
     component "Redshift" as Redshift
 }
 
-rectangle "Monitoring" as Monitoring #FFE6CC {
+package "Monitoring" {
     component "CloudWatch" as CloudWatch
     component "AWS Config" as AWSConfig
 }
 
-rectangle "Security" as Security #F8CECC {
+package "Security" {
     component "IAM" as IAM
     component "KMS" as KMS
     component "VPC" as VPC
 }
 
-ClientLayer -[#3498DB,thickness=2]-> APIGateway : <color:#3498DB>1. API Request
-APIGateway -[#3498DB,thickness=2]-> AppService : <color:#3498DB>2. Route Request
-AppService -[#3498DB,thickness=2]-> DynamoDB : <color:#3498DB>3. Query/Update Data
-AppService -[#2ECC71,thickness=2]-> CacheLayer : <color:#2ECC71>4. Cache Access
-DynamoDB -[#E74C3C,thickness=2,dashed]-> DynamoDBStreams : <color:#E74C3C>5. Stream Changes
-DynamoDBStreams -[#E74C3C,thickness=2,dashed]-> LambdaFunctions : <color:#E74C3C>6. Trigger Functions
-DynamoDB -[#9B59B6,thickness=2,dotted]-> DataAnalysis : <color:#9B59B6>7. Analyze Data
-DynamoDB .[#F39C12,thickness=2].> Monitoring : <color:#F39C12>8. Monitor Performance
-Security -[#1ABC9C,thickness=2]-> DynamoDB : <color:#1ABC9C>9. Secure Access
+WebApp --> RequestRouting : 1. API Request
+MobileApp --> RequestRouting
+IoTDevice --> RequestRouting
 
-note right of TableDesign
-  Table Design:
-  - Avoid hot partitions
-  - Optimize for query patterns
-  - Support multiple access patterns
-end note
+RequestRouting --> BusinessLogic : 2. Route Request
+Auth --> BusinessLogic
+TrafficControl --> BusinessLogic
 
-note right of PartitionStrategy
-  Partition Strategy:
-  - Even data distribution
-  - Prevent partition skew
-  - Efficient query support
-end note
+BusinessLogic --> TableDesign : 3. Query/Update Data
+DataAccessLayer --> TableDesign
 
-note right of ConsistencyModel
-  Consistency Model:
-  - Balance performance & consistency
-  - Choose per business needs
-end note
+BusinessLogic --> ElastiCache : 4. Cache Access
+BusinessLogic --> DAX
 
-note bottom of CacheLayer
-  Caching Strategy:
-  - Optimize read-heavy workloads
-  - Reduce DynamoDB load
-  - Lower overall latency
-end note
+TableDesign ..> ChangeCapture : 5. Stream Changes
+ChangeCapture ..> StreamProcessing : 6. Trigger Functions
 
-note left of LambdaFunctions
-  Lambda Use Cases:
-  - Real-time processing
-  - Data synchronization
-  - Event-driven notifications
-end note
+TableDesign ..> Athena : 7. Analyze Data
+TableDesign ..> Redshift
 
-note bottom of Security
-  Security Measures:
-  - Fine-grained access control
-  - End-to-end encryption
-  - Network isolation
-end note
+TableDesign ..> CloudWatch : 8. Monitor Performance
+TableDesign ..> AWSConfig
+
+IAM --> TableDesign : 9. Secure Access
+KMS --> TableDesign
+VPC --> TableDesign
 
 @enduml

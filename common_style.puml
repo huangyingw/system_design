@@ -1,0 +1,35 @@
+@startuml
+
+' Colors
+!define BLUE #1E90FF
+!define GREEN #32CD32
+!define ORANGE #FFA500
+!define RED #FF4500
+!define PURPLE #9370DB
+!define GRAY #A9A9A9
+
+' Common styles
+skinparam componentStyle rectangle
+skinparam backgroundColor #FAFAFA
+skinparam defaultFontSize 14
+skinparam defaultFontName Arial
+skinparam ArrowColor #2C3E50
+skinparam PackageBackgroundColor #FAFAFA
+skinparam PackageBorderColor #CCCCCC
+    
+skinparam component {
+    BorderColor #666666
+    BackgroundColor #FFFFFF
+}
+    
+skinparam note {
+    BorderColor #666666
+    BackgroundColor #FFFFCC
+}
+    
+skinparam package {
+    BorderColor #666666
+    BackgroundColor #FFFFFF
+}
+
+@enduml 

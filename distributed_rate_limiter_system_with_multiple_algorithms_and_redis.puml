@@ -1,0 +1,77 @@
+@startuml
+skinparam componentStyle rectangle
+
+package "Rate Limiter Service" {
+    component "API Gateway" as Gateway
+    
+    package "Rate Limiter Core" {
+        component "Token Bucket" as TokenBucket
+        component "Leaky Bucket" as LeakyBucket
+        component "Sliding Window" as SlidingWindow
+        component "Fixed Window" as FixedWindow
+        component "Algorithm Selector" as AlgorithmSelector
+    }
+    
+    package "Redis Cluster" {
+        component "Counter" as Counter
+        component "Window" as Window
+        component "Limits" as Limits
+    }
+    
+    package "Configuration Service" {
+        component "Rate Limit Rules" as Rules
+        component "Service Configs" as ServiceConfigs
+    }
+    
+    package "Monitoring & Alerts" {
+        component "Prometheus" as Prom
+        component "Grafana" as Graf
+        component "Alert Manager" as Alert
+    }
+}
+
+cloud "Client Applications" as Clients
+cloud "Protected Services" as Services
+
+Clients --> Gateway : HTTP/gRPC Requests
+Gateway --> TokenBucket : Rate Check
+TokenBucket --> Counter : Store/Retrieve
+TokenBucket --> Rules : Load Rules
+Alert --> TokenBucket : Collect Metrics
+Gateway --> Services : Forward if Allowed
+
+AlgorithmSelector --> TokenBucket
+AlgorithmSelector --> LeakyBucket
+AlgorithmSelector --> SlidingWindow
+AlgorithmSelector --> FixedWindow
+
+note right of TokenBucket
+  Refills tokens at fixed rate
+  Best for burst traffic
+end note
+
+note right of LeakyBucket
+  Processes requests at constant rate
+  Smooths out traffic spikes
+end note
+
+legend right
+Implementation Details:
+==
+Redis Implementation:
+- INCR for counters
+- EXPIRE for window reset
+- Lua scripts for atomic ops
+
+High Availability:
+- Redis cluster with replicas
+- Circuit breaker pattern
+- Fallback to local cache
+
+Performance Optimizations:
+- Local caching layer
+- Batch counter updates
+- Async monitoring
+end legend
+
+@enduml

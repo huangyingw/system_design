@@ -1,5 +1,21 @@
 {
   "language": "Chinese",
+  "terminal": {
+    "shell": "zsh",
+    "commandExecution": {
+      "defaultShell": "/bin/zsh",
+      "environmentSetup": [
+        "Use zsh for all terminal commands",
+        "Ensure proper PATH is set for tools",
+        "Use absolute paths when necessary"
+      ],
+      "errorHandling": {
+        "captureOutput": true,
+        "checkExitStatus": true,
+        "retryStrategy": "Retry with modified command if initial attempt fails"
+      }
+    }
+  },
   "plantUML": {
     "basicStandards": {
       "containerDefinition": "Use rectangle for all container definitions",
@@ -73,8 +89,35 @@
           "Style violations",
           "Layout optimization"
         ],
-        "verificationAfterFix": true
+        "verificationAfterFix": true,
+        "syntaxCheckCommand": "plantuml {filename} -syntax",
+        "renderCommand": "plantuml {filename}",
+        "commonSyntaxFixes": [
+          "Remove extra spaces and empty lines",
+          "Use proper package/component nesting",
+          "Fix color definitions",
+          "Ensure proper skinparam settings",
+          "Check component and connection definitions"
+        ],
+        "postEditChecks": [
+          "Run syntax check immediately after any edit",
+          "Verify diagram renders correctly",
+          "Check for any warning messages",
+          "Validate all components are properly connected",
+          "Ensure no orphaned elements exist"
+        ]
       }
     }
-  }
+  },
+  "rules": [
+    {
+      "pattern": "*.puml",
+      "commands": [
+        {
+          "command": "./check_puml.sh ${file}",
+          "trigger": "save"
+        }
+      ]
+    }
+  ]
 } 

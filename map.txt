@@ -165,6 +165,7 @@
 
 37. 限流系统
     architecture_diagrams/rate_limiting_system_design_with_token_bucket_and_leaky_bucket_algorithms.puml
+    distributed_rate_limiter_system_with_multiple_algorithms_and_redis.puml
 
 38. CAP理论
     architecture_diagrams/cap_theory_diagram_with_practical_examples.puml
@@ -185,3 +186,12 @@
 
 43. 地理信息系统
     large_scale_geographic_information_system_architecture_with_microservices_and_spatial_data_processing.puml
+
+44. Session Management
+    distributed_session_management_system_with_redis_cluster.puml
+
+45. Distributed Transactions
+    distributed_transaction_system_with_saga_pattern.puml
+
+46. Real-time Analytics
+    real_time_data_analytics_platform_with_stream_processing.puml

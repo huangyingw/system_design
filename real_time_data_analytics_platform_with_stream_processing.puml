@@ -1,0 +1,93 @@
+@startuml
+skinparam componentStyle rectangle
+
+package "Real-time Data Analytics Platform" {
+    package "Data Ingestion Layer" {
+        component "Kafka Cluster" as Kafka
+        component "Event Collector" as Collector
+        component "Schema Registry" as SchemaRegistry
+    }
+    
+    package "Stream Processing" {
+        component "Apache Flink" as Flink
+        component "Stream Processor" as Processor
+        component "State Manager" as StateManager
+        component "Window Manager" as WindowManager
+    }
+    
+    package "Storage Layer" {
+        component "Time Series DB" as TSDB
+        component "Data Lake" as DataLake
+        component "Hot Storage" as HotStorage
+        component "Cold Storage" as ColdStorage
+    }
+    
+    package "Analytics Engine" {
+        component "Real-time Analytics" as RealTimeAnalytics
+        component "ML Pipeline" as MLPipeline
+        component "Query Engine" as QueryEngine
+    }
+    
+    package "Serving Layer" {
+        component "API Gateway" as Gateway
+        component "Cache Layer" as Cache
+        component "Query Router" as Router
+    }
+    
+    package "Monitoring & Alerts" {
+        component "Metrics Collector" as Metrics
+        component "Alert Manager" as Alerts
+        component "Dashboard" as Dashboard
+    }
+}
+
+cloud "Data Sources" as Sources
+cloud "Client Applications" as Clients
+
+Sources --> Collector : Raw Data
+Collector --> Kafka : Process Events
+Kafka --> TSDB : Store Results
+RealTimeAnalytics --> TSDB : Query Data
+Gateway --> RealTimeAnalytics : Serve Results
+Metrics --> Flink : Track Metrics
+
+Kafka --> SchemaRegistry : Validate
+Flink --> StateManager : Manage State
+Flink --> WindowManager : Window Ops
+
+note right of Collector
+  High throughput data collection
+  Schema validation
+end note
+
+note right of Flink
+  Real-time processing
+  Stateful operations
+end note
+
+legend right
+Implementation Details:
+==
+Stream Processing:
+- Exactly-once semantics
+- Watermark handling
+- Checkpointing
+- State backends
+
+Storage Strategy:
+- Hot/warm/cold tiers
+- Data lifecycle
+- Compression policies
+
+Performance Features:
+- Adaptive batching
+- Query optimization
+- Cache management
+
+Scalability:
+- Horizontal scaling
+- Partition management
+- Load balancing
+end legend
+
+@enduml
