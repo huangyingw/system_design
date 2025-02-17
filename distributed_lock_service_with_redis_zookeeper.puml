@@ -1,0 +1,94 @@
+@startuml
+skinparam componentStyle rectangle
+
+package "Distributed Lock Service" {
+    package "Client SDK" {
+        component "Lock Client" as LockClient
+        component "Connection Manager" as ConnManager
+        component "Retry Handler" as RetryHandler
+        component "Circuit Breaker" as CircuitBreaker
+    }
+    
+    package "Lock Service Core" {
+        component "Lock Manager" as LockManager
+        component "Lock Validator" as LockValidator
+        component "Deadlock Detector" as DeadlockDetector
+        component "Lock Cleaner" as LockCleaner
+    }
+    
+    package "Redis Implementation" {
+        component "Redis Lock" as RedisLock
+        component "Lock TTL Manager" as TTLManager
+        component "Watch Dog" as WatchDog
+    }
+    
+    package "ZooKeeper Implementation" {
+        component "ZK Lock" as ZKLock
+        component "Sequential Nodes" as SeqNodes
+        component "Session Manager" as SessionManager
+    }
+    
+    package "Monitoring & Recovery" {
+        component "Health Checker" as HealthChecker
+        component "Lock Monitor" as LockMonitor
+        component "Alert System" as AlertSystem
+    }
+}
+
+cloud "Client Applications" as Clients
+cloud "Resource Services" as Resources
+
+Clients --> LockClient : Request Lock
+LockClient --> ConnManager : Establish Connection
+ConnManager --> LockManager : Forward Request
+LockManager --> LockValidator : Validate Lock
+LockValidator --> RedisLock : Try Redis Lock
+LockValidator --> ZKLock : Try ZK Lock
+RedisLock --> Resources : Access if Locked
+ZKLock --> Resources : Access if Locked
+
+RetryHandler --> LockClient : Retry Failed Requests
+CircuitBreaker --> ConnManager : Prevent Cascading Failures
+
+WatchDog --> RedisLock : Extend Lock TTL
+SessionManager --> ZKLock : Maintain Session
+LockCleaner --> RedisLock : Clean Expired Locks
+DeadlockDetector --> LockManager : Detect Deadlocks
+
+note right of RedisLock
+  Uses SET NX with TTL
+  Lua scripts for atomicity
+end note
+
+note right of ZKLock
+  Sequential ephemeral nodes
+  Automatic cleanup on session end
+end note
+
+legend right
+Implementation Details:
+==
+Redis Lock Strategy:
+- SET NX with TTL
+- Lua scripts for atomicity
+- Watch dog for TTL extension
+- Unique lock identifiers
+
+ZooKeeper Lock Strategy:
+- Sequential ephemeral nodes
+- Session management
+- Automatic node cleanup
+- Lock queue management
+
+High Availability:
+- Multiple lock providers
+- Automatic failover
+- Circuit breaker pattern
+
+Performance Features:
+- Local lock caching
+- Bulk lock operations
+- Lock request batching
+end legend
+
+@enduml 

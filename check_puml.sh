@@ -24,7 +24,7 @@ check_file() {
         return 1
     fi
 
-    echo -e "\n${GREEN}Checking $file...${NC}"
+    echo -e "\nChecking $file..."
     echo "----------------------------------------"
     
     # 检查语法
@@ -66,6 +66,28 @@ show_usage() {
     echo "  -h, --help    Show this help message"
 }
 
+# 检查所有文件
+check_all_files() {
+    echo -e "${YELLOW}No file specified. Checking all .puml files...${NC}"
+    local error_found=0
+    while IFS= read -r file; do
+        check_file "$file"
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}Error found in $file${NC}"
+            error_found=1
+            break
+        fi
+    done < <(find . -name "*.puml" -type f)
+
+    if [ $error_found -eq 1 ]; then
+        echo -e "${RED}Errors found. Stopping check.${NC}"
+        exit 1
+    else
+        echo -e "${GREEN}All files checked successfully.${NC}"
+        exit 0
+    fi
+}
+
 # 主函数
 main() {
     # 查找PlantUML jar
@@ -86,25 +108,8 @@ main() {
         fi
         check_file "$1"
         exit $?
-    fi
-
-    # 否则检查所有puml文件
-    local error_found=0
-    while IFS= read -r file; do
-        check_file "$file"
-        if [ $? -ne 0 ]; then
-            echo -e "${RED}Error found in $file${NC}"
-            error_found=1
-            break
-        fi
-    done < <(find . -name "*.puml" -type f)
-
-    if [ $error_found -eq 1 ]; then
-        echo -e "${RED}Errors found. Stopping check.${NC}"
-        exit 1
     else
-        echo -e "${GREEN}All files checked successfully.${NC}"
-        exit 0
+        check_all_files
     fi
 }
 

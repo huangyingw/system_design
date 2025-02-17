@@ -81,9 +81,25 @@ diff --git a/.cursorrules b/.cursorrules
 new file mode 100644
 --- /dev/null
 +++ ./.cursorrules
-@@ -0,0 +1,80 @@
+@@ -0,0 +1,123 @@
 +{
 +  "language": "Chinese",
++  "terminal": {
++    "shell": "zsh",
++    "commandExecution": {
++      "defaultShell": "/bin/zsh",
++      "environmentSetup": [
++        "Use zsh for all terminal commands",
++        "Ensure proper PATH is set for tools",
++        "Use absolute paths when necessary"
++      ],
++      "errorHandling": {
++        "captureOutput": true,
++        "checkExitStatus": true,
++        "retryStrategy": "Retry with modified command if initial attempt fails"
++      }
++    }
++  },
 +  "plantUML": {
 +    "basicStandards": {
 +      "containerDefinition": "Use rectangle for all container definitions",
@@ -157,10 +173,37 @@ new file mode 100644
 +          "Style violations",
 +          "Layout optimization"
 +        ],
-+        "verificationAfterFix": true
++        "verificationAfterFix": true,
++        "syntaxCheckCommand": "plantuml {filename} -syntax",
++        "renderCommand": "plantuml {filename}",
++        "commonSyntaxFixes": [
++          "Remove extra spaces and empty lines",
++          "Use proper package/component nesting",
++          "Fix color definitions",
++          "Ensure proper skinparam settings",
++          "Check component and connection definitions"
++        ],
++        "postEditChecks": [
++          "Run syntax check immediately after any edit",
++          "Verify diagram renders correctly",
++          "Check for any warning messages",
++          "Validate all components are properly connected",
++          "Ensure no orphaned elements exist"
++        ]
 +      }
 +    }
-+  }
++  },
++  "rules": [
++    {
++      "pattern": "*.puml",
++      "commands": [
++        {
++          "command": "./check_puml.sh ${file}",
++          "trigger": "save"
++        }
++      ]
++    }
++  ]
 +} 
 diff --git a/.gitignore b/.gitignore
 new file mode 100644
@@ -2361,6 +2404,124 @@ new file mode 100644
 +end note
 +
 +@enduml
+diff --git a/check_puml.sh b/check_puml.sh
+new file mode 100755
+--- /dev/null
++++ ./check_puml.sh
+@@ -0,0 +1,112 @@
++#!/bin/bash
++
++# 设置颜色
++GREEN='\033[0;32m'
++RED='\033[0;31m'
++YELLOW='\033[1;33m'
++NC='\033[0m' # No Color
++
++# 查找最新版本的PlantUML jar
++find_plantuml_jar() {
++    local jar_path=$(find /usr/local/Cellar/plantuml -name "plantuml.jar" -type f | sort -r | head -n 1)
++    if [ -z "$jar_path" ]; then
++        echo -e "${RED}Error: PlantUML jar not found. Please ensure PlantUML is installed.${NC}"
++        exit 1
++    fi
++    echo "$jar_path"
++}
++
++# 检查单个文件
++check_file() {
++    local file="$1"
++    if [ ! -f "$file" ]; then
++        echo -e "${RED}Error: File not found: $file${NC}"
++        return 1
++    fi
++
++    echo -e "\n${GREEN}Checking $file...${NC}"
++    echo "----------------------------------------"
++    
++    # 检查语法
++    java -jar "$PLANTUML_JAR" -checkonly "$file" > /dev/null 2>&1
++    syntax_status=$?
++    
++    if [ $syntax_status -eq 0 ]; then
++        echo -e "${GREEN}✅ Syntax OK${NC}"
++        
++        # 尝试渲染
++        java -jar "$PLANTUML_JAR" "$file" > /dev/null 2>&1
++        render_status=$?
++        
++        if [ $render_status -eq 0 ]; then
++            echo -e "${GREEN}✅ Render OK${NC}"
++            # 检查是否生成了png文件
++            png_file="${file%.*}.png"
++            if [ -f "$png_file" ]; then
++                echo -e "${GREEN}✅ Generated: $png_file${NC}"
++            fi
++            return 0
++        else
++            echo -e "${RED}❌ Render Failed${NC}"
++            return 1
++        fi
++    else
++        echo -e "${RED}❌ Syntax Error${NC}"
++        echo -e "\nFile contents with line numbers:"
++        nl -ba "$file"
++        return 1
++    fi
++}
++
++# 显示使用方法
++show_usage() {
++    echo "Usage: $0 [file.puml]"
++    echo "If no file is specified, checks all .puml files in the current directory and subdirectories"
++    echo "Options:"
++    echo "  -h, --help    Show this help message"
++}
++
++# 主函数
++main() {
++    # 查找PlantUML jar
++    PLANTUML_JAR=$(find_plantuml_jar)
++    echo -e "${YELLOW}Using PlantUML jar: $PLANTUML_JAR${NC}"
++
++    # 处理命令行参数
++    if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
++        show_usage
++        exit 0
++    fi
++
++    # 如果指定了文件，只检查该文件
++    if [ $# -eq 1 ]; then
++        if [[ "$1" != *.puml ]]; then
++            echo -e "${RED}Error: File must have .puml extension${NC}"
++            exit 1
++        fi
++        check_file "$1"
++        exit $?
++    fi
++
++    # 否则检查所有puml文件
++    local error_found=0
++    while IFS= read -r file; do
++        check_file "$file"
++        if [ $? -ne 0 ]; then
++            echo -e "${RED}Error found in $file${NC}"
++            error_found=1
++            break
++        fi
++    done < <(find . -name "*.puml" -type f)
++
++    if [ $error_found -eq 1 ]; then
++        echo -e "${RED}Errors found. Stopping check.${NC}"
++        exit 1
++    else
++        echo -e "${GREEN}All files checked successfully.${NC}"
++        exit 0
++    fi
++}
++
++# 运行主函数
++main "$@" 
+\ No newline at end of file
 diff --git a/cicd_devops_pipeline_architecture_with_zero_downtime_deployment_and_automated_rollback.puml b/cicd_devops_pipeline_architecture_with_zero_downtime_deployment_and_automated_rollback.puml
 new file mode 100644
 --- /dev/null
@@ -2582,6 +2743,47 @@ new file mode 100644
 +end note
 +
 +@enduml
+diff --git a/common_style.puml b/common_style.puml
+new file mode 100644
+--- /dev/null
++++ ./common_style.puml
+@@ -0,0 +1,35 @@
++@startuml
++
++' Colors
++!define BLUE #1E90FF
++!define GREEN #32CD32
++!define ORANGE #FFA500
++!define RED #FF4500
++!define PURPLE #9370DB
++!define GRAY #A9A9A9
++
++' Common styles
++skinparam componentStyle rectangle
++skinparam backgroundColor #FAFAFA
++skinparam defaultFontSize 14
++skinparam defaultFontName Arial
++skinparam ArrowColor #2C3E50
++skinparam PackageBackgroundColor #FAFAFA
++skinparam PackageBorderColor #CCCCCC
++    
++skinparam component {
++    BorderColor #666666
++    BackgroundColor #FFFFFF
++}
++    
++skinparam note {
++    BorderColor #666666
++    BackgroundColor #FFFFCC
++}
++    
++skinparam package {
++    BorderColor #666666
++    BackgroundColor #FFFFFF
++}
++
++@enduml 
+\ No newline at end of file
 diff --git a/comprehensive_distributed_system_monitoring_alerting_log_analysis_with_data_processing_and_visualization.puml b/comprehensive_distributed_system_monitoring_alerting_log_analysis_with_data_processing_and_visualization.puml
 new file mode 100644
 --- /dev/null
@@ -4058,6 +4260,176 @@ new file mode 100644
 +end note
 +
 +@enduml
+diff --git a/distributed_rate_limiter_system_with_multiple_algorithms_and_redis.puml b/distributed_rate_limiter_system_with_multiple_algorithms_and_redis.puml
+new file mode 100644
+--- /dev/null
++++ ./distributed_rate_limiter_system_with_multiple_algorithms_and_redis.puml
+@@ -0,0 +1,77 @@
++@startuml
++skinparam componentStyle rectangle
++
++package "Rate Limiter Service" {
++    component "API Gateway" as Gateway
++    
++    package "Rate Limiter Core" {
++        component "Token Bucket" as TokenBucket
++        component "Leaky Bucket" as LeakyBucket
++        component "Sliding Window" as SlidingWindow
++        component "Fixed Window" as FixedWindow
++        component "Algorithm Selector" as AlgorithmSelector
++    }
++    
++    package "Redis Cluster" {
++        component "Counter" as Counter
++        component "Window" as Window
++        component "Limits" as Limits
++    }
++    
++    package "Configuration Service" {
++        component "Rate Limit Rules" as Rules
++        component "Service Configs" as ServiceConfigs
++    }
++    
++    package "Monitoring & Alerts" {
++        component "Prometheus" as Prom
++        component "Grafana" as Graf
++        component "Alert Manager" as Alert
++    }
++}
++
++cloud "Client Applications" as Clients
++cloud "Protected Services" as Services
++
++Clients --> Gateway : HTTP/gRPC Requests
++Gateway --> TokenBucket : Rate Check
++TokenBucket --> Counter : Store/Retrieve
++TokenBucket --> Rules : Load Rules
++Alert --> TokenBucket : Collect Metrics
++Gateway --> Services : Forward if Allowed
++
++AlgorithmSelector --> TokenBucket
++AlgorithmSelector --> LeakyBucket
++AlgorithmSelector --> SlidingWindow
++AlgorithmSelector --> FixedWindow
++
++note right of TokenBucket
++  Refills tokens at fixed rate
++  Best for burst traffic
++end note
++
++note right of LeakyBucket
++  Processes requests at constant rate
++  Smooths out traffic spikes
++end note
++
++legend right
++Implementation Details:
++==
++Redis Implementation:
++- INCR for counters
++- EXPIRE for window reset
++- Lua scripts for atomic ops
++
++High Availability:
++- Redis cluster with replicas
++- Circuit breaker pattern
++- Fallback to local cache
++
++Performance Optimizations:
++- Local caching layer
++- Batch counter updates
++- Async monitoring
++end legend
++
++@enduml
+\ No newline at end of file
+diff --git a/distributed_session_management_system_with_redis_cluster.puml b/distributed_session_management_system_with_redis_cluster.puml
+new file mode 100644
+--- /dev/null
++++ ./distributed_session_management_system_with_redis_cluster.puml
+@@ -0,0 +1,81 @@
++@startuml
++skinparam componentStyle rectangle
++
++package "Distributed Session Management System" {
++    component "Load Balancer" as LB
++    
++    package "Session Service Cluster" {
++        component "Session Manager" as SessionManager
++        component "Session Validator" as SessionValidator
++        component "Session Cleanup" as SessionCleanup
++        component "Session Encryption" as SessionEncryption
++    }
++    
++    package "Redis Cluster" {
++        component "Sessions" as Sessions
++        component "Expiry" as Expiry
++        component "UserIndex" as UserIndex
++    }
++    
++    package "Security Layer" {
++        component "Token Generator" as TokenGen
++        component "Encryption Service" as EncryptService
++        component "JWT Service" as JWTService
++    }
++    
++    package "Monitoring & Analytics" {
++        component "Session Analytics" as Analytics
++        component "Health Monitor" as Health
++        component "Alert System" as Alert
++    }
++}
++
++cloud "Client Applications" as Clients
++cloud "Backend Services" as Services
++
++Clients --> LB : Request with SessionID
++LB --> SessionManager : Route Request
++SessionManager --> Sessions : Validate/Update Session
++SessionManager --> TokenGen : Token Operations
++Services --> SessionValidator : Session Validation
++Alert --> SessionManager : Collect Metrics
++
++SessionManager --> SessionValidator
++SessionManager --> SessionCleanup
++SessionManager --> SessionEncryption
++
++note right of SessionManager
++  Handles session CRUD operations
++  Implements session policies
++end note
++
++note right of Sessions
++  Distributed session storage
++  Session expiry management
++end note
++
++legend right
++Implementation Details:
++==
++Session Storage:
++- Redis cluster with replication
++- Session data encryption at rest
++- Automatic session cleanup
++
++High Availability:
++- Multiple Redis nodes
++- Session service redundancy
++- Fallback mechanisms
++
++Security Features:
++- Token rotation
++- Session hijacking prevention
++- Rate limiting
++
++Performance Optimizations:
++- Local caching layer
++- Session data compression
++- Lazy session cleanup
++end legend
++
++@enduml
+\ No newline at end of file
 diff --git a/distributed_task_scheduling_system_architecture.puml b/distributed_task_scheduling_system_architecture.puml
 new file mode 100644
 --- /dev/null
@@ -4234,6 +4606,98 @@ new file mode 100644
 +end note
 +
 +@enduml
+diff --git a/distributed_transaction_system_with_saga_pattern.puml b/distributed_transaction_system_with_saga_pattern.puml
+new file mode 100644
+--- /dev/null
++++ ./distributed_transaction_system_with_saga_pattern.puml
+@@ -0,0 +1,86 @@
++@startuml
++skinparam componentStyle rectangle
++
++package "Distributed Transaction System" {
++    component "API Gateway" as Gateway
++    
++    package "Transaction Coordinator" {
++        component "Saga Orchestrator" as SagaOrchestrator
++        component "2PC Coordinator" as TwoPCCoordinator
++        component "Transaction Manager" as TxManager
++        component "State Machine" as StateMachine
++    }
++    
++    package "Message Queue" {
++        component "Command Queue" as CommandQueue
++        component "Compensation Queue" as CompensationQueue
++        component "Event Queue" as EventQueue
++    }
++    
++    package "Participant Services" {
++        component "Order Service" as OrderService
++        component "Payment Service" as PaymentService
++        component "Inventory Service" as InventoryService
++        component "Shipping Service" as ShippingService
++    }
++    
++    package "Transaction Log" {
++        component "Transaction States" as States
++        component "Compensation Events" as CompEvents
++    }
++    
++    package "Monitoring & Recovery" {
++        component "Transaction Monitor" as TxMonitor
++        component "Recovery Manager" as RecoveryManager
++        component "Alert System" as AlertSystem
++    }
++}
++
++cloud "Client Applications" as Clients
++component "Service Databases" as ServiceDBs
++
++Clients --> Gateway : Transaction Request
++Gateway --> SagaOrchestrator : Initiate Transaction
++SagaOrchestrator --> CommandQueue : Dispatch Commands
++CommandQueue --> OrderService : Execute Operations
++OrderService --> ServiceDBs : Update Data
++AlertSystem --> SagaOrchestrator : Monitor Status
++
++SagaOrchestrator --> CompensationQueue : Compensate
++TwoPCCoordinator --> EventQueue : Coordinate
++
++note right of SagaOrchestrator
++  Manages saga workflow
++  Handles compensations
++end note
++
++note right of TwoPCCoordinator
++  Handles prepare phase
++  Manages commit/rollback
++end note
++
++legend right
++Implementation Details:
++==
++Saga Pattern:
++- Event-driven choreography
++- Compensation handling
++- State machine tracking
++
++2PC Implementation:
++- Prepare phase timeout
++- Participant management
++- Recovery procedures
++
++Consistency Guarantees:
++- Eventually consistent
++- Compensation tracking
++- Idempotency support
++
++Performance Features:
++- Parallel execution
++- Timeout management
++- Retry mechanisms
++end legend
++
++@enduml
+\ No newline at end of file
 diff --git a/distributed_web_crawler_with_url_frontier_content_fetching_parsing_and_indexing_pipeline.puml b/distributed_web_crawler_with_url_frontier_content_fetching_parsing_and_indexing_pipeline.puml
 new file mode 100644
 --- /dev/null
@@ -4304,145 +4768,99 @@ diff --git a/dynamodb_distributed_storage_system_with_partitioning_consistency_m
 new file mode 100644
 --- /dev/null
 +++ ./dynamodb_distributed_storage_system_with_partitioning_consistency_models_streams_and_lambda_integration.puml
-@@ -0,0 +1,140 @@
-+@startuml DynamoDB-based Distributed Data Storage System
-+
-+!define RECTANGLE class
-+
+@@ -0,0 +1,94 @@
++@startuml
++skinparam componentStyle rectangle
 +skinparam backgroundColor #FAFAFA
-+skinparam handwritten false
-+skinparam defaultFontName Arial
 +skinparam defaultFontSize 14
-+skinparam roundcorner 10
-+skinparam shadowing false
++skinparam defaultFontName Arial
 +skinparam ArrowColor #2C3E50
-+skinparam ArrowThickness 1.5
++skinparam PackageBackgroundColor #FAFAFA
++skinparam PackageBorderColor #CCCCCC
 +
-+skinparam rectangle {
-+    BorderColor #34495E
-+    BackgroundColor #ECF0F1
-+}
++title DynamoDB-based Distributed Data Storage System
 +
-+skinparam component {
-+    BorderColor #34495E
-+    BackgroundColor #ECF0F1
-+}
-+
-+skinparam note {
-+    BackgroundColor #F1C40F
-+    BorderColor #F39C12
-+}
-+
-+title DynamoDB-based Distributed Data Storage System Design
-+
-+allowmixing
-+!pragma layout dot
-+
-+rectangle "Client Layer" as ClientLayer #E6F3FF {
++package "Client Layer" {
 +    component "Web Application" as WebApp
 +    component "Mobile Application" as MobileApp
 +    component "IoT Device" as IoTDevice
 +}
 +
-+rectangle "API Gateway" as APIGateway #D5E8D4 {
++package "API Gateway" {
 +    component "Request Routing" as RequestRouting
 +    component "Authentication" as Auth
 +    component "Traffic Control" as TrafficControl
 +}
 +
-+rectangle "Application Service" as AppService #FFE6CC {
++package "Application Service" {
 +    component "Business Logic" as BusinessLogic
 +    component "Data Access Layer" as DataAccessLayer
 +}
 +
-+rectangle "DynamoDB" as DynamoDB #DAE8FC {
++package "DynamoDB" {
 +    component "Table Design" as TableDesign
 +    component "Partition Strategy" as PartitionStrategy
 +    component "Consistency Model" as ConsistencyModel
 +}
 +
-+rectangle "DynamoDB Streams" as DynamoDBStreams #F8CECC {
++package "DynamoDB Streams" {
 +    component "Change Capture" as ChangeCapture
 +    component "Event Processing" as EventProcessing
 +}
 +
-+rectangle "Lambda Functions" as LambdaFunctions #E1D5E7 {
++package "Lambda Functions" {
 +    component "Stream Processing" as StreamProcessing
 +    component "Data Transformation" as DataTransformation
 +    component "Triggers" as Triggers
 +}
 +
-+rectangle "Cache Layer" as CacheLayer #FFF2CC {
++package "Cache Layer" {
 +    component "ElastiCache" as ElastiCache
 +    component "DAX" as DAX
 +}
 +
-+rectangle "Data Analysis" as DataAnalysis #D5E8D4 {
++package "Data Analysis" {
 +    component "Athena" as Athena
 +    component "Redshift" as Redshift
 +}
 +
-+rectangle "Monitoring" as Monitoring #FFE6CC {
++package "Monitoring" {
 +    component "CloudWatch" as CloudWatch
 +    component "AWS Config" as AWSConfig
 +}
 +
-+rectangle "Security" as Security #F8CECC {
++package "Security" {
 +    component "IAM" as IAM
 +    component "KMS" as KMS
 +    component "VPC" as VPC
 +}
 +
-+ClientLayer -[#3498DB,thickness=2]-> APIGateway : <color:#3498DB>1. API Request
-+APIGateway -[#3498DB,thickness=2]-> AppService : <color:#3498DB>2. Route Request
-+AppService -[#3498DB,thickness=2]-> DynamoDB : <color:#3498DB>3. Query/Update Data
-+AppService -[#2ECC71,thickness=2]-> CacheLayer : <color:#2ECC71>4. Cache Access
-+DynamoDB -[#E74C3C,thickness=2,dashed]-> DynamoDBStreams : <color:#E74C3C>5. Stream Changes
-+DynamoDBStreams -[#E74C3C,thickness=2,dashed]-> LambdaFunctions : <color:#E74C3C>6. Trigger Functions
-+DynamoDB -[#9B59B6,thickness=2,dotted]-> DataAnalysis : <color:#9B59B6>7. Analyze Data
-+DynamoDB .[#F39C12,thickness=2].> Monitoring : <color:#F39C12>8. Monitor Performance
-+Security -[#1ABC9C,thickness=2]-> DynamoDB : <color:#1ABC9C>9. Secure Access
++WebApp --> RequestRouting : 1. API Request
++MobileApp --> RequestRouting
++IoTDevice --> RequestRouting
 +
-+note right of TableDesign
-+  Table Design:
-+  - Avoid hot partitions
-+  - Optimize for query patterns
-+  - Support multiple access patterns
-+end note
++RequestRouting --> BusinessLogic : 2. Route Request
++Auth --> BusinessLogic
++TrafficControl --> BusinessLogic
 +
-+note right of PartitionStrategy
-+  Partition Strategy:
-+  - Even data distribution
-+  - Prevent partition skew
-+  - Efficient query support
-+end note
++BusinessLogic --> TableDesign : 3. Query/Update Data
++DataAccessLayer --> TableDesign
 +
-+note right of ConsistencyModel
-+  Consistency Model:
-+  - Balance performance & consistency
-+  - Choose per business needs
-+end note
++BusinessLogic --> ElastiCache : 4. Cache Access
++BusinessLogic --> DAX
 +
-+note bottom of CacheLayer
-+  Caching Strategy:
-+  - Optimize read-heavy workloads
-+  - Reduce DynamoDB load
-+  - Lower overall latency
-+end note
++TableDesign ..> ChangeCapture : 5. Stream Changes
++ChangeCapture ..> StreamProcessing : 6. Trigger Functions
 +
-+note left of LambdaFunctions
-+  Lambda Use Cases:
-+  - Real-time processing
-+  - Data synchronization
-+  - Event-driven notifications
-+end note
++TableDesign ..> Athena : 7. Analyze Data
++TableDesign ..> Redshift
 +
-+note bottom of Security
-+  Security Measures:
-+  - Fine-grained access control
-+  - End-to-end encryption
-+  - Network isolation
-+end note
++TableDesign ..> CloudWatch : 8. Monitor Performance
++TableDesign ..> AWSConfig
++
++IAM --> TableDesign : 9. Secure Access
++KMS --> TableDesign
++VPC --> TableDesign
 +
 +@enduml
 diff --git a/e_commerce_system_architecture_with_microservices_payment_and_recommendation.puml b/e_commerce_system_architecture_with_microservices_payment_and_recommendation.puml
@@ -6753,7 +7171,7 @@ diff --git a/map.txt b/map.txt
 new file mode 100644
 --- /dev/null
 +++ ./map.txt
-@@ -0,0 +1,187 @@
+@@ -0,0 +1,197 @@
 +1. 分布式系统
 +    blockchain_system_detailed_architecture_with_components.puml
 +    kubernetes_based_container_orchestration_system_architecture.puml
@@ -6921,6 +7339,7 @@ new file mode 100644
 +
 +37. 限流系统
 +    architecture_diagrams/rate_limiting_system_design_with_token_bucket_and_leaky_bucket_algorithms.puml
++    distributed_rate_limiter_system_with_multiple_algorithms_and_redis.puml
 +
 +38. CAP理论
 +    architecture_diagrams/cap_theory_diagram_with_practical_examples.puml
@@ -6941,6 +7360,15 @@ new file mode 100644
 +
 +43. 地理信息系统
 +    large_scale_geographic_information_system_architecture_with_microservices_and_spatial_data_processing.puml
++
++44. Session Management
++    distributed_session_management_system_with_redis_cluster.puml
++
++45. Distributed Transactions
++    distributed_transaction_system_with_saga_pattern.puml
++
++46. Real-time Analytics
++    real_time_data_analytics_platform_with_stream_processing.puml
 diff --git a/microservices_architecture_and_service_discovery.puml b/microservices_architecture_and_service_discovery.puml
 new file mode 100644
 --- /dev/null
@@ -7402,6 +7830,822 @@ new file mode 100644
 +end note
 +
 +@enduml
+diff --git a/plantumlmacviewer/.gitignore b/plantumlmacviewer/.gitignore
+new file mode 100644
+--- /dev/null
++++ ./plantumlmacviewer/.gitignore
+@@ -0,0 +1,4 @@
++go.sum
++plantumlviewerserver.log
++plantuml_viewer_env/
++send_paths.log
+diff --git a/plantumlmacviewer/central_app.py b/plantumlmacviewer/central_app.py
+new file mode 100644
+--- /dev/null
++++ ./plantumlmacviewer/central_app.py
+@@ -0,0 +1,391 @@
++from PyQt5.QtWidgets import (
++    QDesktopWidget,
++    QApplication,
++    QMainWindow,
++    QScrollArea,
++    QLabel,
++    QShortcut,
++    QFileDialog,
++    QSizePolicy,
++)
++
++from PyQt5.QtCore import (
++    Qt,
++    pyqtSignal,
++    QEvent,
++    QCoreApplication,
++)
++from PyQt5.QtGui import QPixmap, QImage, QKeySequence
++from PyQt5.QtCore import Qt, pyqtSignal, QEvent, QCoreApplication
++from watchdog.observers import Observer
++import sys
++import tempfile
++import threading
++import socket
++import os
++from events import OpenWindowEvent
++from file_change_handler import FileChangeHandler
++from logger import setup_logging
++import logging
++import subprocess
++from PyQt5.QtWidgets import QApplication, QMainWindow
++from PyQt5.QtCore import QTimer
++import os
++import glob
++
++# 使用 pyobjc 导入 AppKit
++from AppKit import NSWorkspace, NSApplicationActivateIgnoringOtherApps
++
++setup_logging()
++logging.info("central_app.py 日志系统初始化完成")
++
++
++class CentralApp(QApplication):
++    def __init__(self, argv):
++        logging.debug("开始初始化 CentralApp")
++        super().__init__(argv)
++        self.windows = []
++        self.fileWindowMap = {}
++        self.observers = {}
++        self.socketThread = None
++        logging.debug("CentralApp 初始化完成")
++
++    def start(self):
++        logging.debug("准备启动套接字监听线程")
++        self.socketThread = threading.Thread(target=self.listenToSocket)
++        self.socketThread.daemon = True
++        self.socketThread.start()
++        logging.debug("套接字监听线程启动完成")
++
++    def createNewWindow(self, filePath):
++        logging.debug(f"创建新窗口，文件路径：{filePath}")
++        new_window = UMLViewer(self)
++        self.windows.append(new_window)
++        new_window.show()
++        new_window.raise_()
++        new_window.activateWindow()
++        new_window.loadAndDisplayUML(filePath)
++        self.fileWindowMap[filePath] = new_window
++        self.startFileWatcher(filePath, new_window)
++        return new_window
++
++    def listenToSocket(self):
++        host = "localhost"
++        port = 12345
++
++        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
++            s.bind((host, port))
++            s.listen()
++            logging.info(f"Listening on {host}:{port}")
++
++            while True:
++                try:
++                    conn, addr = s.accept()
++                    with conn:
++                        logging.info(f"Connected by {addr}")
++                        data = conn.recv(4096).decode().strip()
++                        file_paths = data.split("\n")
++                        logging.info(f"Received file paths: {file_paths}")
++                        for file_path in file_paths:
++                            QCoreApplication.postEvent(
++                                self, OpenWindowEvent([file_path])
++                            )
++                except Exception as e:
++                    logging.error(f"Socket error: {str(e)}")
++
++    def customEvent(self, event):
++        logging.debug(f"customEvent triggered with event type: {event.type()}")
++        if event.type() == OpenWindowEvent.EVENT_TYPE:
++            for filePath in event.filePaths:
++                try:
++                    self.openOrActivateWindow(filePath)
++                except Exception as e:
++                    logging.error(
++                        f"Error opening or activating window for {filePath}: {str(e)}"
++                    )
++
++    def openOrActivateWindow(self, filePath):
++        logging.debug(f"openOrActivateWindow called with filePath: {filePath}")
++        try:
++            if filePath and not filePath.startswith("fugitive:///"):
++                filePath = os.path.abspath(filePath)
++
++            if filePath in self.fileWindowMap:
++                window = self.fileWindowMap[filePath]
++                logging.info(f"Activating existing window for {filePath}")
++                window.raise_()
++                window.activateWindow()
++                QCoreApplication.processEvents()
++            else:
++                self.createNewWindow(filePath)
++
++        except Exception as e:
++            logging.error(f"Error in openOrActivateWindow: {str(e)}")
++
++    def startFileWatcher(self, filePath, viewer):
++        logging.debug(f"startFileWatcher called with filePath: {filePath}")
++        if not filePath.startswith("fugitive:///"):
++            filePath = os.path.abspath(filePath)
++        directory = os.path.dirname(filePath)
++
++        if directory in self.observers:
++            event_handler = FileChangeHandler(viewer, filePath)
++            self.observers[directory].schedule(
++                event_handler, directory, recursive=False
++            )
++        else:
++            observer = Observer()
++            self.observers[directory] = observer
++            event_handler = FileChangeHandler(viewer, filePath)
++            observer.schedule(event_handler, directory, recursive=False)
++            observer.start()
++
++    def exec_(self):
++        logging.info("Entering main event loop")
++        try:
++            return super().exec_()
++        except Exception as e:
++            logging.critical(f"Unhandled exception in main loop: {str(e)}")
++            return 1
++
++
++class UMLViewer(QMainWindow):
++    focusSignal = pyqtSignal()
++
++    def setFocusToApp(self, appName):
++        try:
++            ws = NSWorkspace.sharedWorkspace()
++            running_apps = ws.runningApplications()
++            for app in running_apps:
++                if app.localizedName() == appName:
++                    app.activateWithOptions_(
++                        NSApplicationActivateIgnoringOtherApps
++                    )
++                    break
++        except Exception as e:
++            logging.error(f"Error setting focus to app {appName}: {str(e)}")
++
++    def __init__(self, centralApp):
++        logging.debug("开始初始化 UMLViewer")
++        super().__init__()
++        self.centralApp = centralApp
++        self.previousApp = None
++        self.initUI()
++        self.focusSignal.connect(self.postFocusProcessing)
++        logging.debug("UMLViewer 初始化完成")
++
++    def initUI(self):
++        logging.debug("开始初始化 UI")
++        self.setWindowTitle("PlantUML Viewer")
++        self.setGeometry(100, 100, 800, 600)
++        logging.debug("UI 初始化完成")
++
++        # 容纳UML图像的滚动区域
++        self.scrollArea = QScrollArea(self)
++        self.setCentralWidget(self.scrollArea)
++
++        # UML图像标签
++        self.imageLabel = QLabel()
++        self.imageLabel.setAlignment(Qt.AlignCenter)  # 居中对齐
++
++        # 设置图像的尺寸策略，使其能够根据可用空间自动调整大小
++        self.imageLabel.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
++        self.imageLabel.setScaledContents(True)  # 允许图像根据标签大小缩放
++        self.scrollArea.setWidget(self.imageLabel)
++        self.scrollArea.setWidgetResizable(True)  # 允许滚动区域适应内容大小
++
++        # 设置快捷键
++        self.setupShortcuts()
++
++        # 将窗口放置在当前显示器上
++        self.move_to_current_screen()
++
++        # 窗口最大化
++        self.showMaximized()
++
++    def move_to_current_screen(self):
++        screen = QApplication.desktop().primaryScreen()
++        rect = QApplication.desktop().screenGeometry(screen)
++        self.setGeometry(rect)
++
++    def setupShortcuts(self):
++        # 打开文件快捷键
++        self.openFileShortcut = QShortcut(QKeySequence("Ctrl+O"), self)
++        self.openFileShortcut.activated.connect(self.openFile)
++        logging.debug("Open file shortcut (Ctrl+O) set up")
++
++        # 关闭窗口快捷键
++        self.closeWindowShortcut = QShortcut(QKeySequence("Ctrl+W"), self)
++        self.closeWindowShortcut.activated.connect(self.close)
++        logging.debug("Close window shortcut (Ctrl+W) set up")
++
++        # 添加复制窗口截图到剪贴板的快捷键（Command+C）
++        self.copyShortcut = QShortcut(QKeySequence("Ctrl+C"), self)
++        self.copyShortcut.activated.connect(self.copyWindowToClipboard)
++        logging.debug("Copy window shortcut (Command+C) set up")
++
++    def openFile(self):
++        # 修改 openFile 方法以支持在新窗口中打开文件
++        filePath, _ = QFileDialog.getOpenFileName(
++            self, "Open file", "", "PlantUML files (*.puml)"
++        )
++        if not filePath.startswith("fugitive:///"):
++            # 确保路径是规范化的
++            filePath = os.path.abspath(filePath)
++            self.centralApp.openNewWindow(filePath)
++
++    def loadAndDisplayUML(self, filePath):
++        temp_dir = None
++        try:
++            self.previousApp = self.getActiveAppName()
++            self.setFocusPolicy(Qt.NoFocus)
++            # 在加载 UML 之前，设置窗口标题为文件名
++            self.setWindowTitle(os.path.basename(filePath))
++            plantuml_jar_path = self.get_plantuml_jar_path()
++
++            temp_dir = tempfile.mkdtemp()
++            base_name = os.path.basename(filePath)
++            png_name = (
++                base_name.replace(".puml", "").replace(" ", "_") + ".png"
++            )
++            temp_png_path = os.path.join(temp_dir, png_name)
++
++            command = [
++                "java",
++                "-jar",
++                plantuml_jar_path,
++                "-tpng",
++                "-o",
++                temp_dir,
++                filePath,
++            ]
++            logging.info(f"Running command: {' '.join(command)}")
++            result = subprocess.run(command, capture_output=True, text=True)
++            logging.info(f"PlantUML return code: {result.returncode}")
++            logging.info(f"PlantUML Output: {result.stdout}")
++            logging.info(f"PlantUML Error Output: {result.stderr}")
++            logging.info(f"Temp directory contents: {os.listdir(temp_dir)}")
++
++            # 查找生成的PNG文件
++            generated_files = [
++                f for f in os.listdir(temp_dir) if f.endswith(".png")
++            ]
++            if not generated_files:
++                raise FileNotFoundError(f"No PNG file generated in {temp_dir}")
++
++            actual_png_path = os.path.join(temp_dir, generated_files[0])
++            logging.info(f"Found generated PNG file: {actual_png_path}")
++
++            if os.path.getsize(actual_png_path) == 0:
++                raise ValueError(
++                    f"Generated PNG file is empty: {actual_png_path}"
++                )
++
++            self.displayImage(actual_png_path)
++
++        except subprocess.CalledProcessError as e:
++            logging.exception(f"Error during subprocess execution: {e}")
++            self.imageLabel.setText(f"Error generating UML diagram: {e}")
++        except FileNotFoundError as e:
++            logging.exception(f"File not found: {e}")
++            self.imageLabel.setText(f"Error: {e}")
++        except ValueError as e:
++            logging.exception(f"Invalid file: {e}")
++            self.imageLabel.setText(f"Error: {e}")
++        except Exception as e:
++            logging.exception(f"Unexpected error: {e}")
++            self.imageLabel.setText(f"An unexpected error occurred: {e}")
++        finally:
++            self.focusSignal.emit()
++            if temp_dir and os.path.exists(temp_dir):
++                try:
++                    import shutil
++
++                    shutil.rmtree(temp_dir)
++                except Exception as e:
++                    logging.error(f"Error removing temp dir: {e}")
++
++    def get_plantuml_jar_path(self):
++        plantuml_base_path = "/usr/local/Cellar/plantuml/"
++        latest_version_path = max(
++            glob.glob(os.path.join(plantuml_base_path, "*/")),
++            key=os.path.getmtime,
++        )
++        return os.path.join(latest_version_path, "libexec/plantuml.jar")
++
++    def displayImage(self, imagePath):
++        logging.info(f"Loading PNG file: {imagePath}")
++        self.imageLabel.clear()  # 清空现有图像
++        image = QImage(imagePath)
++        if not image.isNull():
++            pixmap = QPixmap.fromImage(image)
++            self.imageLabel.setPixmap(pixmap)
++            logging.info("Image updated successfully.")
++        else:
++            error_msg = f"Failed to load the generated image: {imagePath}"
++            logging.error(error_msg)
++            self.imageLabel.setText(error_msg)
++
++    def postFocusProcessing(self):
++        try:
++            self.raise_()
++            self.activateWindow()
++            QApplication.processEvents()
++            if self.previousApp:
++                self.setFocusToApp(self.previousApp)
++            self.previousApp = None
++        except Exception as e:
++            logging.error(f"Error in postFocusProcessing: {str(e)}")
++
++    def getActiveAppName(self):
++        ws = NSWorkspace.sharedWorkspace()
++        frontmostApp = ws.frontmostApplication()
++        return frontmostApp.localizedName()
++
++    def copyWindowToClipboard(self):
++        try:
++            logging.info("开始复制窗口截图到剪贴板")
++            # 截取当前窗口的截图
++            pixmap = self.grab()
++            if pixmap.isNull():
++                logging.error("截图失败，pixmap 为空")
++                return
++
++            # 获取系统剪贴板
++            clipboard = QApplication.clipboard()
++            # 将截图复制到剪贴板
++            clipboard.setPixmap(pixmap, mode=clipboard.Clipboard)
++            logging.info("窗口截图已复制到剪贴板")
++        except Exception as e:
++            logging.exception(f"复制窗口截图到剪贴板时发生异常: {e}")
++
++    def closeEvent(self, event):
++        logging.debug("Close event triggered")
++        # Remove this window from the centralApp's windows list
++        if self in self.centralApp.windows:
++            self.centralApp.windows.remove(self)
++
++        # Remove this window from the fileWindowMap
++        for file_path, window in list(self.centralApp.fileWindowMap.items()):
++            if window == self:
++                del self.centralApp.fileWindowMap[file_path]
++
++        # Accept the close event
++        event.accept()
++
++
++def main():
++    logging.info("central_app.py 开始执行")
++    try:
++        app = CentralApp(sys.argv)
++        app.start()  # 只启动套接字监听线程，不创建初始窗口
++        return app.exec_()
++    except Exception as e:
++        logging.exception(f"发生未处理的异常: {str(e)}")
++        return 1
++    finally:
++        logging.info("central_app.py 执行结束")
++
++
++if __name__ == "__main__":
++    sys.exit(main())
+diff --git a/plantumlmacviewer/events.py b/plantumlmacviewer/events.py
+new file mode 100644
+--- /dev/null
++++ ./plantumlmacviewer/events.py
+@@ -0,0 +1,9 @@
++from PyQt5.QtCore import QEvent
++
++
++class OpenWindowEvent(QEvent):
++    EVENT_TYPE = QEvent.Type(QEvent.registerEventType())
++
++    def __init__(self, filePaths):
++        super().__init__(OpenWindowEvent.EVENT_TYPE)
++        self.filePaths = filePaths  # filePaths 现在是一个列表
+diff --git a/plantumlmacviewer/file_change_handler.py b/plantumlmacviewer/file_change_handler.py
+new file mode 100644
+--- /dev/null
++++ ./plantumlmacviewer/file_change_handler.py
+@@ -0,0 +1,12 @@
++from watchdog.events import FileSystemEventHandler
++
++
++class FileChangeHandler(FileSystemEventHandler):
++    def __init__(self, viewer, filePath):
++        super().__init__()
++        self.viewer = viewer
++        self.filePath = filePath
++
++    def on_modified(self, event):
++        if event.src_path == self.filePath:
++            self.viewer.loadAndDisplayUML(self.filePath)
+diff --git a/plantumlmacviewer/go.mod b/plantumlmacviewer/go.mod
+new file mode 100644
+--- /dev/null
++++ ./plantumlmacviewer/go.mod
+@@ -0,0 +1,35 @@
++module myGoProject
++
++go 1.21.4
++
++require fyne.io/fyne/v2 v2.4.1
++
++require (
++	fyne.io/systray v1.10.1-0.20230722100817-88df1e0ffa9a // indirect
++	github.com/davecgh/go-spew v1.1.1 // indirect
++	github.com/fredbi/uri v1.0.0 // indirect
++	github.com/fsnotify/fsnotify v1.6.0 // indirect
++	github.com/fyne-io/gl-js v0.0.0-20220119005834-d2da28d9ccfe // indirect
++	github.com/fyne-io/glfw-js v0.0.0-20220120001248-ee7290d23504 // indirect
++	github.com/fyne-io/image v0.0.0-20220602074514-4956b0afb3d2 // indirect
++	github.com/go-gl/gl v0.0.0-20211210172815-726fda9656d6 // indirect
++	github.com/go-gl/glfw/v3.3/glfw v0.0.0-20221017161538-93cebf72946b // indirect
++	github.com/go-text/render v0.0.0-20230619120952-35bccb6164b8 // indirect
++	github.com/go-text/typesetting v0.0.0-20230616162802-9c17dd34aa4a // indirect
++	github.com/godbus/dbus/v5 v5.1.0 // indirect
++	github.com/gopherjs/gopherjs v1.17.2 // indirect
++	github.com/jsummers/gobmp v0.0.0-20151104160322-e2ba15ffa76e // indirect
++	github.com/pmezard/go-difflib v1.0.0 // indirect
++	github.com/srwiley/oksvg v0.0.0-20221011165216-be6e8873101c // indirect
++	github.com/srwiley/rasterx v0.0.0-20220730225603-2ab79fcdd4ef // indirect
++	github.com/stretchr/testify v1.8.4 // indirect
++	github.com/tevino/abool v1.2.0 // indirect
++	github.com/yuin/goldmark v1.5.5 // indirect
++	golang.org/x/image v0.11.0 // indirect
++	golang.org/x/mobile v0.0.0-20230531173138-3c911d8e3eda // indirect
++	golang.org/x/net v0.14.0 // indirect
++	golang.org/x/sys v0.11.0 // indirect
++	golang.org/x/text v0.12.0 // indirect
++	gopkg.in/yaml.v3 v3.0.1 // indirect
++	honnef.co/go/js/dom v0.0.0-20210725211120-f030747120f2 // indirect
++)
+diff --git a/plantumlmacviewer/logger.py b/plantumlmacviewer/logger.py
+new file mode 100644
+--- /dev/null
++++ ./plantumlmacviewer/logger.py
+@@ -0,0 +1,18 @@
++import logging
++import os
++
++
++def setup_logging():
++    # 获取当前文件的绝对路径
++    current_file_path = os.path.abspath(__file__)
++    # 获取当前文件所在的目录
++    current_dir = os.path.dirname(current_file_path)
++    # 创建日志文件路径，位于当前目录下
++    log_file = os.path.join(current_dir, "plantumlviewerserver.log")
++
++    logging.basicConfig(
++        filename=log_file,
++        level=logging.DEBUG,  # 将日志级别设置为DEBUG以捕获所有日志
++        format="%(asctime)s %(levelname)s:%(message)s",
++        filemode="a",  # 追加模式
++    )
+diff --git a/plantumlmacviewer/main.py b/plantumlmacviewer/main.py
+new file mode 100644
+--- /dev/null
++++ ./plantumlmacviewer/main.py
+@@ -0,0 +1,166 @@
++import os
++import sys
++import venv
++import time
++import subprocess
++from logger import setup_logging
++import logging
++import platform
++
++setup_logging()
++
++
++def get_python_executable():
++    """获取合适的Python可执行文件路径"""
++    # 首先尝试使用系统Python
++    system_python = "/usr/bin/python3"
++    if os.path.exists(system_python):
++        return system_python
++
++    # 如果系统Python不存在，尝试使用当前运行的Python
++    return sys.executable
++
++
++def check_venv_health(venv_path):
++    """检查虚拟环境是否健康"""
++    try:
++        python_path = get_venv_python(venv_path)
++        if not os.path.exists(python_path):
++            return False, "Python解释器不存在"
++
++        # 使用pip list检查包是否已安装
++        pip_path = os.path.join(os.path.dirname(python_path), "pip")
++        result = subprocess.run(
++            [pip_path, "list"],
++            capture_output=True,
++            text=True,
++        )
++        
++        if result.returncode != 0:
++            return False, f"无法获取已安装的包列表: {result.stderr}"
++            
++        installed_packages = result.stdout.lower()
++        required_packages = ['pyqt5', 'watchdog', 'pyobjc']
++        
++        for package in required_packages:
++            if package not in installed_packages:
++                return False, f"包 {package} 未安装"
++
++        return True, "虚拟环境正常"
++    except Exception as e:
++        return False, f"检查失败: {str(e)}"
++
++
++def create_or_get_venv(venv_name):
++    """创建或获取虚拟环境，只在必要时重新创建"""
++    current_dir = os.path.dirname(os.path.abspath(__file__))
++    venv_path = os.path.join(current_dir, venv_name)
++
++    if os.path.exists(venv_path):
++        # 检查现有环境是否健康
++        is_healthy, message = check_venv_health(venv_path)
++        if is_healthy:
++            logging.info("使用现有虚拟环境")
++            return venv_path, False
++        else:
++            logging.warning(f"虚拟环境不健康: {message}，将重新创建")
++            # 在删除之前确保没有进程在使用虚拟环境
++            if platform.system() == "Windows":
++                os.system(f'taskkill /F /IM python.exe')
++            else:
++                os.system('pkill -f "python3.*plantuml_viewer_env"')
++            import shutil
++            shutil.rmtree(venv_path)
++
++    logging.info(f"正在创建虚拟环境: {venv_name}")
++    try:
++        python_executable = get_python_executable()
++        subprocess.check_call([python_executable, "-m", "venv", venv_path])
++        return venv_path, True
++    except subprocess.CalledProcessError as e:
++        logging.error(f"创建虚拟环境失败: {str(e)}")
++        raise
++
++
++def get_venv_python(venv_path):
++    if platform.system() == "Windows":
++        return os.path.join(venv_path, "Scripts", "python.exe")
++    else:
++        return os.path.join(venv_path, "bin", "python3")
++
++
++def install_requirements(venv_python):
++    current_dir = os.path.dirname(os.path.abspath(__file__))
++    requirements_path = os.path.join(current_dir, "requirements.txt")
++    if os.path.exists(requirements_path):
++        logging.info("正在安装依赖包...")
++        try:
++            # 先升级pip
++            subprocess.check_call(
++                [venv_python, "-m", "pip", "install", "--upgrade", "pip"]
++            )
++            # 安装依赖
++            subprocess.check_call(
++                [venv_python, "-m", "pip", "install", "-r", requirements_path]
++            )
++        except subprocess.CalledProcessError as e:
++            logging.error(f"安装依赖失败: {str(e)}")
++            raise
++    else:
++        logging.warning("未找到requirements.txt文件。跳过包安装。")
++
++
++def main():
++    logging.info("开始执行main函数")
++    try:
++        venv_name = "plantuml_viewer_env"
++        current_dir = os.path.dirname(os.path.abspath(__file__))
++
++        venv_path, is_new_venv = create_or_get_venv(venv_name)
++        venv_python = get_venv_python(venv_path)
++
++        if is_new_venv:
++            install_requirements(venv_python)
++
++        central_app_path = os.path.join(current_dir, "central_app.py")
++        logging.info(f"准备运行central_app.py，路径：{central_app_path}")
++
++        env = os.environ.copy()
++        if platform.system() == "Windows":
++            site_packages = os.path.join(venv_path, "Lib", "site-packages")
++        else:
++            python_version = (
++                f"{sys.version_info.major}.{sys.version_info.minor}"
++            )
++            site_packages = os.path.join(
++                venv_path, "lib", f"python{python_version}", "site-packages"
++            )
++
++        env["PYTHONPATH"] = f"{site_packages}:{env.get('PYTHONPATH', '')}"
++
++        process = subprocess.Popen(
++            [venv_python, central_app_path],
++            env=env,
++            stdout=subprocess.PIPE,
++            stderr=subprocess.PIPE,
++            universal_newlines=True,
++        )
++
++        time.sleep(2)
++        if process.poll() is not None:
++            stdout, stderr = process.communicate()
++            logging.error(f"central_app.py 启动失败")
++            logging.error(f"标准输出：{stdout}")
++            logging.error(f"错误输出：{stderr}")
++            return 1
++        else:
++            logging.info("central_app.py 成功启动")
++            return 0
++
++    except Exception as e:
++        logging.exception(f"main函数中发生异常: {str(e)}")
++        return 1
++
++
++if __name__ == "__main__":
++    sys.exit(main())
+diff --git a/plantumlmacviewer/readme b/plantumlmacviewer/readme
+new file mode 100644
+--- /dev/null
++++ ./plantumlmacviewer/readme
+@@ -0,0 +1,9 @@
++上面是我的代码.
++他的主要功能是呈现一个或多个puml文件, 每个窗口呈现一个puml文件, 并在文件有修改时重新加载窗口.
++我现在想再加一个功能,
++我是用git来对puml文件进行版本控制, 我想比对修改前后所生成的图像. 
++我想做的功能是, 通过vim script来定义一个命令, 他会先发送一个命令给上面的python代码, 关闭所有其他窗口.
++然后再把当前文件用类似的命令:  git show HEAD:"$1" > "$1".bak 来生成一个临时文件, 
++然后把当前文件, 和临时文件, 两个发给上面的python代码, 让他来做呈现.
++生成需要修改的文件
++回答用中文.
+diff --git a/plantumlmacviewer/requirements.txt b/plantumlmacviewer/requirements.txt
+new file mode 100644
+--- /dev/null
++++ ./plantumlmacviewer/requirements.txt
+@@ -0,0 +1,3 @@
++PyQt5
++watchdog
++pyobjc
+diff --git a/plantumlmacviewer/run_tests.sh b/plantumlmacviewer/run_tests.sh
+new file mode 100755
+--- /dev/null
++++ ./plantumlmacviewer/run_tests.sh
+@@ -0,0 +1,7 @@
++#!/bin/bash
++
++# 确保tests目录存在
++mkdir -p tests
++
++# 运行所有测试
++python3 -m unittest discover -s tests -p "test_*.py" -v 
+\ No newline at end of file
+diff --git a/plantumlmacviewer/tests/test_main.py b/plantumlmacviewer/tests/test_main.py
+new file mode 100644
+--- /dev/null
++++ ./plantumlmacviewer/tests/test_main.py
+@@ -0,0 +1,105 @@
++import os
++import sys
++import unittest
++import shutil
++import tempfile
++from unittest.mock import patch, MagicMock
++
++# 添加父目录到Python路径以导入main模块
++sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
++import main
++
++class TestVirtualEnvironment(unittest.TestCase):
++    def setUp(self):
++        # 创建临时目录用于测试
++        self.test_dir = tempfile.mkdtemp()
++        self.venv_name = "test_venv"
++        self.venv_path = os.path.join(self.test_dir, self.venv_name)
++
++    def tearDown(self):
++        # 清理临时目录
++        shutil.rmtree(self.test_dir)
++
++    def test_get_python_executable(self):
++        # 测试获取Python可执行文件路径
++        python_path = main.get_python_executable()
++        self.assertTrue(os.path.exists(python_path))
++        self.assertTrue('python' in python_path.lower())
++
++    @patch('subprocess.run')
++    def test_check_venv_health_healthy(self, mock_run):
++        # 模拟健康的虚拟环境
++        mock_run.return_value = MagicMock(returncode=0)
++        os.makedirs(os.path.dirname(main.get_venv_python(self.venv_path)), exist_ok=True)
++        
++        is_healthy, message = main.check_venv_health(self.venv_path)
++        self.assertTrue(is_healthy)
++        self.assertEqual(message, "虚拟环境正常")
++
++    @patch('subprocess.run')
++    def test_check_venv_health_unhealthy(self, mock_run):
++        # 模拟不健康的虚拟环境
++        mock_run.return_value = MagicMock(returncode=1, stderr="Import Error")
++        os.makedirs(os.path.dirname(main.get_venv_python(self.venv_path)), exist_ok=True)
++        
++        is_healthy, message = main.check_venv_health(self.venv_path)
++        self.assertFalse(is_healthy)
++        self.assertTrue("依赖包导入失败" in message)
++
++    @patch('subprocess.check_call')
++    @patch('main.check_venv_health')
++    def test_create_or_get_venv_new(self, mock_check_health, mock_check_call):
++        # 测试创建新的虚拟环境
++        venv_path, is_new = main.create_or_get_venv(self.venv_name)
++        self.assertTrue(is_new)
++        mock_check_call.assert_called_once()
++
++    @patch('subprocess.check_call')
++    @patch('main.check_venv_health')
++    def test_create_or_get_venv_existing_healthy(self, mock_check_health, mock_check_call):
++        # 测试使用现有的健康虚拟环境
++        os.makedirs(self.venv_path)
++        mock_check_health.return_value = (True, "虚拟环境正常")
++        
++        venv_path, is_new = main.create_or_get_venv(self.venv_name)
++        self.assertFalse(is_new)
++        mock_check_call.assert_not_called()
++
++    @patch('subprocess.check_call')
++    @patch('main.check_venv_health')
++    def test_create_or_get_venv_existing_unhealthy(self, mock_check_health, mock_check_call):
++        # 测试重新创建不健康的虚拟环境
++        os.makedirs(self.venv_path)
++        mock_check_health.return_value = (False, "依赖包导入失败")
++        
++        venv_path, is_new = main.create_or_get_venv(self.venv_name)
++        self.assertTrue(is_new)
++        mock_check_call.assert_called_once()
++
++    @patch('subprocess.Popen')
++    @patch('main.create_or_get_venv')
++    def test_main_success(self, mock_create_venv, mock_popen):
++        # 测试主函数成功执行
++        mock_create_venv.return_value = (self.venv_path, False)
++        mock_process = MagicMock()
++        mock_process.poll.return_value = None
++        mock_popen.return_value = mock_process
++        
++        result = main.main()
++        self.assertEqual(result, 0)
++
++    @patch('subprocess.Popen')
++    @patch('main.create_or_get_venv')
++    def test_main_failure(self, mock_create_venv, mock_popen):
++        # 测试主函数失败情况
++        mock_create_venv.return_value = (self.venv_path, False)
++        mock_process = MagicMock()
++        mock_process.poll.return_value = 1
++        mock_process.communicate.return_value = ("", "Error")
++        mock_popen.return_value = mock_process
++        
++        result = main.main()
++        self.assertEqual(result, 1)
++
++if __name__ == '__main__':
++    unittest.main() 
+\ No newline at end of file
 diff --git a/rbac_abac_system_with_auditing_and_fine_grained_access_control.puml b/rbac_abac_system_with_auditing_and_fine_grained_access_control.puml
 new file mode 100644
 --- /dev/null
@@ -7711,6 +8955,105 @@ new file mode 100644
 +end note
 +
 +@enduml
+diff --git a/real_time_data_analytics_platform_with_stream_processing.puml b/real_time_data_analytics_platform_with_stream_processing.puml
+new file mode 100644
+--- /dev/null
++++ ./real_time_data_analytics_platform_with_stream_processing.puml
+@@ -0,0 +1,93 @@
++@startuml
++skinparam componentStyle rectangle
++
++package "Real-time Data Analytics Platform" {
++    package "Data Ingestion Layer" {
++        component "Kafka Cluster" as Kafka
++        component "Event Collector" as Collector
++        component "Schema Registry" as SchemaRegistry
++    }
++    
++    package "Stream Processing" {
++        component "Apache Flink" as Flink
++        component "Stream Processor" as Processor
++        component "State Manager" as StateManager
++        component "Window Manager" as WindowManager
++    }
++    
++    package "Storage Layer" {
++        component "Time Series DB" as TSDB
++        component "Data Lake" as DataLake
++        component "Hot Storage" as HotStorage
++        component "Cold Storage" as ColdStorage
++    }
++    
++    package "Analytics Engine" {
++        component "Real-time Analytics" as RealTimeAnalytics
++        component "ML Pipeline" as MLPipeline
++        component "Query Engine" as QueryEngine
++    }
++    
++    package "Serving Layer" {
++        component "API Gateway" as Gateway
++        component "Cache Layer" as Cache
++        component "Query Router" as Router
++    }
++    
++    package "Monitoring & Alerts" {
++        component "Metrics Collector" as Metrics
++        component "Alert Manager" as Alerts
++        component "Dashboard" as Dashboard
++    }
++}
++
++cloud "Data Sources" as Sources
++cloud "Client Applications" as Clients
++
++Sources --> Collector : Raw Data
++Collector --> Kafka : Process Events
++Kafka --> TSDB : Store Results
++RealTimeAnalytics --> TSDB : Query Data
++Gateway --> RealTimeAnalytics : Serve Results
++Metrics --> Flink : Track Metrics
++
++Kafka --> SchemaRegistry : Validate
++Flink --> StateManager : Manage State
++Flink --> WindowManager : Window Ops
++
++note right of Collector
++  High throughput data collection
++  Schema validation
++end note
++
++note right of Flink
++  Real-time processing
++  Stateful operations
++end note
++
++legend right
++Implementation Details:
++==
++Stream Processing:
++- Exactly-once semantics
++- Watermark handling
++- Checkpointing
++- State backends
++
++Storage Strategy:
++- Hot/warm/cold tiers
++- Data lifecycle
++- Compression policies
++
++Performance Features:
++- Adaptive batching
++- Query optimization
++- Cache management
++
++Scalability:
++- Horizontal scaling
++- Partition management
++- Load balancing
++end legend
++
++@enduml
+\ No newline at end of file
 diff --git a/real_time_data_pipeline_with_ingestion_processing_analysis_and_visualization.puml b/real_time_data_pipeline_with_ingestion_processing_analysis_and_visualization.puml
 new file mode 100644
 --- /dev/null
@@ -9386,7 +10729,7 @@ new file mode 100644
 --- /dev/null
 +++ ./test.puml
 @@ -0,0 +1,2 @@
-+@startuml Google Type Ahead System
++@startuml
 +@enduml
 diff --git a/to_ask b/to_ask
 new file mode 100644
@@ -9404,6 +10747,21 @@ new file mode 100644
 +    7: 帮我逐个检查文件名是否能够如实反映文件的内容, 我比较喜欢长一点的文件名，要能够完整的描述这个设计/文件里面cover了哪些东西, 我的目标是快速地用关键词来搜索定位到我想要的文件. 相当于给每个文件打label. 生成修改这些文件名的命令, 把这些命令汇集在一起.
 +    8: 帮我更新 map.txt 文件, 来把文件放到对应的label下, 如果需要, 可以创建新的label, 或者修改删除现有label. 一个文件可以有多个label.
 +
+diff --git a/todo b/todo
+new file mode 100644
+--- /dev/null
++++ ./todo
+@@ -0,0 +1,10 @@
++帮我在当前项目下做以下几件事情, 帮我根据事情的轻重缓急来决定先做什么. 假设我的面试很快就要开始了. 我希望.cursorrules文件的优先级最高.
++    1: 在当前的项目文件夹下, 帮我看看有没有什么遗漏的设计, 对于常见的系统设计面试. 
++        如果有相似的或者接近的或者是相关的现有设计, 如果复杂度不足以应对系统设计面试, 就扩展现有设计，而不是新建一个设计.
++    2: 检查一下当前的所有设计, 看看有没有重复的或者重叠的.
++    3: 检查一下已有设计里面有需要加强优化, 或者还不完整的？ 
++    4: 检查一下已有设计里面是否有过于复杂, 需要分拆的?
++    5: 检查一下已有设计里面有含有中文需要翻译成英文的.
++    6: 在不遗失信息的前提下, .cursorrules文件还能不能再优化, 精简? 还有帮我检查一下, 里面有没有互相矛盾的地方？
++    7: 帮我逐个检查文件名是否能够如实反映文件的内容, 我比较喜欢长一点的文件名，要能够完整的描述这个设计/文件里面cover了哪些东西, 我的目标是快速地用关键词来搜索定位到我想要的文件. 相当于给每个文件打label. 生成修改这些文件名的命令, 把这些命令汇集在一起.
++    8: 帮我更新 map.txt 文件, 来把文件放到对应的label下, 如果需要, 可以创建新的label, 或者修改删除现有label. 一个文件可以有多个label.
 diff --git a/twitter/fetch_new_tweets_detailed_architecture.puml b/twitter/fetch_new_tweets_detailed_architecture.puml
 new file mode 100644
 --- /dev/null

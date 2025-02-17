@@ -1,0 +1,171 @@
+@startuml
+!define RECTANGLE class
+
+skinparam componentStyle rectangle
+skinparam backgroundColor #FFFFFF
+skinparam handwritten false
+
+title 增强型负载均衡系统 - 多区域部署与灾难恢复
+
+package "全局负载均衡层" {
+    RECTANGLE "GeoDNS" as GeoDNS {
+        + 地理位置路由
+        + 区域故障转移
+        + 延迟感知
+    }
+    
+    RECTANGLE "全局流量管理器" as GTM {
+        + 跨区域负载均衡
+        + 区域健康监控
+        + 流量调度策略
+    }
+}
+
+package "区域A - 主区域" {
+    package "边缘层" {
+        RECTANGLE "CDN" as CDN_A
+        RECTANGLE "DDoS防护" as DDoS_A
+        RECTANGLE "WAF" as WAF_A
+    }
+    
+    package "负载均衡核心" {
+        RECTANGLE "负载均衡管理器" as LB_A {
+            + 智能路由
+            + 会话保持
+            + 限流控制
+        }
+        
+        RECTANGLE "熔断器" as CB_A {
+            + 错误率监控
+            + 延迟监控
+            + 自动熔断
+        }
+        
+        RECTANGLE "限流器" as RL_A {
+            + 令牌桶算法
+            + 自适应限流
+            + 用户配额
+        }
+    }
+    
+    package "服务治理" {
+        RECTANGLE "服务注册中心" as SR_A
+        RECTANGLE "配置中心" as Config_A
+        RECTANGLE "健康检查" as HC_A
+    }
+    
+    package "监控与告警" {
+        RECTANGLE "Prometheus" as Prom_A
+        RECTANGLE "Grafana" as Graf_A
+        RECTANGLE "AlertManager" as Alert_A
+    }
+}
+
+package "区域B - 备用区域" {
+    package "边缘层B" {
+        RECTANGLE "CDN" as CDN_B
+        RECTANGLE "DDoS防护" as DDoS_B
+        RECTANGLE "WAF" as WAF_B
+    }
+    
+    package "负载均衡核心B" {
+        RECTANGLE "负载均衡管理器" as LB_B
+        RECTANGLE "熔断器" as CB_B
+        RECTANGLE "限流器" as RL_B
+    }
+    
+    package "服务治理B" {
+        RECTANGLE "服务注册中心" as SR_B
+        RECTANGLE "配置中心" as Config_B
+        RECTANGLE "健康检查" as HC_B
+    }
+}
+
+cloud "用户" as Users
+cloud "后端服务集群A" as Backend_A
+cloud "后端服务集群B" as Backend_B
+
+' 连接关系
+Users --> GeoDNS
+GeoDNS --> GTM
+GTM --> CDN_A
+GTM --> CDN_B
+
+CDN_A --> DDoS_A
+DDoS_A --> WAF_A
+WAF_A --> LB_A
+LB_A --> CB_A
+CB_A --> RL_A
+RL_A --> Backend_A
+
+CDN_B --> DDoS_B
+DDoS_B --> WAF_B
+WAF_B --> LB_B
+LB_B --> CB_B
+CB_B --> RL_B
+RL_B --> Backend_B
+
+' 监控和服务发现连接
+SR_A <--> SR_B : 跨区域同步
+Config_A <--> Config_B : 配置同步
+HC_A --> Backend_A
+HC_B --> Backend_B
+
+Prom_A --> LB_A
+Prom_A --> CB_A
+Prom_A --> RL_A
+Graf_A --> Prom_A
+Alert_A --> Graf_A
+
+note right of GeoDNS
+  智能DNS路由:
+  - 基于用户地理位置
+  - 基于区域负载
+  - 自动故障转移
+end note
+
+note right of LB_A
+  高级负载均衡特性:
+  - 多种均衡算法
+  - 会话亲和性
+  - SSL终止
+  - 请求重写
+end note
+
+note right of CB_A
+  熔断策略:
+  - 错误率阈值
+  - 延迟阈值
+  - 半开状态试探
+  - 自动恢复
+end note
+
+legend right
+实现细节:
+==
+安全机制:
+- 多层安全防护
+- DDoS防护
+- WAF过滤
+- 访问控制
+
+高可用设计:
+- 多区域部署
+- 自动故障转移
+- 数据同步
+- 配置同步
+
+性能优化:
+- CDN加速
+- 智能路由
+- 限流保护
+- 熔断保护
+
+监控告警:
+- 多维度指标
+- 实时监控
+- 智能告警
+- 性能分析
+end legend
+
+@enduml 

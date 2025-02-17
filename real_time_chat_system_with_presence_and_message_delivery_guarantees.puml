@@ -1,0 +1,97 @@
+@startuml Real-time Chat System
+
+!include common_style.puml
+
+title Real-time Chat System with Presence and Message Delivery Guarantees
+
+' Container definition
+rectangle "Client Layer" {
+    component "Web Client" as webClient
+    component "Mobile Client" as mobileClient
+    component "Desktop Client" as desktopClient
+}
+
+rectangle "Load Balancer Layer" {
+    component "API Gateway" as apiGateway
+    component "WebSocket Gateway" as wsGateway
+}
+
+rectangle "Service Layer" {
+    component "Authentication Service" as authService
+    component "Chat Service" as chatService
+    component "Presence Service" as presenceService
+    component "Notification Service" as notificationService
+    component "Message Delivery Service" as deliveryService
+}
+
+rectangle "Real-time Layer" {
+    queue "Message Queue (Kafka)" as messageQueue
+    component "WebSocket Manager" as wsManager
+    component "Push Notification Service" as pushService
+}
+
+rectangle "Storage Layer" {
+    database "User DB\n(PostgreSQL)" as userDB
+    database "Message DB\n(MongoDB)" as messageDB
+    database "Presence Cache\n(Redis)" as presenceCache
+    database "Session Store\n(Redis)" as sessionStore
+}
+
+' Connections
+webClient --> apiGateway
+mobileClient --> apiGateway
+desktopClient --> apiGateway
+webClient --> wsGateway
+mobileClient --> wsGateway
+desktopClient --> wsGateway
+
+apiGateway --> authService
+apiGateway --> chatService
+wsGateway --> wsManager
+
+authService --> userDB
+authService --> sessionStore
+
+chatService --> messageQueue
+chatService --> messageDB
+chatService --> presenceService
+
+presenceService --> presenceCache
+presenceService --> messageQueue
+
+wsManager --> messageQueue
+wsManager --> sessionStore
+wsManager --> presenceCache
+
+messageQueue --> deliveryService
+deliveryService --> messageDB
+deliveryService --> pushService
+
+notificationService --> pushService
+pushService --> mobileClient
+
+note right of presenceService
+  Handles user online/offline status
+  Last seen tracking
+  Typing indicators
+end note
+
+note right of deliveryService
+  Ensures message delivery
+  Handles retry logic
+  Manages acknowledgments
+end note
+
+note right of messageQueue
+  Handles high throughput
+  Message ordering
+  Fault tolerance
+end note
+
+note right of messageDB
+  Stores message history
+  Supports message search
+  Handles media attachments
+end note
+
+@enduml 

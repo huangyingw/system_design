@@ -17,95 +17,53 @@
     }
   },
   "plantUML": {
-    "basicStandards": {
-      "containerDefinition": "Use rectangle for all container definitions",
-      "componentDefinition": "Use component for internal component definitions",
-      "connectionHandling": "Components only inside containers, handle connections outside",
-      "noteRequirements": "Add notes with appropriate positioning",
-      "diagramRequirements": "Create aesthetically pleasing, compact diagrams with high information density",
-      "cacheAnnotation": "Annotate cache components with key-value pairs"
+    "standards": {
+      "components": {
+        "containerStyle": "rectangle",
+        "componentDefinition": "Use component for internal definitions",
+        "connectionHandling": "Components only inside containers, handle connections outside",
+        "cacheAnnotation": "Annotate cache components with key-value pairs"
+      },
+      "layout": {
+        "background": "Light background for better readability",
+        "grouping": "Logical component grouping",
+        "connections": "Minimize crossings, maintain clarity",
+        "notes": "Consistent positioning, clear content"
+      },
+      "colors": {
+        "flows": {
+          "primary": "Deep Orange",
+          "secondary": "Deep Blue",
+          "auxiliary": "Deep Yellow",
+          "management": "Deep Purple",
+          "monitoring": "Deep Cyan"
+        }
+      }
     },
-    "flowAndPerformance": {
-      "connectionLabeling": "Label each connection with sequence numbers to show flow order",
-      "performanceNotes": "Add notes for performance bottlenecks and optimization suggestions"
-    },
-    "designAndLayout": {
-      "backgroundRequirement": "Avoid white backgrounds to reduce eye strain",
-      "designConsideration": "Consider optimization and scalability for long interview discussions",
-      "layoutRequirements": [
-        "Ensure clear layout with logical component grouping",
-        "Keep connections simple and minimize crossings",
-        "Maintain consistent note positioning",
-        "Use appropriate colors to distinguish different component types and flows",
-        "Enhance overall readability for extended viewing and discussion"
-      ]
-    },
-    "colorScheme": {
-      "primaryFlow": "Deep Orange",
-      "secondaryFlow": "Deep Blue",
-      "auxiliaryFlow": "Deep Yellow",
-      "managementFlow": "Deep Purple",
-      "monitoringFlow": "Deep Cyan",
-      "backgroundColor": "Maintain light background for better readability"
-    },
-    "designModificationPrinciples": [
-      "Avoid major changes to current version unless explicitly requested",
-      "Prioritize minor optimizations of existing components",
-      "Focus on functional enhancements when suggesting improvements",
-      "Seek confirmation before implementing significant modifications"
+    "designPrinciples": [
+      "Prioritize readability and clarity",
+      "Focus on system interactions and data flow",
+      "Include performance considerations",
+      "Show scalability aspects",
+      "Highlight security measures"
     ],
-    "errorCheckingProcess": {
-      "checkingTiming": "After each generation or modification of puml files",
-      "checkItems": [
-        "Syntax error validation",
-        "Component connection integrity check",
-        "Naming convention verification",
-        "Layout rationality assessment",
-        "Diagram compilation validation",
-        "Connection consistency check"
-      ],
-      "errorHandling": [
-        "Automatic error detection",
-        "Provide specific error location and description",
-        "Implement automatic fixes for all detected errors",
-        "Repeat error checking and fixing until no errors remain",
-        "Verify fixes do not introduce new issues"
-      ],
+    "qualityControl": {
+      "checkTiming": "After each generation or modification",
       "validationSteps": [
-        "Verify file compilation",
-        "Validate component relationships",
-        "Confirm annotation completeness",
-        "Check style compliance",
-        "Ensure all text is in English",
-        "Validate diagram structure integrity",
-        "Test automatic layout optimization"
+        "Syntax validation",
+        "Component relationships",
+        "Style compliance",
+        "Diagram structure",
+        "Text consistency"
       ],
-      "autoFixProcess": {
-        "iterativeFixing": true,
-        "fixPriorities": [
+      "autoFix": {
+        "enabled": true,
+        "priorities": [
           "Syntax errors",
           "Connection issues",
-          "Component placement",
-          "Style violations",
-          "Layout optimization"
+          "Style violations"
         ],
-        "verificationAfterFix": true,
-        "syntaxCheckCommand": "plantuml {filename} -syntax",
-        "renderCommand": "plantuml {filename}",
-        "commonSyntaxFixes": [
-          "Remove extra spaces and empty lines",
-          "Use proper package/component nesting",
-          "Fix color definitions",
-          "Ensure proper skinparam settings",
-          "Check component and connection definitions"
-        ],
-        "postEditChecks": [
-          "Run syntax check immediately after any edit",
-          "Verify diagram renders correctly",
-          "Check for any warning messages",
-          "Validate all components are properly connected",
-          "Ensure no orphaned elements exist"
-        ]
+        "verification": true
       }
     }
   },

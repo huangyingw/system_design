@@ -1,0 +1,100 @@
+@startuml Real-time Collaborative Editing System
+
+!include common_style.puml
+
+title Real-time Collaborative Editing System with Operational Transformation
+
+rectangle "Client Layer" {
+    component "Web Editor" as webEditor
+    component "Mobile Editor" as mobileEditor
+    component "Desktop Client" as desktopClient
+}
+
+rectangle "Gateway Layer" {
+    component "API Gateway" as apiGateway
+    component "WebSocket Gateway" as wsGateway
+    component "Authentication Service" as authService
+}
+
+rectangle "Collaboration Core" {
+    component "Operation Transformer" as opTransformer
+    component "Conflict Resolver" as conflictResolver
+    component "Version Controller" as versionController
+    queue "Operation Queue\n(Redis Stream)" as opQueue
+}
+
+rectangle "Document Management" {
+    component "Document Service" as docService
+    component "Permission Service" as permissionService
+    component "History Service" as historyService
+    component "Search Service" as searchService
+}
+
+rectangle "Storage Layer" {
+    database "Document Store\n(MongoDB)" as docStore
+    database "Operation Log\n(MongoDB)" as opLog
+    database "User Data\n(PostgreSQL)" as userDB
+    database "Search Index\n(Elasticsearch)" as searchIndex
+}
+
+rectangle "Real-time Components" {
+    component "Presence Service" as presenceService
+    component "Cursor Tracker" as cursorTracker
+    component "Change Broadcaster" as changeBroadcaster
+    database "Session Store\n(Redis)" as sessionStore
+}
+
+' Connections
+webEditor --> apiGateway
+mobileEditor --> apiGateway
+desktopClient --> apiGateway
+webEditor --> wsGateway
+mobileEditor --> wsGateway
+desktopClient --> wsGateway
+
+apiGateway --> authService
+wsGateway --> presenceService
+wsGateway --> opTransformer
+
+opTransformer --> opQueue
+opQueue --> conflictResolver
+conflictResolver --> versionController
+versionController --> docService
+
+docService --> docStore
+docService --> opLog
+docService --> searchService
+searchService --> searchIndex
+
+presenceService --> sessionStore
+cursorTracker --> sessionStore
+changeBroadcaster --> wsGateway
+
+permissionService --> userDB
+historyService --> opLog
+
+note right of opTransformer
+  Operational Transformation
+  CRDT implementation
+  Consistency maintenance
+end note
+
+note right of conflictResolver
+  Conflict detection
+  Resolution strategies
+  State reconciliation
+end note
+
+note right of docService
+  Document versioning
+  Change persistence
+  Access control
+end note
+
+note right of presenceService
+  User presence tracking
+  Cursor position sync
+  Real-time updates
+end note
+
+@enduml 

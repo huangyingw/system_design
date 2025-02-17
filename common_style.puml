@@ -1,35 +1,54 @@
-@startuml
+@startuml Common Style
 
-' Colors
-!define BLUE #1E90FF
-!define GREEN #32CD32
-!define ORANGE #FFA500
-!define RED #FF4500
-!define PURPLE #9370DB
-!define GRAY #A9A9A9
-
-' Common styles
-skinparam componentStyle rectangle
-skinparam backgroundColor #FAFAFA
-skinparam defaultFontSize 14
+' Set the default style for all diagrams
+skinparam backgroundColor white
+skinparam handwritten false
 skinparam defaultFontName Arial
-skinparam ArrowColor #2C3E50
-skinparam PackageBackgroundColor #FAFAFA
-skinparam PackageBorderColor #CCCCCC
-    
+skinparam defaultFontSize 14
+
+' Component styles
 skinparam component {
+    BackgroundColor #FEFECE
     BorderColor #666666
-    BackgroundColor #FFFFFF
+    FontColor #000000
 }
-    
+
+' Database styles
+skinparam database {
+    BackgroundColor #F8F8F8
+    BorderColor #666666
+    FontColor #000000
+}
+
+' Queue styles
+skinparam queue {
+    BackgroundColor #FFEFDB
+    BorderColor #666666
+    FontColor #000000
+}
+
+' Rectangle styles
+skinparam rectangle {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+    FontColor #000000
+}
+
+' Arrow styles
+skinparam arrow {
+    Color #666666
+    FontColor #666666
+}
+
+' Note styles
 skinparam note {
-    BorderColor #666666
-    BackgroundColor #FFFFCC
+    BackgroundColor #FFF3E0
+    BorderColor #E65100
+    FontColor #000000
 }
-    
-skinparam package {
-    BorderColor #666666
-    BackgroundColor #FFFFFF
-}
+
+' Padding and spacing
+skinparam padding 8
+skinparam margin 10
 
 @enduml 

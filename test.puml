@@ -1,10 +1,2 @@
 @startuml
-skinparam componentStyle rectangle
-
-package "Test System" {
-    component "Component A" as CompA
-    component "Component B" as CompB
-}
-
-CompA --> CompB : Test
 @enduml

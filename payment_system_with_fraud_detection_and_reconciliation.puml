@@ -1,0 +1,101 @@
+@startuml Payment System
+
+!include common_style.puml
+
+title Payment System with Fraud Detection and Reconciliation
+
+rectangle "Client Layer" {
+    component "Payment Gateway API" as apiGateway
+    component "Merchant Portal" as merchantPortal
+    component "Admin Dashboard" as adminDashboard
+}
+
+rectangle "Payment Processing" {
+    component "Payment Orchestrator" as paymentOrchestrator
+    component "Payment Processor" as paymentProcessor
+    component "Payment Router" as paymentRouter
+    queue "Payment Queue\n(Kafka)" as paymentQueue
+}
+
+rectangle "Risk Management" {
+    component "Fraud Detection" as fraudDetection
+    component "Risk Scorer" as riskScorer
+    component "Rule Engine" as ruleEngine
+    database "Risk Rules\n(MongoDB)" as riskRules
+}
+
+rectangle "Payment Providers" {
+    component "Credit Card Provider" as ccProvider
+    component "Bank Transfer" as bankTransfer
+    component "Digital Wallet" as digitalWallet
+    component "Provider Adapter" as providerAdapter
+}
+
+rectangle "Storage Layer" {
+    database "Transaction DB\n(PostgreSQL)" as transactionDB
+    database "Account DB\n(PostgreSQL)" as accountDB
+    database "Audit Log\n(MongoDB)" as auditLog
+    database "Cache\n(Redis)" as cacheLayer
+}
+
+rectangle "Reconciliation" {
+    component "Transaction Matcher" as txnMatcher
+    component "Settlement Service" as settlementService
+    component "Reporting Service" as reportingService
+    database "Settlement DB\n(PostgreSQL)" as settlementDB
+}
+
+' Connections
+apiGateway --> paymentOrchestrator
+merchantPortal --> apiGateway
+adminDashboard --> apiGateway
+
+paymentOrchestrator --> fraudDetection
+paymentOrchestrator --> paymentQueue
+paymentQueue --> paymentProcessor
+
+fraudDetection --> riskScorer
+riskScorer --> ruleEngine
+ruleEngine --> riskRules
+
+paymentProcessor --> paymentRouter
+paymentRouter --> providerAdapter
+providerAdapter --> ccProvider
+providerAdapter --> bankTransfer
+providerAdapter --> digitalWallet
+
+paymentProcessor --> transactionDB
+paymentProcessor --> accountDB
+paymentProcessor --> auditLog
+paymentProcessor --> cacheLayer
+
+paymentQueue --> txnMatcher
+txnMatcher --> settlementService
+settlementService --> settlementDB
+reportingService --> settlementDB
+
+note right of fraudDetection
+  Real-time fraud detection
+  Machine learning models
+  Rule-based filtering
+end note
+
+note right of paymentRouter
+  Provider selection
+  Failover handling
+  Load balancing
+end note
+
+note right of settlementService
+  Batch processing
+  Fee calculation
+  Reconciliation
+end note
+
+note right of transactionDB
+  ACID compliance
+  Transaction history
+  Payment state
+end note
+
+@enduml 
