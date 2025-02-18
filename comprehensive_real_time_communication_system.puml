@@ -1,0 +1,163 @@
+@startuml Comprehensive Real-time Communication System
+
+!include common_style.puml
+
+title Comprehensive Real-time Communication System
+
+rectangle "Client Layer" {
+    component "Web Client" as webClient
+    component "Mobile Client" as mobileClient
+    component "Desktop Client" as desktopClient
+}
+
+rectangle "Gateway Layer" {
+    component "API Gateway" as apiGateway
+    component "WebSocket Gateway" as wsGateway
+    component "Media Gateway" as mediaGateway
+    component "Load Balancer" as loadBalancer
+}
+
+rectangle "Authentication & Security" {
+    component "Authentication Service" as authService
+    component "Authorization Service" as authzService
+    component "Rate Limiter" as rateLimiter
+    component "Security Rules" as securityRules
+}
+
+rectangle "Real-time Core" {
+    component "WebSocket Manager" as wsManager
+    component "WebRTC Manager" as webrtcManager
+    component "Session Manager" as sessionManager
+    component "Presence Service" as presenceService
+}
+
+rectangle "Communication Services" {
+    component "Chat Service" as chatService {
+        component "Message Handler" as messageHandler
+        component "Delivery Manager" as deliveryManager
+    }
+    
+    component "Collaboration Service" as collabService {
+        component "Operation Transformer" as opTransformer
+        component "Conflict Resolver" as conflictResolver
+    }
+    
+    component "Media Service" as mediaService {
+        component "SFU" as sfu
+        component "MCU" as mcu
+        component "Media Processor" as mediaProcessor
+    }
+}
+
+rectangle "Data Processing" {
+    queue "Message Queue\n(Kafka)" as messageQueue
+    component "Event Processor" as eventProcessor
+    component "Stream Processor" as streamProcessor
+}
+
+rectangle "Storage Layer" {
+    database "Message Store\n(MongoDB)" as messageStore
+    database "Document Store\n(MongoDB)" as docStore
+    database "Media Store\n(Object Storage)" as mediaStore
+    database "Session Store\n(Redis)" as sessionStore
+}
+
+rectangle "Media Infrastructure" {
+    cloud "TURN/STUN Servers" as turnStun {
+        component "TURN Server" as turnServer
+        component "STUN Server" as stunServer
+    }
+    component "Media Recording" as mediaRecording
+    component "Transcoding Service" as transcodingService
+}
+
+rectangle "Monitoring & Analytics" {
+    component "Performance Monitor" as perfMonitor
+    component "Quality Monitor" as qualityMonitor
+    component "Analytics Service" as analyticsService
+    database "Analytics Store\n(ClickHouse)" as analyticsStore
+}
+
+' Client Connections
+webClient --> apiGateway
+mobileClient --> apiGateway
+desktopClient --> apiGateway
+
+' Gateway Connections
+apiGateway --> authService
+wsGateway --> wsManager
+mediaGateway --> turnStun
+
+' Real-time Core Connections
+wsManager --> chatService
+wsManager --> collabService
+webrtcManager --> mediaService
+sessionManager --> sessionStore
+presenceService --> sessionStore
+
+' Communication Services Connections
+chatService --> messageQueue
+collabService --> messageQueue
+mediaService --> turnStun
+
+' Data Processing Connections
+messageQueue --> eventProcessor
+eventProcessor --> messageStore
+streamProcessor --> analyticsService
+
+' Storage Layer Connections
+messageStore --> messageHandler
+docStore --> opTransformer
+mediaStore --> mediaProcessor
+
+' Media Infrastructure Connections
+turnStun --> mediaService
+mediaRecording --> mediaStore
+transcodingService --> mediaStore
+
+' Monitoring Connections
+perfMonitor --> analyticsStore
+qualityMonitor --> analyticsStore
+analyticsService --> analyticsStore
+
+note right of chatService
+  Chat features:
+  - 1:1 and group chat
+  - Message delivery guarantees
+  - Offline message handling
+  - Rich media support
+end note
+
+note right of collabService
+  Collaboration features:
+  - Real-time document editing
+  - Operational transformation
+  - Version control
+  - Conflict resolution
+end note
+
+note right of mediaService
+  Media features:
+  - Audio/Video calls
+  - Screen sharing
+  - Recording
+  - Quality adaptation
+end note
+
+note right of wsManager
+  Core capabilities:
+  - Session management
+  - Presence tracking
+  - Connection handling
+  - State synchronization
+end note
+
+note right of turnStun
+  Infrastructure features:
+  - NAT traversal
+  - Media optimization
+  - Scalable streaming
+  - Recording & playback
+end note
+
+@enduml 

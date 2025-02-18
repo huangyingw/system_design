@@ -1,0 +1,120 @@
+@startuml Log Analysis System
+
+!include common_style.puml
+
+title Log Analysis System
+
+rectangle "Log Collection" {
+    component "Log Agent" as logAgent {
+        component "File Watcher" as fileWatcher
+        component "Log Parser" as logParser
+    }
+    component "Syslog Collector" as syslogCollector
+    component "Application Logger" as appLogger
+}
+
+rectangle "Log Pipeline" {
+    queue "Log Buffer\n(Kafka)" as logBuffer
+    component "Log Enricher" as logEnricher
+    component "Log Filter" as logFilter
+    component "Log Transformer" as logTransformer
+}
+
+rectangle "Processing Engine" {
+    component "Stream Processor" as streamProcessor
+    component "Pattern Detector" as patternDetector
+    component "Error Analyzer" as errorAnalyzer
+    component "Security Analyzer" as securityAnalyzer
+}
+
+rectangle "Storage Layer" {
+    database "Raw Logs\n(Elasticsearch)" as rawLogs
+    database "Processed Logs\n(Elasticsearch)" as processedLogs
+    database "Analysis Results\n(MongoDB)" as analysisResults
+}
+
+rectangle "Search & Query" {
+    component "Search Service" as searchService
+    component "Query Builder" as queryBuilder
+    component "Log Aggregator" as logAggregator
+}
+
+rectangle "Analysis & Insights" {
+    component "Pattern Analysis" as patternAnalysis
+    component "Trend Analysis" as trendAnalysis
+    component "Anomaly Detection" as anomalyDetection
+    component "Report Generator" as reportGenerator
+}
+
+rectangle "API Layer" {
+    component "Search API" as searchAPI
+    component "Analysis API" as analysisAPI
+    component "Management API" as managementAPI
+}
+
+' Data Flow
+logAgent --> logBuffer
+syslogCollector --> logBuffer
+appLogger --> logBuffer
+
+logBuffer --> logEnricher
+logEnricher --> logFilter
+logFilter --> logTransformer
+logTransformer --> streamProcessor
+
+streamProcessor --> patternDetector
+streamProcessor --> errorAnalyzer
+streamProcessor --> securityAnalyzer
+
+' Storage Flow
+logTransformer --> rawLogs
+streamProcessor --> processedLogs
+patternDetector --> analysisResults
+errorAnalyzer --> analysisResults
+securityAnalyzer --> analysisResults
+
+' Query Flow
+searchAPI --> searchService
+searchService --> queryBuilder
+queryBuilder --> logAggregator
+logAggregator --> processedLogs
+
+' Analysis Flow
+analysisAPI --> patternAnalysis
+patternAnalysis --> trendAnalysis
+trendAnalysis --> anomalyDetection
+anomalyDetection --> reportGenerator
+
+note right of logAgent
+  Log collection:
+  - File-based logs
+  - System logs
+  - Application logs
+  - Custom log formats
+end note
+
+note right of logEnricher
+  Log enrichment:
+  - Timestamp normalization
+  - Geo-enrichment
+  - User context
+  - System context
+end note
+
+note right of streamProcessor
+  Processing features:
+  - Pattern matching
+  - Error detection
+  - Security analysis
+  - Performance analysis
+end note
+
+note right of patternAnalysis
+  Analysis capabilities:
+  - Pattern recognition
+  - Trend identification
+  - Anomaly detection
+  - Root cause analysis
+end note
+
+@enduml 

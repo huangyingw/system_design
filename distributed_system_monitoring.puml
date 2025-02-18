@@ -1,0 +1,109 @@
+@startuml Distributed System Monitoring
+
+!include common_style.puml
+
+title Distributed System Monitoring System
+
+rectangle "Monitoring Agents" {
+    component "System Agent" as sysAgent {
+        component "Metric Collector" as metricCollector
+        component "Health Checker" as healthChecker
+    }
+    component "Application Agent" as appAgent {
+        component "JVM Metrics" as jvmMetrics
+        component "App Metrics" as appMetrics
+    }
+    component "Network Agent" as netAgent {
+        component "Network Metrics" as netMetrics
+        component "Protocol Monitor" as protocolMonitor
+    }
+}
+
+rectangle "Data Collection" {
+    queue "Collection Gateway" as collectionGateway
+    component "Data Aggregator" as dataAggregator
+    component "Data Sampler" as dataSampler
+}
+
+rectangle "Time Series Processing" {
+    component "Stream Processor" as streamProcessor
+    component "Metric Processor" as metricProcessor
+    component "Anomaly Detector" as anomalyDetector
+}
+
+rectangle "Alert System" {
+    component "Alert Manager" as alertManager
+    component "Alert Rules Engine" as ruleEngine
+    component "Notification Service" as notificationService
+    database "Alert Rules DB" as ruleDB
+}
+
+rectangle "Storage Layer" {
+    database "Time Series DB\n(Prometheus)" as tsdb
+    database "Alert History\n(MongoDB)" as alertHistory
+    database "Configuration DB\n(PostgreSQL)" as configDB
+}
+
+rectangle "API Layer" {
+    component "Query API" as queryAPI
+    component "Admin API" as adminAPI
+    component "Alert API" as alertAPI
+}
+
+' Data Flow
+sysAgent --> collectionGateway
+appAgent --> collectionGateway
+netAgent --> collectionGateway
+
+collectionGateway --> dataAggregator
+dataAggregator --> dataSampler
+dataSampler --> streamProcessor
+
+streamProcessor --> metricProcessor
+metricProcessor --> tsdb
+metricProcessor --> anomalyDetector
+
+anomalyDetector --> alertManager
+alertManager --> ruleEngine
+ruleEngine --> ruleDB
+alertManager --> notificationService
+alertManager --> alertHistory
+
+' API Access
+queryAPI --> tsdb
+adminAPI --> configDB
+alertAPI --> alertManager
+
+note right of sysAgent
+  System metrics:
+  - CPU usage
+  - Memory usage
+  - Disk I/O
+  - Network I/O
+end note
+
+note right of appAgent
+  Application metrics:
+  - Response time
+  - Error rates
+  - Request counts
+  - Resource usage
+end note
+
+note right of alertManager
+  Alert features:
+  - Threshold-based
+  - Trend analysis
+  - Correlation
+  - De-duplication
+end note
+
+note right of streamProcessor
+  Processing features:
+  - Data filtering
+  - Aggregation
+  - Down-sampling
+  - Statistical analysis
+end note
+
+@enduml 

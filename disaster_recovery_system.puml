@@ -1,0 +1,131 @@
+@startuml Disaster Recovery System
+
+!include common_style.puml
+
+title Disaster Recovery System
+
+rectangle "Disaster Detection" {
+    component "Health Monitor" as healthMonitor {
+        component "Service Monitor" as serviceMonitor
+        component "Infrastructure Monitor" as infraMonitor
+        component "Network Monitor" as networkMonitor
+    }
+    component "Anomaly Detector" as anomalyDetector
+    queue "Alert Queue\n(Kafka)" as alertQueue
+}
+
+rectangle "Recovery Control" {
+    component "Recovery Manager" as recoveryManager {
+        component "Recovery Orchestrator" as recoveryOrch
+        component "State Manager" as stateManager
+        component "Resource Manager" as resourceManager
+    }
+    database "Recovery Plans" as recoveryPlans
+}
+
+rectangle "Data Protection" {
+    component "Backup Manager" as backupManager {
+        component "Snapshot Manager" as snapshotManager
+        component "Replication Manager" as replicationManager
+        component "Archive Manager" as archiveManager
+    }
+    database "Backup Store" as backupStore
+}
+
+rectangle "Failover Management" {
+    component "Failover Controller" as failoverController {
+        component "DNS Manager" as dnsManager
+        component "Traffic Manager" as trafficManager
+        component "State Transfer" as stateTransfer
+    }
+    component "Failback Manager" as failbackManager
+}
+
+rectangle "Site Management" {
+    component "Site Controller" as siteController {
+        component "Primary Site" as primarySite
+        component "DR Site" as drSite
+        component "Multi-Region" as multiRegion
+    }
+    database "Site Config" as siteConfig
+}
+
+rectangle "Testing & Validation" {
+    component "DR Testing" as drTesting {
+        component "Recovery Test" as recoveryTest
+        component "Failover Test" as failoverTest
+        component "Data Validation" as dataValidation
+    }
+    component "Test Scheduler" as testScheduler
+}
+
+rectangle "Monitoring & Reporting" {
+    component "Recovery Monitor" as recoveryMonitor
+    component "Compliance Reporter" as complianceReporter
+    component "Metrics Collector" as metricsCollector
+    database "Audit Logs" as auditLogs
+}
+
+' Detection Flow
+healthMonitor --> anomalyDetector
+anomalyDetector --> alertQueue
+alertQueue --> recoveryManager
+
+' Recovery Flow
+recoveryManager --> recoveryPlans
+recoveryOrch --> backupManager
+recoveryOrch --> failoverController
+
+' Data Protection Flow
+backupManager --> backupStore
+replicationManager --> drSite
+snapshotManager --> backupStore
+
+' Failover Flow
+failoverController --> siteController
+siteController --> dnsManager
+failbackManager --> primarySite
+
+' Testing Flow
+drTesting --> testScheduler
+recoveryTest --> recoveryManager
+failoverTest --> failoverController
+
+' Monitoring Flow
+recoveryMonitor --> auditLogs
+complianceReporter --> auditLogs
+metricsCollector --> auditLogs
+
+note right of healthMonitor
+  Detection features:
+  - Service health
+  - Infrastructure health
+  - Network health
+  - Anomaly detection
+end note
+
+note right of recoveryManager
+  Recovery features:
+  - Automated recovery
+  - State management
+  - Resource allocation
+  - Recovery orchestration
+end note
+
+note right of backupManager
+  Data protection:
+  - Snapshots
+  - Replication
+  - Archiving
+  - Data validation
+end note
+
+note right of failoverController
+  Failover features:
+  - Automated failover
+  - Traffic redirection
+  - State transfer
+  - Failback procedures
+end note
+
+@enduml 

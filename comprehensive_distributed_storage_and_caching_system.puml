@@ -1,0 +1,152 @@
+@startuml Comprehensive Distributed Storage and Caching System
+
+!include common_style.puml
+
+title Comprehensive Distributed Storage and Caching System
+
+rectangle "Client Layer" {
+    component "SDK Client" as sdkClient
+    component "REST Client" as restClient
+    component "CLI Tool" as cliTool
+}
+
+rectangle "Access Layer" {
+    component "API Gateway" as apiGateway
+    component "Load Balancer" as loadBalancer
+    component "Authentication" as auth
+    component "Rate Limiter" as rateLimiter
+}
+
+rectangle "Cache Layer" {
+    component "Cache Manager" as cacheManager
+    component "Eviction Policy" as evictionPolicy
+    component "Cache Warmer" as cacheWarmer
+    component "Bloom Filter" as bloomFilter
+}
+
+rectangle "Storage Layer" {
+    component "Storage Manager" as storageManager
+    component "Partition Manager" as partitionManager
+    component "Replication Manager" as replicationManager
+    component "Consistency Manager" as consistencyManager
+}
+
+rectangle "Data Processing" {
+    component "Data Transformer" as dataTransformer
+    component "Compression Service" as compressionService
+    component "Encryption Service" as encryptionService
+    queue "Write Ahead Log" as writeAheadLog
+}
+
+rectangle "Storage Engines" {
+    database "Key-Value Store\n(Redis)" as kvStore
+    database "Document Store\n(MongoDB)" as docStore
+    database "Object Store\n(S3)" as objectStore
+    database "Block Store" as blockStore
+}
+
+rectangle "Metadata Management" {
+    component "Schema Manager" as schemaManager
+    component "Version Controller" as versionController
+    component "Index Manager" as indexManager
+    database "Metadata Store\n(PostgreSQL)" as metadataStore
+}
+
+rectangle "Monitoring & Recovery" {
+    component "Health Monitor" as healthMonitor
+    component "Performance Monitor" as perfMonitor
+    component "Backup Manager" as backupManager
+    component "Recovery Service" as recoveryService
+}
+
+' Client to Access Layer
+sdkClient --> apiGateway
+restClient --> apiGateway
+cliTool --> apiGateway
+apiGateway --> auth
+auth --> loadBalancer
+loadBalancer --> rateLimiter
+
+' Cache Layer Flow
+rateLimiter --> cacheManager
+cacheManager --> bloomFilter
+bloomFilter --> kvStore
+cacheManager --> evictionPolicy
+cacheWarmer --> kvStore
+
+' Storage Layer Flow
+storageManager --> partitionManager
+partitionManager --> replicationManager
+replicationManager --> consistencyManager
+consistencyManager --> writeAheadLog
+
+' Data Processing Flow
+dataTransformer --> compressionService
+compressionService --> encryptionService
+encryptionService --> kvStore
+encryptionService --> docStore
+encryptionService --> objectStore
+encryptionService --> blockStore
+
+' Metadata Flow
+schemaManager --> metadataStore
+versionController --> metadataStore
+indexManager --> metadataStore
+
+' Monitoring Flow
+healthMonitor --> recoveryService
+perfMonitor --> backupManager
+backupManager --> kvStore
+backupManager --> docStore
+backupManager --> objectStore
+backupManager --> blockStore
+recoveryService --> writeAheadLog
+
+note right of cacheManager
+  Cache strategies:
+  - Write-through
+  - Write-behind
+  - Write-around
+  - Cache-aside
+end note
+
+note right of consistencyManager
+  Consistency models:
+  - Strong consistency
+  - Eventual consistency
+  - Session consistency
+  - Causal consistency
+end note
+
+note right of partitionManager
+  Partitioning strategies:
+  - Hash-based
+  - Range-based
+  - Consistent hashing
+  - Dynamic rebalancing
+end note
+
+note right of replicationManager
+  Replication features:
+  - Multi-region
+  - Active-active
+  - Leader-follower
+  - Quorum-based
+end note
+
+note right of bloomFilter
+  Cache optimization:
+  - Prevent cache penetration
+  - Reduce unnecessary lookups
+  - Memory efficient
+end note
+
+note right of backupManager
+  Backup strategies:
+  - Incremental backup
+  - Point-in-time recovery
+  - Cross-region backup
+  - Backup verification
+end note
+
+@enduml 

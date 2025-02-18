@@ -1,0 +1,137 @@
+@startuml Load Balancing System
+
+!include common_style.puml
+
+title Load Balancing System (L4/L7)
+
+rectangle "Global Load Balancing" {
+    component "DNS Load Balancer" as dnsLB {
+        component "Geographic Router" as geoRouter
+        component "Health Aware DNS" as healthDNS
+        component "TTL Manager" as ttlManager
+    }
+    component "Traffic Manager" as trafficManager
+    database "Location DB" as locationDB
+}
+
+rectangle "L4 Load Balancing" {
+    component "TCP/UDP Proxy" as l4Proxy {
+        component "Connection Handler" as connHandler
+        component "NAT Manager" as natManager
+        component "Packet Filter" as packetFilter
+    }
+    component "Session Persistence" as sessionPersist
+    component "Connection Tracking" as connTracker
+}
+
+rectangle "L7 Load Balancing" {
+    component "HTTP/HTTPS Proxy" as l7Proxy {
+        component "Request Router" as reqRouter
+        component "SSL Terminator" as sslTerm
+        component "Header Processor" as headerProc
+    }
+    component "Content Router" as contentRouter
+    component "URL Rewriter" as urlRewriter
+}
+
+rectangle "Backend Management" {
+    component "Backend Pool" as backendPool {
+        component "Server Group" as serverGroup
+        component "Weight Manager" as weightManager
+        component "Capacity Planner" as capacityPlanner
+    }
+    database "Backend Config" as backendConfig
+}
+
+rectangle "Health Checking" {
+    component "Health Checker" as healthChecker {
+        component "TCP Checker" as tcpChecker
+        component "HTTP Checker" as httpChecker
+        component "Custom Checker" as customChecker
+    }
+    component "Health Aggregator" as healthAggregator
+    database "Health Status" as healthStatus
+}
+
+rectangle "Load Balancing Algorithms" {
+    component "Algorithm Manager" as algoManager {
+        component "Round Robin" as roundRobin
+        component "Least Connection" as leastConn
+        component "Hash Based" as hashBased
+        component "Weighted" as weighted
+    }
+    component "Dynamic Weights" as dynamicWeights
+}
+
+rectangle "Monitoring & Analytics" {
+    component "Performance Monitor" as perfMonitor
+    component "Traffic Analyzer" as trafficAnalyzer
+    component "Metrics Collector" as metricsCollector
+    database "Metrics Store" as metricsStore
+}
+
+' Global Flow
+Client --> dnsLB
+dnsLB --> trafficManager
+trafficManager --> l4Proxy
+trafficManager --> l7Proxy
+
+' L4 Flow
+l4Proxy --> connHandler
+connHandler --> natManager
+natManager --> backendPool
+sessionPersist --> connTracker
+
+' L7 Flow
+l7Proxy --> reqRouter
+reqRouter --> sslTerm
+sslTerm --> contentRouter
+contentRouter --> backendPool
+
+' Backend Flow
+backendPool --> healthChecker
+healthChecker --> healthStatus
+healthAggregator --> algoManager
+
+' Algorithm Flow
+algoManager --> backendPool
+dynamicWeights --> weighted
+
+' Monitoring Flow
+perfMonitor --> metricsStore
+trafficAnalyzer --> metricsStore
+metricsCollector --> metricsStore
+
+note right of dnsLB
+  Global features:
+  - Geographic routing
+  - Health-aware DNS
+  - TTL management
+  - Traffic distribution
+end note
+
+note right of l4Proxy
+  L4 features:
+  - TCP/UDP proxying
+  - NAT
+  - Connection tracking
+  - Session persistence
+end note
+
+note right of l7Proxy
+  L7 features:
+  - HTTP routing
+  - SSL termination
+  - Header manipulation
+  - Content-based routing
+end note
+
+note right of algoManager
+  Load balancing:
+  - Round robin
+  - Least connections
+  - Hash-based
+  - Weighted algorithms
+end note
+
+@enduml 

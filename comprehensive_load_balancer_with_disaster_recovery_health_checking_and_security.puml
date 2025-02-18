@@ -1,0 +1,130 @@
+@startuml Comprehensive Load Balancer
+
+!include common_style.puml
+
+title Comprehensive Load Balancing System with Disaster Recovery, Health Checking, and Security
+
+rectangle "Global Load Balancing Layer" {
+    component "Global Traffic Manager" as GTM {
+        component "Geographic Router" as geoRouter
+        component "Regional Failover" as failover
+        component "Latency Analyzer" as latencyAnalyzer
+    }
+    component "DNS Load Balancer" as dnsLB
+    component "DDoS Protection" as ddosProtection
+}
+
+rectangle "Regional Load Balancing Layer" {
+    component "Layer 4 Load Balancer" as l4lb {
+        component "TCP/UDP Proxy" as tcpProxy
+        component "Connection Manager" as connManager
+        component "Session Persistence" as sessionPersist
+    }
+    
+    component "Layer 7 Load Balancer" as l7lb {
+        component "HTTP/HTTPS Proxy" as httpProxy
+        component "SSL Termination" as sslTerm
+        component "Content Router" as contentRouter
+        component "WAF" as waf
+    }
+}
+
+rectangle "Service Discovery & Health" {
+    component "Service Registry" as serviceRegistry
+    component "Health Checker" as healthChecker
+    component "Service Discovery" as serviceDiscovery
+    database "Service Database" as serviceDB
+}
+
+rectangle "Monitoring & Analytics" {
+    component "Metrics Collector" as metricsCollector
+    component "Traffic Analyzer" as trafficAnalyzer
+    component "Alert Manager" as alertManager
+    database "Metrics Store" as metricsDB
+}
+
+rectangle "Security & Authentication" {
+    component "Authentication Service" as authService
+    component "Rate Limiter" as rateLimiter
+    component "IP Filter" as ipFilter
+    database "Security Rules" as securityDB
+}
+
+rectangle "Backend Services" {
+    component "Service Instance 1" as service1
+    component "Service Instance 2" as service2
+    component "Service Instance 3" as service3
+}
+
+' Global to Regional Connections
+GTM --> dnsLB
+dnsLB --> ddosProtection
+ddosProtection --> l4lb
+ddosProtection --> l7lb
+
+' Layer 4 Internal Connections
+l4lb --> tcpProxy
+tcpProxy --> connManager
+connManager --> sessionPersist
+
+' Layer 7 Internal Connections
+l7lb --> httpProxy
+httpProxy --> sslTerm
+sslTerm --> contentRouter
+contentRouter --> waf
+
+' Service Discovery Connections
+serviceDiscovery --> serviceRegistry
+serviceRegistry --> serviceDB
+healthChecker --> service1
+healthChecker --> service2
+healthChecker --> service3
+
+' Security Connections
+l7lb --> authService
+authService --> securityDB
+rateLimiter --> l7lb
+ipFilter --> l4lb
+
+' Monitoring Connections
+metricsCollector --> l4lb
+metricsCollector --> l7lb
+metricsCollector --> metricsDB
+trafficAnalyzer --> metricsDB
+alertManager --> metricsDB
+
+' Backend Connections
+l4lb --> service1
+l4lb --> service2
+l7lb --> service2
+l7lb --> service3
+
+note right of GTM
+  Global traffic distribution
+  Disaster recovery
+  Geographic routing
+  Latency-based routing
+end note
+
+note right of l7lb
+  SSL/TLS termination
+  Content-based routing
+  Application-level load balancing
+  Web security
+end note
+
+note right of serviceDiscovery
+  Service registration
+  Health monitoring
+  Dynamic configuration
+  Load balancing policy
+end note
+
+note right of metricsCollector
+  Performance metrics
+  Health status
+  Traffic patterns
+  Anomaly detection
+end note
+
+@enduml 

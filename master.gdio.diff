@@ -81,7 +81,7 @@ diff --git a/.cursorrules b/.cursorrules
 new file mode 100644
 --- /dev/null
 +++ ./.cursorrules
-@@ -0,0 +1,123 @@
+@@ -0,0 +1,81 @@
 +{
 +  "language": "Chinese",
 +  "terminal": {
@@ -101,95 +101,53 @@ new file mode 100644
 +    }
 +  },
 +  "plantUML": {
-+    "basicStandards": {
-+      "containerDefinition": "Use rectangle for all container definitions",
-+      "componentDefinition": "Use component for internal component definitions",
-+      "connectionHandling": "Components only inside containers, handle connections outside",
-+      "noteRequirements": "Add notes with appropriate positioning",
-+      "diagramRequirements": "Create aesthetically pleasing, compact diagrams with high information density",
-+      "cacheAnnotation": "Annotate cache components with key-value pairs"
++    "standards": {
++      "components": {
++        "containerStyle": "rectangle",
++        "componentDefinition": "Use component for internal definitions",
++        "connectionHandling": "Components only inside containers, handle connections outside",
++        "cacheAnnotation": "Annotate cache components with key-value pairs"
++      },
++      "layout": {
++        "background": "Light background for better readability",
++        "grouping": "Logical component grouping",
++        "connections": "Minimize crossings, maintain clarity",
++        "notes": "Consistent positioning, clear content"
++      },
++      "colors": {
++        "flows": {
++          "primary": "Deep Orange",
++          "secondary": "Deep Blue",
++          "auxiliary": "Deep Yellow",
++          "management": "Deep Purple",
++          "monitoring": "Deep Cyan"
++        }
++      }
 +    },
-+    "flowAndPerformance": {
-+      "connectionLabeling": "Label each connection with sequence numbers to show flow order",
-+      "performanceNotes": "Add notes for performance bottlenecks and optimization suggestions"
-+    },
-+    "designAndLayout": {
-+      "backgroundRequirement": "Avoid white backgrounds to reduce eye strain",
-+      "designConsideration": "Consider optimization and scalability for long interview discussions",
-+      "layoutRequirements": [
-+        "Ensure clear layout with logical component grouping",
-+        "Keep connections simple and minimize crossings",
-+        "Maintain consistent note positioning",
-+        "Use appropriate colors to distinguish different component types and flows",
-+        "Enhance overall readability for extended viewing and discussion"
-+      ]
-+    },
-+    "colorScheme": {
-+      "primaryFlow": "Deep Orange",
-+      "secondaryFlow": "Deep Blue",
-+      "auxiliaryFlow": "Deep Yellow",
-+      "managementFlow": "Deep Purple",
-+      "monitoringFlow": "Deep Cyan",
-+      "backgroundColor": "Maintain light background for better readability"
-+    },
-+    "designModificationPrinciples": [
-+      "Avoid major changes to current version unless explicitly requested",
-+      "Prioritize minor optimizations of existing components",
-+      "Focus on functional enhancements when suggesting improvements",
-+      "Seek confirmation before implementing significant modifications"
++    "designPrinciples": [
++      "Prioritize readability and clarity",
++      "Focus on system interactions and data flow",
++      "Include performance considerations",
++      "Show scalability aspects",
++      "Highlight security measures"
 +    ],
-+    "errorCheckingProcess": {
-+      "checkingTiming": "After each generation or modification of puml files",
-+      "checkItems": [
-+        "Syntax error validation",
-+        "Component connection integrity check",
-+        "Naming convention verification",
-+        "Layout rationality assessment",
-+        "Diagram compilation validation",
-+        "Connection consistency check"
-+      ],
-+      "errorHandling": [
-+        "Automatic error detection",
-+        "Provide specific error location and description",
-+        "Implement automatic fixes for all detected errors",
-+        "Repeat error checking and fixing until no errors remain",
-+        "Verify fixes do not introduce new issues"
-+      ],
++    "qualityControl": {
++      "checkTiming": "After each generation or modification",
 +      "validationSteps": [
-+        "Verify file compilation",
-+        "Validate component relationships",
-+        "Confirm annotation completeness",
-+        "Check style compliance",
-+        "Ensure all text is in English",
-+        "Validate diagram structure integrity",
-+        "Test automatic layout optimization"
++        "Syntax validation",
++        "Component relationships",
++        "Style compliance",
++        "Diagram structure",
++        "Text consistency"
 +      ],
-+      "autoFixProcess": {
-+        "iterativeFixing": true,
-+        "fixPriorities": [
++      "autoFix": {
++        "enabled": true,
++        "priorities": [
 +          "Syntax errors",
 +          "Connection issues",
-+          "Component placement",
-+          "Style violations",
-+          "Layout optimization"
++          "Style violations"
 +        ],
-+        "verificationAfterFix": true,
-+        "syntaxCheckCommand": "plantuml {filename} -syntax",
-+        "renderCommand": "plantuml {filename}",
-+        "commonSyntaxFixes": [
-+          "Remove extra spaces and empty lines",
-+          "Use proper package/component nesting",
-+          "Fix color definitions",
-+          "Ensure proper skinparam settings",
-+          "Check component and connection definitions"
-+        ],
-+        "postEditChecks": [
-+          "Run syntax check immediately after any edit",
-+          "Verify diagram renders correctly",
-+          "Check for any warning messages",
-+          "Validate all components are properly connected",
-+          "Ensure no orphaned elements exist"
-+        ]
++        "verification": true
 +      }
 +    }
 +  },
@@ -205,6 +163,85 @@ new file mode 100644
 +    }
 +  ]
 +} 
+diff --git a/.cursorrules.md b/.cursorrules.md
+new file mode 100644
+--- /dev/null
++++ ./.cursorrules.md
+@@ -0,0 +1,73 @@
++# .cursorrules 规则说明
++
++## 1. 语言设置
++- **语言**: 中文
++
++## 2. 终端设置 (Terminal)
++
++- **使用的 shell**: zsh
++- **命令执行设置**:
++  - 默认 shell: `/bin/zsh`
++  - 环境设置:
++    - 所有终端命令均使用 zsh
++    - 确保工具的 PATH 设置正确
++    - 必要时使用绝对路径
++  - 错误处理:
++    - 捕获输出
++    - 检查退出状态
++    - 如果命令执行失败，则会重试，重试策略为使用修改后的命令重试
++
++## 3. PlantUML 设置
++
++### 3.1 标准 (Standards)
++
++- **组件 (Components)**:
++  - **容器样式**: 使用矩形
++  - **组件定义**: 内部定义使用 component
++  - **连接处理**: 组件仅放在容器内，连接则在容器外处理
++  - **缓存标注**: 使用键值对为缓存组件添加标注
++
++- **布局 (Layout)**:
++  - **背景**: 使用浅色背景以增强可读性
++  - **分组**: 进行逻辑组件分组
++  - **连接**: 尽量减少连接交叉，保持图形清晰
++  - **备注**: 保持位置一致，文本清晰
++
++- **颜色 (Colors)**:
++  - **主流程**: 深橙色
++  - **次流程**: 深蓝色
++  - **辅助流程**: 深黄色
++  - **管理相关**: 深紫色
++  - **监控相关**: 深青色
++
++### 3.2 设计原则 (Design Principles)
++
++- 优先考虑图形的可读性和清晰度
++- 注重系统交互与数据流向的展示
++- 包含性能相关的考虑
++- 展示系统的可扩展性
++- 强调安全措施
++
++### 3.3 质量控制 (Quality Control)
++
++- **检查时机**: 每次生成或修改后执行检查
++- **验证步骤**:
++  - 语法验证
++  - 组件之间的关系检查
++  - 风格符合度验证
++  - 图表结构检查
++  - 文本一致性检查
++
++- **自动修复 (AutoFix)**:
++  - 启用自动修复功能
++  - 修复优先级:
++    - 语法错误
++    - 连接问题
++    - 风格违规
++  - 修复后会进行验证以确保正确性
++
++## 4. 规则 (Rules)
++
++- 对于所有匹配 `*.puml` 的文件，系统会执行以下命令:
++  - **命令**: `./check_puml.sh ${file}`
++  - **触发条件**: 文件保存时 (save) 
+\ No newline at end of file
 diff --git a/.gitignore b/.gitignore
 new file mode 100644
 --- /dev/null
@@ -2060,356 +2097,12 @@ new file mode 100644
 +
 +@enduml
 \ No newline at end of file
-diff --git a/cdn/cdn_detailed_architecture.puml b/cdn/cdn_detailed_architecture.puml
-new file mode 100644
---- /dev/null
-+++ ./cdn/cdn_detailed_architecture.puml
-@@ -0,0 +1,50 @@
-+@startuml CDN Detailed Architecture
-+!define RECTANGLE class
-+
-+skinparam backgroundColor #F0F8FF
-+skinparam handwritten false
-+skinparam defaultFontName Arial
-+skinparam ArrowColor #2C3E50
-+skinparam NoteBackgroundColor #D5E8D4
-+skinparam NoteBorderColor #82B366
-+
-+title CDN Detailed Architecture
-+
-+rectangle "User" as user #FFD700
-+rectangle "DNS" as dns #87CEFA
-+
-+package "CDN Network" {
-+    rectangle "Edge Node" as edge #98FB98
-+    rectangle "Regional Node" as regional #FFA07A
-+    rectangle "Central Node" as central #DDA0DD
-+}
-+
-+rectangle "Origin Server" as origin #F0E68C
-+
-+user -[#FF6347]-> dns : 1. DNS query
-+dns -[#FF6347]-> user : 2. Return CDN edge node IP
-+user -[#4169E1]-> edge : 3. Content request
-+edge -[#32CD32]-> regional : 4. If not in edge cache
-+regional -[#FF8C00]-> central : 5. If not in regional cache
-+central -[#8A2BE2]-> origin : 6. If not in central cache
-+origin -[#8A2BE2]-> central : 7. Return content
-+central -[#FF8C00]-> regional : 8. Cache and forward
-+regional -[#32CD32]-> edge : 9. Cache and forward
-+edge -[#4169E1]-> user : 10. Serve content
-+
-+note right of edge
-+  Closest to end users
-+  Handles most requests
-+end note
-+
-+note right of regional
-+  Aggregates multiple edge nodes
-+  Larger cache capacity
-+end note
-+
-+note right of central
-+  Connects to origin
-+  Global load balancing
-+end note
-+
-+@enduml
-diff --git a/cdn/cdn_global_deployment_map.puml b/cdn/cdn_global_deployment_map.puml
-new file mode 100644
---- /dev/null
-+++ ./cdn/cdn_global_deployment_map.puml
-@@ -0,0 +1,25 @@
-+@startuml CDN Global Deployment Map
-+!define RECTANGLE class
-+
-+skinparam backgroundColor #FEFEFE
-+skinparam handwritten false
-+skinparam defaultFontName Arial
-+
-+title CDN Global Deployment Map
-+
-+map World_Map {
-+    North_America => NA1, NA2, NA3
-+    South_America => SA1, SA2
-+    Europe => EU1, EU2, EU3, EU4
-+    Asia => AS1, AS2, AS3, AS4, AS5
-+    Africa => AF1, AF2
-+    Oceania => OC1, OC2
-+}
-+
-+legend right
-+    NA1, NA2, etc. : CDN Points of Presence (PoPs)
-+end legend
-+
-+note "CDN nodes are strategically placed\nto minimize latency and optimize\ncontent delivery for global users" as N1
-+
-+@enduml
-diff --git a/cdn/cdn_origin_interaction_sequence.puml b/cdn/cdn_origin_interaction_sequence.puml
-new file mode 100644
---- /dev/null
-+++ ./cdn/cdn_origin_interaction_sequence.puml
-@@ -0,0 +1,51 @@
-+@startuml CDN-Origin Interaction Sequence
-+!define RECTANGLE class
-+
-+skinparam backgroundColor #FEFEFE
-+skinparam handwritten false
-+skinparam defaultFontName Arial
-+
-+title CDN-Origin Interaction Sequence
-+
-+actor User
-+participant "Edge Node" as Edge
-+participant "Regional Node" as Regional
-+participant "Central Node" as Central
-+participant "Origin Server" as Origin
-+
-+User -> Edge : Request content
-+activate Edge
-+
-+alt Content in Edge Cache
-+    Edge -> User : Serve content
-+else Content not in Edge Cache
-+    Edge -> Regional : Request content
-+    activate Regional
-+    
-+    alt Content in Regional Cache
-+        Regional -> Edge : Return content
-+        Edge -> User : Serve content
-+    else Content not in Regional Cache
-+        Regional -> Central : Request content
-+        activate Central
-+        
-+        alt Content in Central Cache
-+            Central -> Regional : Return content
-+            Regional -> Edge : Forward content
-+            Edge -> User : Serve content
-+        else Content not in Central Cache
-+            Central -> Origin : Request content
-+            activate Origin
-+            Origin -> Central : Return content
-+            Central -> Regional : Forward and cache content
-+            Regional -> Edge : Forward and cache content
-+            Edge -> User : Serve content
-+            deactivate Origin
-+        end
-+        deactivate Central
-+    end
-+    deactivate Regional
-+end
-+deactivate Edge
-+
-+@enduml
-diff --git a/cdn/cdn_performance_optimization_strategies_content_delivery_caching_and_security.puml b/cdn/cdn_performance_optimization_strategies_content_delivery_caching_and_security.puml
-new file mode 100644
---- /dev/null
-+++ ./cdn/cdn_performance_optimization_strategies_content_delivery_caching_and_security.puml
-@@ -0,0 +1,69 @@
-+@startuml CDN Performance Optimization Strategies
-+
-+skinparam {
-+    backgroundColor #FAFAFA
-+    handwritten false
-+    defaultFontName Arial
-+    defaultFontSize 14
-+    roundcorner 20
-+    shadowing false
-+}
-+
-+rectangle "CDN Performance Optimization Strategies" as CDN {
-+    rectangle "Content Optimization" as ContentOpt #E1F5FE
-+    rectangle "Delivery Optimization" as DeliveryOpt #FFF3E0
-+    rectangle "Caching Strategies" as CacheStrat #E8F5E9
-+    rectangle "Advanced Techniques" as AdvTech #FFEBEE
-+    rectangle "Security Measures" as Security #E0F7FA
-+    rectangle "Analytics & Monitoring" as Analytics #F3E5F5
-+}
-+
-+ContentOpt -[#4CAF50,thickness=2]down-> DeliveryOpt : 1. Optimize Content
-+DeliveryOpt -[#2196F3,thickness=2]right-> CacheStrat : 2. Efficient Delivery
-+CacheStrat -[#FF5722,thickness=2]right-> AdvTech : 3. Enhance Caching
-+DeliveryOpt -[#9C27B0,thickness=2]down-> Security : 4. Secure Delivery
-+AdvTech -[#795548,thickness=2]down-> Analytics : 5. Performance Insights
-+
-+note bottom of ContentOpt
-+  - Compress files
-+  - Minify code
-+  - Optimize images
-+  - Use HTTP/2 and HTTP/3
-+end note
-+
-+note bottom of DeliveryOpt
-+  - Edge caching
-+  - Dynamic content acceleration
-+  - Intelligent routing
-+  - Anycast DNS
-+end note
-+
-+note bottom of CacheStrat
-+  - Browser caching
-+  - Adaptive TTL
-+  - Stale-while-revalidate
-+  - Cache key optimization
-+end note
-+
-+note bottom of AdvTech
-+  - Content prefetching
-+  - Load balancing
-+  - Multi-CDN strategy
-+  - Edge computing
-+end note
-+
-+note bottom of Security
-+  - DDoS protection
-+  - Web Application Firewall
-+  - SSL/TLS optimization
-+  - Bot traffic management
-+end note
-+
-+note bottom of Analytics
-+  - Real-time analytics
-+  - Performance monitoring
-+  - Error tracking
-+  - User experience metrics
-+end note
-+
-+@enduml
-diff --git a/cdn/cdn_security_protection_architecture.puml b/cdn/cdn_security_protection_architecture.puml
-new file mode 100644
---- /dev/null
-+++ ./cdn/cdn_security_protection_architecture.puml
-@@ -0,0 +1,40 @@
-+@startuml CDN Security Protection Architecture
-+!define RECTANGLE class
-+
-+skinparam backgroundColor #FEFEFE
-+skinparam handwritten false
-+skinparam defaultFontName Arial
-+
-+title CDN Security Protection Architecture
-+
-+actor "User" as user
-+actor "Attacker" as attacker
-+
-+rectangle "CDN Security Layer" {
-+    rectangle "DDoS Protection" as ddos
-+    rectangle "Web Application Firewall" as waf
-+    rectangle "Bot Management" as botmgmt
-+    rectangle "SSL/TLS Encryption" as ssl
-+    rectangle "Access Control" as access
-+    rectangle "Rate Limiting" as ratelimit
-+}
-+
-+rectangle "Origin Server" as origin
-+
-+user --> ssl
-+attacker --> ddos
-+
-+ddos --> waf : Filtered traffic
-+waf --> botmgmt : Legitimate requests
-+botmgmt --> access : Human traffic
-+access --> ratelimit : Authorized requests
-+ratelimit --> origin : Controlled traffic flow
-+
-+note right of ddos : Mitigates volumetric attacks
-+note right of waf : Blocks malicious requests
-+note right of botmgmt : Identifies and manages bot traffic
-+note right of ssl : Ensures data in transit security
-+note right of access : Implements authentication and authorization
-+note right of ratelimit : Prevents abuse and ensures fair usage
-+
-+@enduml
-diff --git a/cdn/comprehensive_cdn_architecture_with_edge_servers_caching_and_request_routing.puml b/cdn/comprehensive_cdn_architecture_with_edge_servers_caching_and_request_routing.puml
-new file mode 100644
---- /dev/null
-+++ ./cdn/comprehensive_cdn_architecture_with_edge_servers_caching_and_request_routing.puml
-@@ -0,0 +1,79 @@
-+@startuml Comprehensive CDN Architecture
-+!pragma layout dot
-+allowmixing
-+
-+skinparam backgroundColor #F0F0F0
-+skinparam defaultFontSize 14
-+skinparam noteFontSize 12
-+skinparam arrowFontSize 12
-+
-+rectangle "CDN System Architecture" as CDN #E6E6FA {
-+    actor "User" as User
-+    rectangle "DNS Server" as DNSServer #D0E0F0
-+    rectangle "Global Load Balancer" as GLB #D0E0F0
-+    rectangle "Origin Server" as Origin #D0E0F0
-+    
-+    rectangle "Region 1" as Region1 #E0F0E0 {
-+        rectangle "Regional Load Balancer 1" as RLB1 #D0E0F0
-+        rectangle "Edge Server 1" as ES1 #D0E0F0
-+        component "Cache 1" as Cache1 #F0E0D0
-+    }
-+    
-+    rectangle "Region 2" as Region2 #E0F0E0 {
-+        rectangle "Regional Load Balancer 2" as RLB2 #D0E0F0
-+        rectangle "Edge Server 2" as ES2 #D0E0F0
-+        component "Cache 2" as Cache2 #F0E0D0
-+    }
-+    
-+    rectangle "Cache Decision System" as CDS #D0E0F0
-+    rectangle "Analytics & Monitoring" as Analytics #D0E0F0
-+    
-+    rectangle "CDN Management" as CDNManagement #E0F0E0 {
-+        component "Pre-Caching Strategy" as PreCache
-+        component "Cache Synchronization" as Sync
-+        component "Intelligent Routing" as Routing
-+        component "Locality Principle" as Locality
-+    }
-+}
-+
-+User -[#green,thickness=2]-> DNSServer : <color:#green>1. User Request
-+DNSServer -[#blue,thickness=2]-> GLB : <color:#blue>2. DNS Resolution
-+GLB -[#purple,thickness=2]-> RLB1 : <color:#purple>3. Route to Region
-+GLB -[#purple,thickness=2]-> RLB2 : <color:#purple>3. Route to Region
-+RLB1 -[#orange,thickness=2]-> ES1 : <color:#orange>4. Load Balance
-+RLB2 -[#orange,thickness=2]-> ES2 : <color:#orange>4. Load Balance
-+ES1 -[#red,thickness=2]-> Cache1 : <color:#red>5. Check Cache
-+ES2 -[#red,thickness=2]-> Cache2 : <color:#red>5. Check Cache
-+Cache1 -[#brown,thickness=2]-> CDS : <color:#brown>6. Cache Query
-+Cache2 -[#brown,thickness=2]-> CDS : <color:#brown>6. Cache Query
-+CDS -[#gray,thickness=2]-> Origin : <color:#gray>7. Request Origin\n(if not cached)
-+Origin -[#gray,thickness=2]-> Cache1 : <color:#gray>8. Update Cache
-+Origin -[#gray,thickness=2]-> Cache2 : <color:#gray>8. Update Cache
-+ES1 -[#green,thickness=2]-> User : <color:#green>9. Response
-+ES2 -[#green,thickness=2]-> User : <color:#green>9. Response
-+
-+CDS -[#darkblue,thickness=2]-> Analytics : <color:#darkblue>10. Data Analysis
-+Analytics -[#darkblue,thickness=2]-> GLB : <color:#darkblue>11. Optimize Decisions
-+
-+CDNManagement -[#purple,thickness=2]-> Cache1 : <color:#purple>Manage
-+
-+note right of CDNManagement
-+  System Optimization:
-+  1. Real-time CDN performance analysis
-+  2. Optimize routing decisions
-+  3. Intelligent pre-caching
-+  4. Improve cache hit rates
-+  5. Edge computing for simple requests
-+  6. Multi-level caching strategy
-+  7. Security: DDoS protection, encryption
-+end note
-+
-+note bottom of ES2
-+  Composite Cache Key:
-+  - Hostname
-+  - Path
-+  - Query String
-+  - Request Headers
-+end note
-+
-+@enduml
 diff --git a/check_puml.sh b/check_puml.sh
 new file mode 100755
 --- /dev/null
 +++ ./check_puml.sh
-@@ -0,0 +1,112 @@
-+#!/bin/bash
+@@ -0,0 +1,77 @@
++#!/bin/zsh
 +
 +# 设置颜色
 +GREEN='\033[0;32m'
@@ -2417,105 +2110,70 @@ new file mode 100755
 +YELLOW='\033[1;33m'
 +NC='\033[0m' # No Color
 +
-+# 查找最新版本的PlantUML jar
-+find_plantuml_jar() {
-+    local jar_path=$(find /usr/local/Cellar/plantuml -name "plantuml.jar" -type f | sort -r | head -n 1)
-+    if [ -z "$jar_path" ]; then
-+        echo -e "${RED}Error: PlantUML jar not found. Please ensure PlantUML is installed.${NC}"
-+        exit 1
-+    fi
-+    echo "$jar_path"
-+}
++# Find PlantUML jar
++PLANTUML_JAR=$(find /usr/local/Cellar/plantuml -name plantuml.jar | sort -r | head -n 1)
++echo "Using PlantUML jar: $PLANTUML_JAR"
 +
-+# 检查单个文件
++# Check a single file
 +check_file() {
 +    local file="$1"
-+    if [ ! -f "$file" ]; then
-+        echo -e "${RED}Error: File not found: $file${NC}"
-+        return 1
-+    fi
-+
-+    echo -e "\n${GREEN}Checking $file...${NC}"
++    echo "\nChecking $file..."
 +    echo "----------------------------------------"
 +    
-+    # 检查语法
-+    java -jar "$PLANTUML_JAR" -checkonly "$file" > /dev/null 2>&1
-+    syntax_status=$?
++    if [ ! -f "$file" ]; then
++        echo "❌ File not found: $file"
++        return 1
++    fi
 +    
-+    if [ $syntax_status -eq 0 ]; then
-+        echo -e "${GREEN}✅ Syntax OK${NC}"
++    # Check syntax
++    java -jar "$PLANTUML_JAR" -checkonly "$file"
++    if [ $? -eq 0 ]; then
++        echo "✅ Syntax OK"
 +        
-+        # 尝试渲染
-+        java -jar "$PLANTUML_JAR" "$file" > /dev/null 2>&1
-+        render_status=$?
-+        
-+        if [ $render_status -eq 0 ]; then
-+            echo -e "${GREEN}✅ Render OK${NC}"
-+            # 检查是否生成了png文件
-+            png_file="${file%.*}.png"
-+            if [ -f "$png_file" ]; then
-+                echo -e "${GREEN}✅ Generated: $png_file${NC}"
-+            fi
++        # Try to render
++        java -jar "$PLANTUML_JAR" "$file"
++        if [ $? -eq 0 ]; then
++            echo "✅ Render OK"
 +            return 0
 +        else
-+            echo -e "${RED}❌ Render Failed${NC}"
++            echo "❌ Render Failed"
 +            return 1
 +        fi
 +    else
-+        echo -e "${RED}❌ Syntax Error${NC}"
-+        echo -e "\nFile contents with line numbers:"
++        echo "❌ Syntax Error"
++        echo "\nFile contents with line numbers:"
 +        nl -ba "$file"
 +        return 1
 +    fi
 +}
 +
 +# 显示使用方法
-+show_usage() {
-+    echo "Usage: $0 [file.puml]"
-+    echo "If no file is specified, checks all .puml files in the current directory and subdirectories"
-+    echo "Options:"
-+    echo "  -h, --help    Show this help message"
++show_help() {
++    echo "Usage: $0 [file1.puml file2.puml ...]"
++    echo "Checks PlantUML files for syntax and rendering."
++    echo ""
++    echo "If no files are specified, checks all .puml files in current directory."
 +}
 +
 +# 主函数
 +main() {
-+    # 查找PlantUML jar
-+    PLANTUML_JAR=$(find_plantuml_jar)
-+    echo -e "${YELLOW}Using PlantUML jar: $PLANTUML_JAR${NC}"
-+
 +    # 处理命令行参数
 +    if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
-+        show_usage
++        show_help
 +        exit 0
 +    fi
 +
-+    # 如果指定了文件，只检查该文件
-+    if [ $# -eq 1 ]; then
-+        if [[ "$1" != *.puml ]]; then
-+            echo -e "${RED}Error: File must have .puml extension${NC}"
-+            exit 1
-+        fi
-+        check_file "$1"
-+        exit $?
-+    fi
-+
-+    # 否则检查所有puml文件
-+    local error_found=0
-+    while IFS= read -r file; do
-+        check_file "$file"
-+        if [ $? -ne 0 ]; then
-+            echo -e "${RED}Error found in $file${NC}"
-+            error_found=1
-+            break
-+        fi
-+    done < <(find . -name "*.puml" -type f)
-+
-+    if [ $error_found -eq 1 ]; then
-+        echo -e "${RED}Errors found. Stopping check.${NC}"
-+        exit 1
++    # If no arguments provided, check all .puml files
++    if [[ $# -eq 0 ]]; then
++        echo "No file specified. Checking all .puml files...\n"
++        for file in *.puml; do
++            check_file $file
++        done
 +    else
-+        echo -e "${GREEN}All files checked successfully.${NC}"
-+        exit 0
++        # Check each specified file
++        for file in "$@"; do
++            check_file $file
++        done
 +    fi
 +}
 +
@@ -2747,155 +2405,62 @@ diff --git a/common_style.puml b/common_style.puml
 new file mode 100644
 --- /dev/null
 +++ ./common_style.puml
-@@ -0,0 +1,35 @@
-+@startuml
+@@ -0,0 +1,54 @@
++@startuml Common Style
 +
-+' Colors
-+!define BLUE #1E90FF
-+!define GREEN #32CD32
-+!define ORANGE #FFA500
-+!define RED #FF4500
-+!define PURPLE #9370DB
-+!define GRAY #A9A9A9
-+
-+' Common styles
-+skinparam componentStyle rectangle
-+skinparam backgroundColor #FAFAFA
-+skinparam defaultFontSize 14
++' Set the default style for all diagrams
++skinparam backgroundColor white
++skinparam handwritten false
 +skinparam defaultFontName Arial
-+skinparam ArrowColor #2C3E50
-+skinparam PackageBackgroundColor #FAFAFA
-+skinparam PackageBorderColor #CCCCCC
-+    
++skinparam defaultFontSize 14
++
++' Component styles
 +skinparam component {
++    BackgroundColor #FEFECE
 +    BorderColor #666666
-+    BackgroundColor #FFFFFF
++    FontColor #000000
 +}
-+    
++
++' Database styles
++skinparam database {
++    BackgroundColor #F8F8F8
++    BorderColor #666666
++    FontColor #000000
++}
++
++' Queue styles
++skinparam queue {
++    BackgroundColor #FFEFDB
++    BorderColor #666666
++    FontColor #000000
++}
++
++' Rectangle styles
++skinparam rectangle {
++    BackgroundColor #FAFAFA
++    BorderColor #666666
++    FontColor #000000
++}
++
++' Arrow styles
++skinparam arrow {
++    Color #666666
++    FontColor #666666
++}
++
++' Note styles
 +skinparam note {
-+    BorderColor #666666
-+    BackgroundColor #FFFFCC
++    BackgroundColor #FFF3E0
++    BorderColor #E65100
++    FontColor #000000
 +}
-+    
-+skinparam package {
-+    BorderColor #666666
-+    BackgroundColor #FFFFFF
-+}
++
++' Padding and spacing
++skinparam padding 8
++skinparam margin 10
 +
 +@enduml 
 \ No newline at end of file
-diff --git a/comprehensive_distributed_system_monitoring_alerting_log_analysis_with_data_processing_and_visualization.puml b/comprehensive_distributed_system_monitoring_alerting_log_analysis_with_data_processing_and_visualization.puml
-new file mode 100644
---- /dev/null
-+++ ./comprehensive_distributed_system_monitoring_alerting_log_analysis_with_data_processing_and_visualization.puml
-@@ -0,0 +1,107 @@
-+@startuml Distributed System Monitoring Architecture
-+
-+skinparam backgroundColor #CCE8CF
-+skinparam handwritten false
-+skinparam defaultFontName Arial
-+skinparam defaultFontSize 12
-+skinparam roundcorner 20
-+skinparam shadowing true
-+allowmixing
-+!pragma layout dot
-+
-+title Distributed System Monitoring Architecture
-+
-+!define PRIMARY_COLOR #E67E22
-+!define SECONDARY_COLOR #3498DB
-+!define TERTIARY_COLOR #F1C40F
-+!define QUATERNARY_COLOR #8E44AD
-+!define QUINARY_COLOR #16A085
-+
-+' 监控代理
-+rectangle "Monitoring Agent" as Agent PRIMARY_COLOR {
-+    component "Metric Collector" 
-+    component "Log Collector" 
-+    component "Health Checker" 
-+}
-+
-+' 数据收集和传输
-+queue "Message Queue" as MQ SECONDARY_COLOR
-+component "Data Ingestion Service" as Ingestion TERTIARY_COLOR
-+
-+' 数据存储
-+database "Time Series DB\n(Metrics)" as TSDB QUATERNARY_COLOR
-+database "Log Storage\n(Event Logs)" as LogDB QUINARY_COLOR
-+
-+' 数据处理和分析
-+rectangle "Data Processing" as Processing PRIMARY_COLOR {
-+    component "Stream Processing" 
-+    component "Batch Processing" 
-+    component "Log Analyzer" 
-+    component "Metric Analyzer" 
-+}
-+
-+' 告警系统
-+rectangle "Alert Manager" as AlertManager SECONDARY_COLOR {
-+    component "Rule Engine" 
-+    component "Notification Service" 
-+}
-+
-+' 可视化
-+rectangle "Visualization" as Viz TERTIARY_COLOR {
-+    component "Dashboard" 
-+    component "Report Generator" 
-+}
-+
-+' API网关
-+rectangle "API Gateway" as Gateway QUATERNARY_COLOR
-+
-+' 用户界面
-+actor "Admin/User" as User
-+
-+' 关系
-+Agent -[PRIMARY_COLOR,thickness=2]down-> MQ : <back:#FFFFFF><color:PRIMARY_COLOR>1. Send data</color></back>
-+MQ -[SECONDARY_COLOR,thickness=2]down-> Ingestion : <back:#FFFFFF><color:SECONDARY_COLOR>2. Consume data</color></back>
-+Ingestion -[TERTIARY_COLOR,thickness=2]down-> TSDB : <back:#FFFFFF><color:TERTIARY_COLOR>3. Store metrics</color></back>
-+Ingestion -[QUATERNARY_COLOR,thickness=2]down-> LogDB : <back:#FFFFFF><color:QUATERNARY_COLOR>4. Store logs</color></back>
-+TSDB -[QUINARY_COLOR,thickness=2]right-> Processing : <back:#FFFFFF><color:QUINARY_COLOR>5. Query metrics</color></back>
-+LogDB -[PRIMARY_COLOR,thickness=2]right-> Processing : <back:#FFFFFF><color:PRIMARY_COLOR>6. Query logs</color></back>
-+Processing -[SECONDARY_COLOR,thickness=2]up-> AlertManager : <back:#FFFFFF><color:SECONDARY_COLOR>7. Trigger alerts</color></back>
-+Processing -[TERTIARY_COLOR,thickness=2]down-> Viz : <back:#FFFFFF><color:TERTIARY_COLOR>8. Provide processed data</color></back>
-+
-+' 数据存储之间的关系
-+LogDB ..[QUATERNARY_COLOR,thickness=2]> TSDB : <back:#FFFFFF><color:QUATERNARY_COLOR>9. Extract metrics</color></back>
-+
-+note right of TSDB
-+  Stores time-based numerical data
-+  E.g., CPU usage, memory usage, request count
-+end note
-+
-+note right of LogDB
-+  Stores detailed event logs
-+  E.g., error messages, access logs, system events
-+end note
-+
-+note bottom of LogDB
-+  Some log data can be 
-+  transformed into metrics
-+  and stored in Time Series DB
-+end note
-+
-+note right of Agent
-+  Deployed on each node/service
-+  Collects metrics, logs, and health status
-+end note
-+
-+note right of AlertManager
-+  Configurable alert rules
-+  Multiple notification channels
-+  (Email, SMS, Slack, etc.)
-+end note
-+
-+note right of Viz
-+  Real-time and historical data visualization
-+  Customizable dashboards
-+  Automated reporting
-+end note
-+
-+@enduml
 diff --git a/comprehensive_performance_monitoring_system_with_data_processing_alerting_and_visualization.puml b/comprehensive_performance_monitoring_system_with_data_processing_alerting_and_visualization.puml
 new file mode 100644
 --- /dev/null
@@ -3422,7 +2987,7 @@ new file mode 100644
 +
 +allowmixing
 +
-+' 定义颜色变量
++' Define color variables
 +!define PRIMARY_COLOR #E67E22
 +!define SECONDARY_COLOR #3498DB
 +!define TERTIARY_COLOR #F1C40F
@@ -3432,7 +2997,7 @@ new file mode 100644
 +
 +skinparam backgroundColor BG_COLOR
 +
-+' 定义组件
++' Define components
 +rectangle "Client" as Client PRIMARY_COLOR {
 +    component "Client App" as ClientApp
 +}
@@ -3466,7 +3031,7 @@ new file mode 100644
 +    component "Performance Monitor" as PerformanceMonitor
 +}
 +
-+' 连接和流程
++' Connections and flows
 +Client -[PRIMARY_COLOR,thickness=2]-> LB : <back:#FFFFFF><color:PRIMARY_COLOR>1. Request</color></back>
 +LB -[SECONDARY_COLOR,thickness=2]-> CC : <back:#FFFFFF><color:SECONDARY_COLOR>2. Route request</color></back>
 +CC -[TERTIARY_COLOR,thickness=2]-> BF : <back:#FFFFFF><color:TERTIARY_COLOR>3. Filter non-existent keys</color></back>
@@ -3481,7 +3046,7 @@ new file mode 100644
 +CW -[QUINARY_COLOR,thickness=2]-> CC : <back:#FFFFFF><color:QUINARY_COLOR>10. Preload hot data</color></back>
 +MA -[PRIMARY_COLOR,thickness=2]-> CC : <back:#FFFFFF><color:PRIMARY_COLOR>11. Monitor performance</color></back>
 +
-+' 注释
++' Notes
 +note bottom of CM
 +  Consistency strategies:
 +  - Strong consistency
@@ -3520,6 +3085,105 @@ new file mode 100644
 +end note
 +
 +@enduml
+diff --git a/distributed_configuration_center.puml b/distributed_configuration_center.puml
+new file mode 100644
+--- /dev/null
++++ ./distributed_configuration_center.puml
+@@ -0,0 +1,93 @@
++@startuml
++skinparam componentStyle rectangle
++
++package "Configuration Management System" {
++    package "Client SDK" {
++        component "Config Client" as ConfigClient
++        component "Local Cache" as LocalCache
++        component "Change Listener" as ChangeListener
++        component "Config Validator" as ConfigValidator
++    }
++    
++    package "Config Service" {
++        component "Config Manager" as ConfigManager
++        component "Version Controller" as VersionController
++        component "Change Notifier" as ChangeNotifier
++        component "Config Pusher" as ConfigPusher
++    }
++    
++    package "Storage Layer" {
++        component "Config Store" as ConfigStore
++        component "Version Store" as VersionStore
++        component "Change Log" as ChangeLog
++    }
++    
++    package "Admin Console" {
++        component "Web UI" as WebUI
++        component "Config Editor" as ConfigEditor
++        component "Version Manager" as VersionManager
++        component "Release Manager" as ReleaseManager
++    }
++    
++    package "Monitoring & Audit" {
++        component "Access Logger" as AccessLogger
++        component "Change Tracker" as ChangeTracker
++        component "Health Monitor" as HealthMonitor
++    }
++}
++
++cloud "Client Applications" as Clients
++cloud "Admin Users" as Admins
++
++Clients --> ConfigClient : Get Config
++ConfigClient --> LocalCache : Read Local
++ConfigClient --> ConfigManager : Request Update
++ConfigManager --> ConfigStore : Fetch Config
++ConfigManager --> VersionStore : Check Version
++
++Admins --> WebUI : Manage Config
++WebUI --> ConfigEditor : Edit Config
++ConfigEditor --> ConfigManager : Submit Change
++ConfigManager --> ChangeNotifier : Notify Change
++ChangeNotifier --> ChangeListener : Push Update
++
++VersionController --> VersionStore : Track Versions
++ChangeTracker --> ChangeLog : Record Changes
++AccessLogger --> HealthMonitor : Report Status
++
++note right of ConfigClient
++  Local cache with version check
++  Automatic config reload
++end note
++
++note right of ConfigManager
++  Version control
++  Change notification
++end note
++
++legend right
++Implementation Details:
++==
++Config Management:
++- Version control
++- Change tracking
++- Real-time updates
++- Config validation
++
++High Availability:
++- Multi-region deployment
++- Config replication
++- Fallback mechanisms
++
++Security Features:
++- Access control
++- Config encryption
++- Audit logging
++
++Performance Features:
++- Local caching
++- Change notification
++- Batch updates
++end legend
++
++@enduml 
+\ No newline at end of file
 diff --git a/distributed_configuration_center_with_caching_change_notification_and_access_control.puml b/distributed_configuration_center_with_caching_change_notification_and_access_control.puml
 new file mode 100644
 --- /dev/null
@@ -4192,6 +3856,104 @@ new file mode 100644
 +end note
 +
 +@enduml
+diff --git a/distributed_id_generator.puml b/distributed_id_generator.puml
+new file mode 100644
+--- /dev/null
++++ ./distributed_id_generator.puml
+@@ -0,0 +1,92 @@
++@startuml
++skinparam componentStyle rectangle
++
++package "Distributed ID Generator System" {
++    package "Client SDK" {
++        component "ID Client" as IDClient
++        component "Request Router" as RequestRouter
++        component "Load Balancer" as LoadBalancer
++        component "Cache Manager" as CacheManager
++    }
++    
++    package "ID Generator Service" {
++        component "ID Generator" as IDGenerator
++        component "Snowflake Worker" as SnowflakeWorker
++        component "Sequence Manager" as SequenceManager
++        component "Clock Sync" as ClockSync
++    }
++    
++    package "ZooKeeper Cluster" {
++        component "Worker Registry" as WorkerRegistry
++        component "Node Manager" as NodeManager
++        component "Election Manager" as ElectionManager
++    }
++    
++    package "Monitoring & Management" {
++        component "Performance Monitor" as PerfMonitor
++        component "ID Usage Tracker" as UsageTracker
++        component "Alert System" as AlertSystem
++    }
++    
++    package "Storage Layer" {
++        component "ID Range Store" as RangeStore
++        component "Usage Statistics" as UsageStats
++        component "Audit Log" as AuditLog
++    }
++}
++
++cloud "Client Applications" as Clients
++cloud "Admin Console" as Admin
++
++Clients --> IDClient : Request ID
++IDClient --> RequestRouter : Route Request
++RequestRouter --> LoadBalancer : Balance Load
++LoadBalancer --> IDGenerator : Generate ID
++IDGenerator --> SnowflakeWorker : Get Worker ID
++SnowflakeWorker --> WorkerRegistry : Register/Heartbeat
++
++IDGenerator --> ClockSync : Sync Time
++ClockSync --> NodeManager : Get Global Time
++SequenceManager --> RangeStore : Get/Update Range
++
++Admin --> PerfMonitor : Monitor System
++PerfMonitor --> UsageTracker : Track Usage
++AlertSystem --> Admin : Send Alerts
++
++note right of SnowflakeWorker
++  41 bits for timestamp
++  10 bits for worker ID
++  12 bits for sequence
++end note
++
++note right of ClockSync
++  NTP synchronization
++  Clock drift detection
++end note
++
++legend right
++Implementation Details:
++==
++Snowflake Algorithm:
++- 64-bit unique IDs
++- Time-based ordering
++- Worker ID management
++- Sequence handling
++
++High Availability:
++- Multiple worker nodes
++- ZooKeeper coordination
++- Automatic failover
++
++Performance Features:
++- Local caching
++- Batch allocation
++- Pre-generation
++
++Monitoring:
++- Usage tracking
++- Performance metrics
++- Clock drift detection
++end legend
++
++@enduml 
+\ No newline at end of file
 diff --git a/distributed_id_generator_system_with_snowflake_algorithm_zookeeper_coordination_and_performance_monitoring.puml b/distributed_id_generator_system_with_snowflake_algorithm_zookeeper_coordination_and_performance_monitoring.puml
 new file mode 100644
 --- /dev/null
@@ -4260,6 +4022,106 @@ new file mode 100644
 +end note
 +
 +@enduml
+diff --git a/distributed_lock_service_with_redis_zookeeper.puml b/distributed_lock_service_with_redis_zookeeper.puml
+new file mode 100644
+--- /dev/null
++++ ./distributed_lock_service_with_redis_zookeeper.puml
+@@ -0,0 +1,94 @@
++@startuml
++skinparam componentStyle rectangle
++
++package "Distributed Lock Service" {
++    package "Client SDK" {
++        component "Lock Client" as LockClient
++        component "Connection Manager" as ConnManager
++        component "Retry Handler" as RetryHandler
++        component "Circuit Breaker" as CircuitBreaker
++    }
++    
++    package "Lock Service Core" {
++        component "Lock Manager" as LockManager
++        component "Lock Validator" as LockValidator
++        component "Deadlock Detector" as DeadlockDetector
++        component "Lock Cleaner" as LockCleaner
++    }
++    
++    package "Redis Implementation" {
++        component "Redis Lock" as RedisLock
++        component "Lock TTL Manager" as TTLManager
++        component "Watch Dog" as WatchDog
++    }
++    
++    package "ZooKeeper Implementation" {
++        component "ZK Lock" as ZKLock
++        component "Sequential Nodes" as SeqNodes
++        component "Session Manager" as SessionManager
++    }
++    
++    package "Monitoring & Recovery" {
++        component "Health Checker" as HealthChecker
++        component "Lock Monitor" as LockMonitor
++        component "Alert System" as AlertSystem
++    }
++}
++
++cloud "Client Applications" as Clients
++cloud "Resource Services" as Resources
++
++Clients --> LockClient : Request Lock
++LockClient --> ConnManager : Establish Connection
++ConnManager --> LockManager : Forward Request
++LockManager --> LockValidator : Validate Lock
++LockValidator --> RedisLock : Try Redis Lock
++LockValidator --> ZKLock : Try ZK Lock
++RedisLock --> Resources : Access if Locked
++ZKLock --> Resources : Access if Locked
++
++RetryHandler --> LockClient : Retry Failed Requests
++CircuitBreaker --> ConnManager : Prevent Cascading Failures
++
++WatchDog --> RedisLock : Extend Lock TTL
++SessionManager --> ZKLock : Maintain Session
++LockCleaner --> RedisLock : Clean Expired Locks
++DeadlockDetector --> LockManager : Detect Deadlocks
++
++note right of RedisLock
++  Uses SET NX with TTL
++  Lua scripts for atomicity
++end note
++
++note right of ZKLock
++  Sequential ephemeral nodes
++  Automatic cleanup on session end
++end note
++
++legend right
++Implementation Details:
++==
++Redis Lock Strategy:
++- SET NX with TTL
++- Lua scripts for atomicity
++- Watch dog for TTL extension
++- Unique lock identifiers
++
++ZooKeeper Lock Strategy:
++- Sequential ephemeral nodes
++- Session management
++- Automatic node cleanup
++- Lock queue management
++
++High Availability:
++- Multiple lock providers
++- Automatic failover
++- Circuit breaker pattern
++
++Performance Features:
++- Local lock caching
++- Bulk lock operations
++- Lock request batching
++end legend
++
++@enduml 
+\ No newline at end of file
 diff --git a/distributed_rate_limiter_system_with_multiple_algorithms_and_redis.puml b/distributed_rate_limiter_system_with_multiple_algorithms_and_redis.puml
 new file mode 100644
 --- /dev/null
@@ -7488,216 +7350,6 @@ new file mode 100644
 +end note
 +
 +@enduml
-diff --git a/microservices_architecture_design_with_service_discovery_and_api_gateway.puml b/microservices_architecture_design_with_service_discovery_and_api_gateway.puml
-new file mode 100644
---- /dev/null
-+++ ./microservices_architecture_design_with_service_discovery_and_api_gateway.puml
-@@ -0,0 +1,126 @@
-+@startuml Microservices Architecture Design
-+
-+allowmixing
-+
-+skinparam {
-+    backgroundColor #F0F0F0
-+    handwritten false
-+    defaultFontName Arial
-+    defaultFontSize 12
-+    roundcorner 20
-+    shadowing false
-+    ArrowColor #2C3E50
-+    ActorBorderColor #2C3E50
-+    LifeLineBorderColor #2C3E50
-+    LifeLineBackgroundColor #A9DCDF
-+    
-+    ParticipantBorderColor #2C3E50
-+    ParticipantBackgroundColor #A9DCDF
-+    ParticipantFontName Arial
-+    ParticipantFontSize 12
-+    ParticipantFontColor #2C3E50
-+    
-+    ActorBackgroundColor #A9DCDF
-+    ActorFontColor #2C3E50
-+    ActorFontSize 12
-+    ActorFontName Arial
-+    
-+    RectangleBackgroundColor #FFFFFF
-+    
-+    NoteFontName Arial
-+    NoteFontSize 11
-+    NoteFontColor #333333
-+    NoteBackgroundColor #FFFDE7
-+    NoteBorderColor #FFC107
-+}
-+
-+title Microservices Architecture Design
-+
-+' Client Layer
-+rectangle "Client Layer" as ClientLayer #E1F5FE {
-+    component "Web Application" as WebApp
-+    component "Mobile App" as MobileApp
-+    component "Third-party Clients" as ThirdPartyClients
-+}
-+
-+' API Gateway
-+RECTANGLE "API Gateway" as APIGateway #FFF3E0 {
-+    component "Authentication" as Auth
-+    component "Rate Limiting" as RateLimit
-+    component "Request Routing" as RequestRouting
-+    component "Response Caching" as ResponseCaching
-+}
-+
-+' Service Discovery
-+RECTANGLE "Service Discovery" as ServiceDiscovery #E8F5E9 {
-+    component "Service Registry" as ServiceRegistry
-+    component "Load Balancer" as LoadBalancer
-+}
-+
-+' Microservices
-+RECTANGLE "Microservices" as Microservices #FFEBEE {
-+    component "User Service" as UserService
-+    component "Product Service" as ProductService
-+    component "Order Service" as OrderService
-+    component "Payment Service" as PaymentService
-+    component "Notification Service" as NotificationService
-+}
-+
-+' Data Layer
-+RECTANGLE "Data Layer" as DataLayer #E0F7FA {
-+    database "User DB" as UserDB
-+    database "Product DB" as ProductDB
-+    database "Order DB" as OrderDB
-+    database "Payment DB" as PaymentDB
-+}
-+
-+' Message Queue
-+queue "Message Queue" as MessageQueue #F3E5F5
-+
-+' Monitoring and Logging
-+RECTANGLE "Monitoring & Logging" as MonitoringLogging #FFF8E1 {
-+    component "Centralized Logging" as CentralizedLogging
-+    component "Metrics Collection" as MetricsCollection
-+    component "Distributed Tracing" as DistributedTracing
-+}
-+
-+' Connections
-+ClientLayer -down-> APIGateway : 1. API Requests
-+APIGateway -down-> ServiceDiscovery : 2. Service Lookup
-+ServiceDiscovery -right-> Microservices : 3. Route Requests
-+Microservices -down-> DataLayer : 4. Data Operations
-+Microservices -left-> MessageQueue : 5. Async Communication
-+MonitoringLogging -up-> Microservices : 6. Collect Metrics & Logs
-+
-+' Notes
-+note right of APIGateway
-+  Handles cross-cutting concerns:
-+  - Authentication
-+  - Rate limiting
-+  - Request routing
-+  - Response caching
-+end note
-+
-+note right of ServiceDiscovery
-+  Enables dynamic service
-+  registration and discovery
-+end note
-+
-+note right of Microservices
-+  Each service is:
-+  - Independently deployable
-+  - Loosely coupled
-+  - Focused on specific domain
-+end note
-+
-+note right of MessageQueue
-+  Enables asynchronous
-+  communication between services
-+end note
-+
-+note right of MonitoringLogging
-+  Centralized monitoring and
-+  logging for all services
-+end note
-+
-+@enduml
-diff --git a/microservices_fault_tolerance_with_circuit_breaker_and_service_degradation.puml b/microservices_fault_tolerance_with_circuit_breaker_and_service_degradation.puml
-new file mode 100644
---- /dev/null
-+++ ./microservices_fault_tolerance_with_circuit_breaker_and_service_degradation.puml
-@@ -0,0 +1,74 @@
-+@startuml Microservices Fault Tolerance Design
-+
-+!define RECTANGLE class
-+!define STORAGE database
-+
-+skinparam backgroundColor #FAFAFA
-+skinparam handwritten false
-+skinparam defaultFontName Arial
-+skinparam defaultFontSize 14
-+skinparam roundcorner 20
-+skinparam shadowing false
-+
-+title Microservices Fault Tolerance with Circuit Breaker and Service Degradation
-+
-+rectangle "Client Applications" as ClientApps #E1F5FE
-+
-+rectangle "API Gateway" as APIGateway #B3E5FC {
-+    component "Request Router" as RequestRouter
-+    component "Circuit Breaker" as CircuitBreaker
-+    component "Fallback Handler" as FallbackHandler
-+}
-+
-+rectangle "Service Registry" as ServiceRegistry #81D4FA
-+
-+rectangle "Microservices" as Microservices #4FC3F7 {
-+    component "Service A" as ServiceA
-+    component "Service B" as ServiceB
-+    component "Service C" as ServiceC
-+}
-+
-+rectangle "Monitoring & Alerting" as Monitoring #03A9F4 {
-+    component "Health Checker" as HealthChecker
-+    component "Metrics Collector" as MetricsCollector
-+}
-+
-+database "Database" as Database #0288D1
-+
-+ClientApps -[#FF5722,thickness=2]-> APIGateway : <back:#FFFFFF><color:#FF5722>1. API Request</color></back>
-+APIGateway -[#FF9800,thickness=2]-> ServiceRegistry : <back:#FFFFFF><color:#FF9800>2. Service Lookup</color></back>
-+APIGateway -[#FFC107,thickness=2]-> Microservices : <back:#FFFFFF><color:#FFC107>3. Forward Request</color></back>
-+Microservices -[#4CAF50,thickness=2]-> Database : <back:#FFFFFF><color:#4CAF50>4. Data Operations</color></back>
-+Monitoring -[#2196F3,thickness=2]-> Microservices : <back:#FFFFFF><color:#2196F3>5. Monitor Health & Metrics</color></back>
-+Monitoring -[#9C27B0,thickness=2]-> APIGateway : <back:#FFFFFF><color:#9C27B0>6. Update Circuit Breaker Status</color></back>
-+
-+note top of CircuitBreaker
-+  Circuit Breaker States:
-+  - Closed: Normal operation
-+  - Open: Stop calls to failing service
-+  - Half-Open: Test if service recovered
-+end note
-+
-+note bottom of FallbackHandler
-+  Fallback Strategies:
-+  - Return cached data
-+  - Degrade service functionality
-+  - Redirect to alternative service
-+end note
-+
-+note bottom of Microservices
-+  Service Degradation:
-+  - Disable non-critical features
-+  - Limit request rate
-+  - Return simplified responses
-+end note
-+
-+note bottom of Monitoring
-+  Monitoring Responsibilities:
-+  - Track error rates and latency
-+  - Detect service health issues
-+  - Trigger circuit breaker state changes
-+end note
-+
-+@enduml
-+
 diff --git a/online_advertising_system_architecture_with_targeting_bidding_analytics_and_ml_optimizations.puml b/online_advertising_system_architecture_with_targeting_bidding_analytics_and_ml_optimizations.puml
 new file mode 100644
 --- /dev/null
@@ -7830,6 +7482,113 @@ new file mode 100644
 +end note
 +
 +@enduml
+diff --git a/payment_system_with_fraud_detection_and_reconciliation.puml b/payment_system_with_fraud_detection_and_reconciliation.puml
+new file mode 100644
+--- /dev/null
++++ ./payment_system_with_fraud_detection_and_reconciliation.puml
+@@ -0,0 +1,101 @@
++@startuml Payment System
++
++!include common_style.puml
++
++title Payment System with Fraud Detection and Reconciliation
++
++rectangle "Client Layer" {
++    component "Payment Gateway API" as apiGateway
++    component "Merchant Portal" as merchantPortal
++    component "Admin Dashboard" as adminDashboard
++}
++
++rectangle "Payment Processing" {
++    component "Payment Orchestrator" as paymentOrchestrator
++    component "Payment Processor" as paymentProcessor
++    component "Payment Router" as paymentRouter
++    queue "Payment Queue\n(Kafka)" as paymentQueue
++}
++
++rectangle "Risk Management" {
++    component "Fraud Detection" as fraudDetection
++    component "Risk Scorer" as riskScorer
++    component "Rule Engine" as ruleEngine
++    database "Risk Rules\n(MongoDB)" as riskRules
++}
++
++rectangle "Payment Providers" {
++    component "Credit Card Provider" as ccProvider
++    component "Bank Transfer" as bankTransfer
++    component "Digital Wallet" as digitalWallet
++    component "Provider Adapter" as providerAdapter
++}
++
++rectangle "Storage Layer" {
++    database "Transaction DB\n(PostgreSQL)" as transactionDB
++    database "Account DB\n(PostgreSQL)" as accountDB
++    database "Audit Log\n(MongoDB)" as auditLog
++    database "Cache\n(Redis)" as cacheLayer
++}
++
++rectangle "Reconciliation" {
++    component "Transaction Matcher" as txnMatcher
++    component "Settlement Service" as settlementService
++    component "Reporting Service" as reportingService
++    database "Settlement DB\n(PostgreSQL)" as settlementDB
++}
++
++' Connections
++apiGateway --> paymentOrchestrator
++merchantPortal --> apiGateway
++adminDashboard --> apiGateway
++
++paymentOrchestrator --> fraudDetection
++paymentOrchestrator --> paymentQueue
++paymentQueue --> paymentProcessor
++
++fraudDetection --> riskScorer
++riskScorer --> ruleEngine
++ruleEngine --> riskRules
++
++paymentProcessor --> paymentRouter
++paymentRouter --> providerAdapter
++providerAdapter --> ccProvider
++providerAdapter --> bankTransfer
++providerAdapter --> digitalWallet
++
++paymentProcessor --> transactionDB
++paymentProcessor --> accountDB
++paymentProcessor --> auditLog
++paymentProcessor --> cacheLayer
++
++paymentQueue --> txnMatcher
++txnMatcher --> settlementService
++settlementService --> settlementDB
++reportingService --> settlementDB
++
++note right of fraudDetection
++  Real-time fraud detection
++  Machine learning models
++  Rule-based filtering
++end note
++
++note right of paymentRouter
++  Provider selection
++  Failover handling
++  Load balancing
++end note
++
++note right of settlementService
++  Batch processing
++  Fee calculation
++  Reconciliation
++end note
++
++note right of transactionDB
++  ACID compliance
++  Transaction history
++  Payment state
++end note
++
++@enduml 
+\ No newline at end of file
 diff --git a/plantumlmacviewer/.gitignore b/plantumlmacviewer/.gitignore
 new file mode 100644
 --- /dev/null
@@ -8735,10 +8494,12 @@ diff --git a/readme b/readme
 new file mode 100644
 --- /dev/null
 +++ ./readme
-@@ -0,0 +1,106 @@
+@@ -0,0 +1,108 @@
 +用中文回答
 +使用PlantUML绘制系统架构图
-+生成之后, 帮我验证一下生成的puml文件有没有语法错误, 能不能正确render.
++帮我设计实现, 
++puml里面用英文
++生成之后, 使用 ./check_puml.sh 验证生成的puml文件.
 +
 +系统架构图
 +    在当前项目下查找, 看看有没有接近的已有设计
@@ -8851,7 +8612,7 @@ new file mode 100644
 +!pragma layout dot
 +allowmixing
 +
-+' 定义更深的颜色
++' Define deeper colors
 +!define PRIMARY_COLOR #E67E22
 +!define SECONDARY_COLOR #3498DB
 +!define TERTIARY_COLOR #F1C40F
@@ -8859,7 +8620,7 @@ new file mode 100644
 +!define QUINARY_COLOR #16A085
 +!define P2P_COLOR #27AE60
 +
-+' 背景颜色
++' Background color
 +skinparam backgroundColor #CCE8CF
 +
 +rectangle "Client Devices" as ClientDevices PRIMARY_COLOR {
@@ -8903,7 +8664,7 @@ new file mode 100644
 +    component "STUN Server" as STUNServer
 +}
 +
-+' 添加第二个客户端设备以表示P2P连接
++' Add second client device for P2P connection
 +rectangle "Client Devices (Peer)" as ClientDevicesPeer PRIMARY_COLOR {
 +    component "Peer Device" as PeerDevice
 +}
@@ -8916,7 +8677,7 @@ new file mode 100644
 +MediaServer -[QUATERNARY_COLOR,thickness=2]-> TURNSTUNServers : <back:#FFFFFF><color:QUATERNARY_COLOR>6. NAT traversal</color></back>
 +SignalingServer -[TERTIARY_COLOR,thickness=2]-> MediaServer : <back:#FFFFFF><color:TERTIARY_COLOR>7. Coordinate media flow</color></back>
 +
-+' 添加P2P连接
++' Add P2P connection
 +ClientDevices <-[P2P_COLOR,thickness=2]-> ClientDevicesPeer : <back:#FFFFFF><color:P2P_COLOR>8. P2P Communication</color></back>
 +
 +note right of ClientDevices
@@ -8955,6 +8716,215 @@ new file mode 100644
 +end note
 +
 +@enduml
+diff --git a/real_time_chat_system_with_presence_and_message_delivery_guarantees.puml b/real_time_chat_system_with_presence_and_message_delivery_guarantees.puml
+new file mode 100644
+--- /dev/null
++++ ./real_time_chat_system_with_presence_and_message_delivery_guarantees.puml
+@@ -0,0 +1,97 @@
++@startuml Real-time Chat System
++
++!include common_style.puml
++
++title Real-time Chat System with Presence and Message Delivery Guarantees
++
++' Container definition
++rectangle "Client Layer" {
++    component "Web Client" as webClient
++    component "Mobile Client" as mobileClient
++    component "Desktop Client" as desktopClient
++}
++
++rectangle "Load Balancer Layer" {
++    component "API Gateway" as apiGateway
++    component "WebSocket Gateway" as wsGateway
++}
++
++rectangle "Service Layer" {
++    component "Authentication Service" as authService
++    component "Chat Service" as chatService
++    component "Presence Service" as presenceService
++    component "Notification Service" as notificationService
++    component "Message Delivery Service" as deliveryService
++}
++
++rectangle "Real-time Layer" {
++    queue "Message Queue (Kafka)" as messageQueue
++    component "WebSocket Manager" as wsManager
++    component "Push Notification Service" as pushService
++}
++
++rectangle "Storage Layer" {
++    database "User DB\n(PostgreSQL)" as userDB
++    database "Message DB\n(MongoDB)" as messageDB
++    database "Presence Cache\n(Redis)" as presenceCache
++    database "Session Store\n(Redis)" as sessionStore
++}
++
++' Connections
++webClient --> apiGateway
++mobileClient --> apiGateway
++desktopClient --> apiGateway
++webClient --> wsGateway
++mobileClient --> wsGateway
++desktopClient --> wsGateway
++
++apiGateway --> authService
++apiGateway --> chatService
++wsGateway --> wsManager
++
++authService --> userDB
++authService --> sessionStore
++
++chatService --> messageQueue
++chatService --> messageDB
++chatService --> presenceService
++
++presenceService --> presenceCache
++presenceService --> messageQueue
++
++wsManager --> messageQueue
++wsManager --> sessionStore
++wsManager --> presenceCache
++
++messageQueue --> deliveryService
++deliveryService --> messageDB
++deliveryService --> pushService
++
++notificationService --> pushService
++pushService --> mobileClient
++
++note right of presenceService
++  Handles user online/offline status
++  Last seen tracking
++  Typing indicators
++end note
++
++note right of deliveryService
++  Ensures message delivery
++  Handles retry logic
++  Manages acknowledgments
++end note
++
++note right of messageQueue
++  Handles high throughput
++  Message ordering
++  Fault tolerance
++end note
++
++note right of messageDB
++  Stores message history
++  Supports message search
++  Handles media attachments
++end note
++
++@enduml 
+\ No newline at end of file
+diff --git a/real_time_collaborative_editing_system.puml b/real_time_collaborative_editing_system.puml
+new file mode 100644
+--- /dev/null
++++ ./real_time_collaborative_editing_system.puml
+@@ -0,0 +1,100 @@
++@startuml Real-time Collaborative Editing System
++
++!include common_style.puml
++
++title Real-time Collaborative Editing System with Operational Transformation
++
++rectangle "Client Layer" {
++    component "Web Editor" as webEditor
++    component "Mobile Editor" as mobileEditor
++    component "Desktop Client" as desktopClient
++}
++
++rectangle "Gateway Layer" {
++    component "API Gateway" as apiGateway
++    component "WebSocket Gateway" as wsGateway
++    component "Authentication Service" as authService
++}
++
++rectangle "Collaboration Core" {
++    component "Operation Transformer" as opTransformer
++    component "Conflict Resolver" as conflictResolver
++    component "Version Controller" as versionController
++    queue "Operation Queue\n(Redis Stream)" as opQueue
++}
++
++rectangle "Document Management" {
++    component "Document Service" as docService
++    component "Permission Service" as permissionService
++    component "History Service" as historyService
++    component "Search Service" as searchService
++}
++
++rectangle "Storage Layer" {
++    database "Document Store\n(MongoDB)" as docStore
++    database "Operation Log\n(MongoDB)" as opLog
++    database "User Data\n(PostgreSQL)" as userDB
++    database "Search Index\n(Elasticsearch)" as searchIndex
++}
++
++rectangle "Real-time Components" {
++    component "Presence Service" as presenceService
++    component "Cursor Tracker" as cursorTracker
++    component "Change Broadcaster" as changeBroadcaster
++    database "Session Store\n(Redis)" as sessionStore
++}
++
++' Connections
++webEditor --> apiGateway
++mobileEditor --> apiGateway
++desktopClient --> apiGateway
++webEditor --> wsGateway
++mobileEditor --> wsGateway
++desktopClient --> wsGateway
++
++apiGateway --> authService
++wsGateway --> presenceService
++wsGateway --> opTransformer
++
++opTransformer --> opQueue
++opQueue --> conflictResolver
++conflictResolver --> versionController
++versionController --> docService
++
++docService --> docStore
++docService --> opLog
++docService --> searchService
++searchService --> searchIndex
++
++presenceService --> sessionStore
++cursorTracker --> sessionStore
++changeBroadcaster --> wsGateway
++
++permissionService --> userDB
++historyService --> opLog
++
++note right of opTransformer
++  Operational Transformation
++  CRDT implementation
++  Consistency maintenance
++end note
++
++note right of conflictResolver
++  Conflict detection
++  Resolution strategies
++  State reconciliation
++end note
++
++note right of docService
++  Document versioning
++  Change persistence
++  Access control
++end note
++
++note right of presenceService
++  User presence tracking
++  Cursor position sync
++  Real-time updates
++end note
++
++@enduml 
+\ No newline at end of file
 diff --git a/real_time_data_analytics_platform_with_stream_processing.puml b/real_time_data_analytics_platform_with_stream_processing.puml
 new file mode 100644
 --- /dev/null
@@ -10728,8 +10698,89 @@ diff --git a/test.puml b/test.puml
 new file mode 100644
 --- /dev/null
 +++ ./test.puml
-@@ -0,0 +1,2 @@
+@@ -0,0 +1,83 @@
 +@startuml
++
++' Color palette
++!define PRIMARY_COLOR #FF5733
++!define SECONDARY_COLOR #0B4F6C
++!define AUXILIARY_COLOR #FFB400
++!define MANAGEMENT_COLOR #8B008B
++!define MONITORING_COLOR #00CED1
++
++skinparam backgroundColor #FFFFFF
++skinparam componentStyle rectangle
++
++package "Type-Ahead System" {
++    [Load Balancer] as LB
++    
++    package "Application Layer" {
++        [API Gateway] as AG
++        [Type-Ahead Service] as TAS
++        [Query Analysis Service] as QAS
++    }
++    
++    package "Cache Layer" {
++        database "Redis Cache" as RC {
++            [Prefix Trie] as PT
++            [Top Queries] as TQ
++        }
++    }
++    
++    package "Storage Layer" {
++        database "Primary Database" as DB {
++            [Query Logs] as QL
++            [User History] as UH
++        }
++        
++        database "Analytics Database" as ADB {
++            [Query Patterns] as QP
++            [Trending Searches] as TS
++        }
++    }
++    
++    package "Background Services" {
++        [Query Analytics Engine] as QAE
++        [Trend Detection Service] as TDS
++        [Cache Updater] as CU
++    }
++}
++
++' User request flow
++actor User as user
++user --> LB : Query Input
++LB --> AG
++AG --> TAS : Real-time Processing
++TAS --> RC : Cache Query
++TAS --> QAS : Query Analysis
++QAS --> DB : Persist Data
++
++' Background processing flow
++DB --> QAE : Log Analysis
++QAE --> ADB : Store Analysis Results
++ADB --> TDS : Trend Detection
++TDS --> CU : Update Cache Data
++CU --> RC : Refresh Cache
++
++note right of TAS
++  Real-time input processing
++  Return recommendations
++end note
++
++note right of RC
++  Storage:
++  - Prefix tree index
++  - Popular queries
++  - Personalized suggestions
++end note
++
++note right of QAE
++  Offline Processing:
++  - Query pattern analysis
++  - Trend identification
++  - Data cleanup
++end note
++
 +@enduml
 diff --git a/to_ask b/to_ask
 new file mode 100644
@@ -10756,8 +10807,8 @@ new file mode 100644
 +    1: 在当前的项目文件夹下, 帮我看看有没有什么遗漏的设计, 对于常见的系统设计面试. 
 +        如果有相似的或者接近的或者是相关的现有设计, 如果复杂度不足以应对系统设计面试, 就扩展现有设计，而不是新建一个设计.
 +    2: 检查一下当前的所有设计, 看看有没有重复的或者重叠的.
++    4: 检查一下已有设计里面是否有过于复杂, 需要分拆的, 我希望一个设计只focus一个主题.
 +    3: 检查一下已有设计里面有需要加强优化, 或者还不完整的？ 
-+    4: 检查一下已有设计里面是否有过于复杂, 需要分拆的?
 +    5: 检查一下已有设计里面有含有中文需要翻译成英文的.
 +    6: 在不遗失信息的前提下, .cursorrules文件还能不能再优化, 精简? 还有帮我检查一下, 里面有没有互相矛盾的地方？
 +    7: 帮我逐个检查文件名是否能够如实反映文件的内容, 我比较喜欢长一点的文件名，要能够完整的描述这个设计/文件里面cover了哪些东西, 我的目标是快速地用关键词来搜索定位到我想要的文件. 相当于给每个文件打label. 生成修改这些文件名的命令, 把这些命令汇集在一起.
@@ -10961,132 +11012,6 @@ new file mode 100644
 +end note
 +
 +@enduml
-diff --git a/twitter/tweet_system_detailed_architecture.puml b/twitter/tweet_system_detailed_architecture.puml
-new file mode 100644
---- /dev/null
-+++ ./twitter/tweet_system_detailed_architecture.puml
-@@ -0,0 +1,121 @@
-+@startuml
-+
-+!pragma layout dot
-+skinparam backgroundColor #E6E6FA
-+skinparam defaultFontName "Arial"
-+skinparam defaultFontSize 16
-+skinparam note {
-+  BackgroundColor #FFFACD
-+  BorderColor #DAA520
-+  FontSize 18
-+  FontName "Arial"
-+}
-+
-+allowmixing
-+
-+title Enhanced Twitter System Architecture with Advanced Scalability and Performance Strategies
-+
-+rectangle "Client" as Client #FFEFD5
-+
-+rectangle "Core Services" as Core #E0FFFF {
-+    rectangle "Load Balancer & API Gateway" as LBAG #98FB98 {
-+        component "Load Balancer" as LB
-+        component "API Gateway" as AG
-+    }
-+    rectangle "Application & Monitoring Services" as AMS #87CEFA {
-+        component "Application Server" as AS
-+        component "Service Circuit Breaker" as SCB
-+        component "Service Auto-Scaling" as SAS
-+        component "Monitoring & Logging" as ML
-+    }
-+}
-+
-+rectangle "Tweet Processing Service" as TPS #FFB6C1 {
-+    rectangle "Tweet & Comment Handlers" as TCH #FFA07A {
-+        component "Text Processing" as TP
-+        component "Sensitive Word Filtering" as SWF
-+        component "Media Processing" as MP
-+    }
-+    rectangle "Async Processing Queue" as APQ #F0E68C {
-+        component "Kafka Cluster" as KC
-+    }
-+    rectangle "Workers for Processing" as Workers #98FB98 {
-+        component "Task Processing" as TProc
-+        component "Database Update" as DBU
-+        component "Cache Update" as CU
-+    }
-+}
-+
-+rectangle "Supporting Services" as SS #DDA0DD {
-+    component "Search Service" as SSrv
-+    component "Notification Service" as NSrv
-+    component "Timeline Update Service" as TUS
-+    component "Content Delivery Network" as CDN
-+    component "User Authentication Service" as UAS
-+}
-+
-+rectangle "Data Persistence Layer" as DPS #B0E0E6 {
-+    rectangle "Caching" as Cache #FAFAD2 {
-+        component "Redis Cluster" as RC
-+        component "Edge Caching (CDN)" as EC
-+    }
-+    rectangle "Databases" as DB #F0FFF0 {
-+        component "Tweet & Comment Data (NoSQL)" as TCD
-+        component "User Data (SQL)" as UD
-+        component "Data Partitioning & Sharding" as DPSH
-+    }
-+}
-+
-+Client -[#1E90FF,thickness=2]down-> LBAG : <back:#FFFFFF><color:#1E90FF>1. Sends Request</color></back>
-+LBAG -[#32CD32,thickness=2]down-> AMS : <back:#FFFFFF><color:#32CD32>2. Routes Request</color></back>
-+AMS -[#FF4500,thickness=2]right-> TCH : <back:#FFFFFF><color:#FF4500>3. Handles Tweet/Comment</color></back>
-+TCH -[#8A2BE2,thickness=2]down-> APQ : <back:#FFFFFF><color:#8A2BE2>4. Queues Tasks</color></back>
-+APQ -[#FF69B4,thickness=2]down-> Workers : <back:#FFFFFF><color:#FF69B4>5. Processes Tasks</color></back>
-+Workers -[#20B2AA,thickness=2]down-> DPS : <back:#FFFFFF><color:#20B2AA>6. Updates Data</color></back>
-+Workers -[#DAA520,thickness=2]left-> SSrv : <back:#FFFFFF><color:#DAA520>7. Updates Search</color></back>
-+Workers -[#FF6347,thickness=2]left-> NSrv : <back:#FFFFFF><color:#FF6347>8. Notifies</color></back>
-+TUS -[#4682B4,thickness=2]down-> DPS : <back:#FFFFFF><color:#4682B4>9. Updates Timelines</color></back>
-+Client -[#9370DB,thickness=2]left-> LBAG : <back:#FFFFFF><color:#9370DB>10. Requests Timeline</color></back>
-+AMS -[#3CB371,thickness=2]down-> TUS : <back:#FFFFFF><color:#3CB371>11. Fetches Timeline Data</color></back>
-+TUS -[#CD5C5C,thickness=2]left-> Cache : <back:#FFFFFF><color:#CD5C5C>12. Checks Cache</color></back>
-+Cache -[#4169E1,thickness=2]down-> TUS : <back:#FFFFFF><color:#4169E1>13. Returns Cached Data</color></back>
-+TUS -[#FF8C00,thickness=2]up-> AMS : <back:#FFFFFF><color:#FF8C00>14. Returns Timeline Data</color></back>
-+AMS -[#2E8B57,thickness=2]up-> LBAG : <back:#FFFFFF><color:#2E8B57>15. Sends Back Data</color></back>
-+LBAG -[#8B008B,thickness=2]up-> Client : <back:#FFFFFF><color:#8B008B>16. Returns Data/Updates Timeline</color></back>
-+
-+note right of LBAG
-+  Load Balancer & API Gateway:
-+  - Use HAProxy or NGINX for load balancing
-+  - Implement rate limiting and request throttling
-+  - API versioning and documentation
-+end note
-+
-+note right of AMS
-+  Application & Monitoring:
-+  - Implement distributed tracing (e.g., Jaeger)
-+  - Use ELK stack for centralized logging
-+  - Set up Prometheus & Grafana for monitoring
-+end note
-+
-+note right of TPS
-+  Tweet Processing:
-+  - Implement content moderation AI
-+  - Use Apache Flink for real-time stream processing
-+  - Optimize media processing with FFmpeg
-+end note
-+
-+note right of SS
-+  Supporting Services:
-+  - Implement Elasticsearch for efficient search
-+  - Use WebSocket for real-time notifications
-+  - Implement OAuth 2.0 and JWT for authentication
-+end note
-+
-+note right of DPS
-+  Data Persistence:
-+  - Use Cassandra for tweet storage
-+  - Implement read replicas for high availability
-+  - Use database connection pooling
-+end note
-+
-+@enduml
 diff --git a/twitter/twitter_comment_system_with_moderation_threading_and_real_time_updates.puml b/twitter/twitter_comment_system_with_moderation_threading_and_real_time_updates.puml
 new file mode 100644
 --- /dev/null
@@ -11190,112 +11115,6 @@ new file mode 100644
 +
 +note right of ELKStack
 +  Centralized logging and analysis
-+end note
-+
-+@enduml
-diff --git a/twitter/twitter_content_publishing_management_and_analytics_system.puml b/twitter/twitter_content_publishing_management_and_analytics_system.puml
-new file mode 100644
---- /dev/null
-+++ ./twitter/twitter_content_publishing_management_and_analytics_system.puml
-@@ -0,0 +1,101 @@
-+@startuml
-+
-+!pragma layout dot
-+skinparam backgroundColor #F0F0F0
-+allowmixing
-+
-+' 增加字体大小
-+skinparam defaultFontSize 18
-+skinparam noteFontSize 18
-+skinparam titleFontSize 24
-+
-+title Twitter Content Publishing and Management System
-+
-+rectangle "Client Applications" as Client #E6F3FF
-+rectangle "API Gateway" as AG #D6EAF8
-+rectangle "Load Balancer" as LB #D6EAF8
-+
-+rectangle "Content Service" as CS #E8F8F5 {
-+    component "Tweet Creation" as TC #ABEBC6
-+    component "Tweet Editing" as TE #ABEBC6
-+    component "Tweet Deletion" as TD #ABEBC6
-+    component "Media Upload" as MU #ABEBC6
-+    component "Content Cache" as CC #F9E79F
-+}
-+
-+rectangle "Moderation Service" as MS #FDEDEC {
-+    component "Content Moderation" as CM #F5B7B1
-+    component "Report Handling" as RH #F5B7B1
-+    component "Automated Filtering" as AF #F5B7B1
-+}
-+
-+rectangle "User Service" as US #E8DAEF {
-+    component "Authentication" as Auth #D2B4DE
-+    component "Authorization" as Authz #D2B4DE
-+    component "User Profile" as UP #D2B4DE
-+}
-+
-+rectangle "Analytics Service" as AS #FCF3CF {
-+    component "Engagement Tracking" as ET #F9E79F
-+    component "Trend Analysis" as TA #F9E79F
-+}
-+
-+rectangle "Data Persistence Layer" as DPL #D5D8DC {
-+    component "Tweet Data (DB)" as TDB #ABB2B9
-+    component "Media Data (Object Storage)" as MDB #ABB2B9
-+    component "User Data (DB)" as UDB #ABB2B9
-+    component "Analytics Data (Data Warehouse)" as ADB #ABB2B9
-+}
-+
-+rectangle "Message Queue" as MQ #F8C471
-+rectangle "CDN" as CDN #AED6F1
-+
-+Client -[#1E90FF,thickness=2]down-> AG : <back:#FFFFFF><color:#1E90FF>1. API Requests</color></back>
-+AG -[#1E90FF,thickness=2]down-> LB : <back:#FFFFFF><color:#1E90FF>2. Route Requests</color></back>
-+LB -[#1E90FF,thickness=2]down-> CS : <back:#FFFFFF><color:#1E90FF>3. Distribute Load</color></back>
-+LB -[#1E90FF,thickness=2]down-> MS : <back:#FFFFFF><color:#1E90FF>3. Distribute Load</color></back>
-+LB -[#1E90FF,thickness=2]down-> US : <back:#FFFFFF><color:#1E90FF>3. Distribute Load</color></back>
-+
-+CS -[#2ECC71,thickness=2]right-> US : <back:#FFFFFF><color:#2ECC71>4. Authenticate/Authorize</color></back>
-+CS -[#2ECC71,thickness=2]down-> CC : <back:#FFFFFF><color:#2ECC71>5. Check Cache</color></back>
-+CC -[#2ECC71,thickness=2]down-> TDB : <back:#FFFFFF><color:#2ECC71>6. Cache Miss</color></back>
-+CS -[#2ECC71,thickness=2]down-> MQ : <back:#FFFFFF><color:#2ECC71>7. Publish Events</color></back>
-+MQ -[#2ECC71,thickness=2]right-> MS : <back:#FFFFFF><color:#2ECC71>8. Consume Moderation Events</color></back>
-+MQ -[#2ECC71,thickness=2]right-> AS : <back:#FFFFFF><color:#2ECC71>8. Consume Analytics Events</color></back>
-+
-+MS -[#E74C3C,thickness=2]down-> AF : <back:#FFFFFF><color:#E74C3C>9. Auto-filter Content</color></back>
-+MS -[#E74C3C,thickness=2]down-> CM : <back:#FFFFFF><color:#E74C3C>10. Human Moderation</color></back>
-+MS -[#E74C3C,thickness=2]right-> RH : <back:#FFFFFF><color:#E74C3C>11. Handle Reports</color></back>
-+
-+AS -[#F39C12,thickness=2]down-> ET : <back:#FFFFFF><color:#F39C12>12. Track Engagement</color></back>
-+AS -[#F39C12,thickness=2]right-> TA : <back:#FFFFFF><color:#F39C12>13. Analyze Trends</color></back>
-+
-+MU -[#3498DB,thickness=2]down-> CDN : <back:#FFFFFF><color:#3498DB>14. Store Media</color></back>
-+CDN -[#3498DB,thickness=2]down-> MDB : <back:#FFFFFF><color:#3498DB>15. Backup Media</color></back>
-+
-+note right of CS
-+  <b>Performance Optimization:</b>
-+  - Implement distributed caching (e.g., Redis)
-+  - Use read replicas for database
-+  - Implement database sharding for scalability
-+end note
-+
-+note bottom of MS
-+  <b>Moderation Enhancements:</b>
-+  - Implement ML-based content classification
-+  - Set up real-time alerting for sensitive content
-+end note
-+
-+note right of AS
-+  <b>Analytics Improvements:</b>
-+  - Use stream processing for real-time analytics
-+  - Implement data lake for long-term storage and analysis
-+end note
-+
-+note bottom of DPL
-+  <b>Data Management:</b>
-+  - Implement data retention policies
-+  - Set up regular backups and disaster recovery
 +end note
 +
 +@enduml
@@ -11754,273 +11573,6 @@ new file mode 100644
 +  Monitoring and Logging:
 +  - Real-time system health monitoring
 +  - Log aggregation and analysis
-+end note
-+
-+@enduml
-diff --git a/twitter/twitter_recommendation_service_with_ml_personalization_and_real_time_processing.puml b/twitter/twitter_recommendation_service_with_ml_personalization_and_real_time_processing.puml
-new file mode 100644
---- /dev/null
-+++ ./twitter/twitter_recommendation_service_with_ml_personalization_and_real_time_processing.puml
-@@ -0,0 +1,105 @@
-+@startuml Twitter_Recommendation_Service_Detailed
-+
-+!pragma layout dot
-+allowmixing
-+
-+skinparam backgroundColor #E6F3FF
-+skinparam shadowing false
-+skinparam RoundCorner 8
-+skinparam ArrowColor 454645
-+skinparam DefaultFontName Arial
-+skinparam DefaultFontSize 20
-+
-+rectangle "Recommendation Service" as RecommendationService #90EE90 {
-+    component "Batch Recommendation Engine" as BRE #D0F0C0
-+    component "Real-time Recommendation Engine" as RRE #D0F0C0
-+    component "Result Caching" as REC #D0F0C0
-+    component "Push Notification Service" as PNS #D0F0C0
-+    component "A/B Testing Module" as ABT #D0F0C0
-+    component "Personalization Module" as PM #D0F0C0
-+}
-+
-+rectangle "Data Processing" as DataProcessing #FFD700 {
-+    component "Data Analysis" as DataAnalysis #FFEC8B
-+    component "Machine Learning Pipeline" as MLP #FFEC8B
-+    component "Feature Engineering" as FE #FFEC8B
-+}
-+
-+rectangle "Storage" as Storage #87CEFA {
-+    component "Cache" as Cache #B0E0E6 {
-+        component "Recommendation Cache" as RCache #ADD8E6
-+        component "User Profile Cache" as UPCache #ADD8E6
-+    }
-+    component "Database" as Database #B0E0E6 {
-+        component "User Interaction Data" as UID #ADD8E6
-+        component "Content Data" as CD #ADD8E6
-+        component "User Profile Data" as UPD #ADD8E6
-+    }
-+}
-+
-+rectangle "External Services" as ExternalServices #FFA07A {
-+    component "API Gateway" as APIGateway #FFB6C1
-+    component "User Authentication Service" as UAS #FFB6C1
-+    component "Content Moderation Service" as CMS #FFB6C1
-+}
-+
-+rectangle "Monitoring and Logging" as MonitoringLogging #98FB98 {
-+    component "Performance Monitoring" as PM #90EE90
-+    component "Error Logging" as EL #90EE90
-+    component "User Feedback Collection" as UFC #90EE90
-+}
-+
-+' Connections
-+BRE -[#blue,thickness=2]down-> UID : 1. Fetch user data
-+BRE -[#blue,thickness=2]down-> CD : 2. Fetch content data
-+BRE -[#green,thickness=2]up-> REC : 3. Cache recommendations
-+REC -[#green,thickness=2]right-> RCache : 4. Store recommendations
-+PNS -[#orange,thickness=2]down-> RCache : 5. Fetch recommendations
-+PNS -[#orange,thickness=2]right-> APIGateway : 6. Push recommendations
-+RRE -[#red,thickness=2]down-> UID : 7. Analyze real-time data
-+RRE -[#red,thickness=2]up-> REC : 8. Update recommendations
-+DataAnalysis -[#purple,thickness=2]down-> Database : 9. Analyze user behavior
-+MLP -[#purple,thickness=2]right-> FE : 10. Generate features
-+FE -[#purple,thickness=2]up-> BRE : 11. Provide features
-+ABT -[#brown,thickness=2]left-> BRE : 12. Test recommendation strategies
-+PM -[#brown,thickness=2]left-> RRE : 13. Personalize recommendations
-+UAS -[#gray,thickness=2]up-> APIGateway : 14. Authenticate users
-+CMS -[#gray,thickness=2]up-> CD : 15. Moderate content
-+
-+note right of RecommendationService
-+  Performance optimization:
-+  - Use caching to reduce recommendation calculations
-+  - Optimize recommendation algorithms
-+  - Increase computational resources for recommendation engines
-+end note
-+
-+note right of RRE
-+  Real-time recommendations based on user behavior,
-+  improving timeliness and accuracy
-+end note
-+
-+note bottom of Database
-+  Scalability:
-+  - Implement sharding
-+  - Use read replicas for heavy read operations
-+end note
-+
-+note bottom of DataProcessing
-+  Continuous improvement:
-+  - Regular model retraining
-+  - Feature importance analysis
-+end note
-+
-+note right of ExternalServices
-+  Security:
-+  - Implement rate limiting
-+  - Use OAuth 2.0 for authentication
-+end note
-+
-+note left of MonitoringLogging
-+  System health:
-+  - Set up alerts for anomalies
-+  - Implement distributed tracing
-+end note
-+
-+@enduml
-diff --git a/twitter/twitter_search_recommendation_overview.puml b/twitter/twitter_search_recommendation_overview.puml
-new file mode 100644
---- /dev/null
-+++ ./twitter/twitter_search_recommendation_overview.puml
-@@ -0,0 +1,84 @@
-+@startuml Twitter_Search_Recommendation_Overview
-+
-+!pragma layout dot
-+allowmixing
-+
-+skinparam backgroundColor #E6F3FF
-+skinparam shadowing false
-+skinparam RoundCorner 8
-+skinparam ArrowColor 454645
-+skinparam DefaultFontName Arial
-+skinparam DefaultFontSize 11
-+
-+rectangle "Load Balancing Layer" as LoadBalancingLayer #F0F8FF {
-+    component "Geo-Load Balancer" as GeoLoadBalancer #FFFACD
-+    component "API Gateway" as APIGateway #FFFACD
-+}
-+
-+rectangle "Service Layer" as ServiceLayer #F0FFF0 {
-+    component "Auth Service" as AuthService #90EE90
-+    component "Search Service" as SearchService #90EE90
-+    component "Recommendation Service" as RecommendationService #90EE90
-+    component "Data Analysis Service" as DataAnalysis #90EE90
-+    component "Logging Service" as LoggingService #90EE90
-+    component "Monitoring Service" as MonitoringService #90EE90
-+    component "Batch Processing Service" as BatchProcessing #90EE90
-+}
-+
-+rectangle "Data Layer" as DataLayer #FFF0F5 {
-+    component "Search Engine" as SearchEngine #FFB6C1
-+    component "Cache" as Cache #FFFACD
-+    component "Database" as Database #FFFACD
-+    component "Message Queue" as MessageQueue #FFFACD
-+}
-+
-+GeoLoadBalancer -[#blue,thickness=2]down-> APIGateway : <back:#FFFFFF><color:#blue>1. Global routing</color></back>
-+APIGateway -[#green,thickness=2]down-> AuthService : <back:#FFFFFF><color:#green>2. Auth check</color></back>
-+APIGateway -[#red,thickness=2]down-> SearchService : <back:#FFFFFF><color:#red>3. Search request</color></back>
-+APIGateway -[#purple,thickness=2]down-> RecommendationService : <back:#FFFFFF><color:#purple>4. Recommendation request</color></back>
-+
-+SearchService -[#orange,thickness=2]right-> Cache : <back:#FFFFFF><color:#orange>5. Cache access</color></back>
-+SearchService -[#brown,thickness=2]right-> SearchEngine : <back:#FFFFFF><color:#brown>6. Query/Index</color></back>
-+SearchService -[#pink,thickness=2]down-> LoggingService : <back:#FFFFFF><color:#pink>13. Log searches</color></back>
-+
-+RecommendationService -[#darkgreen,thickness=2]left-> DataAnalysis : <back:#FFFFFF><color:#darkgreen>7. Generate</color></back>
-+RecommendationService -[#darkblue,thickness=2]right-> Cache : <back:#FFFFFF><color:#darkblue>8. Cache access</color></back>
-+RecommendationService -[#gray,thickness=2]down-> BatchProcessing : <back:#FFFFFF><color:#gray>12. Trigger batch</color></back>
-+RecommendationService -[#lightblue,thickness=2]down-> LoggingService : <back:#FFFFFF><color:#lightblue>14. Log recommendations</color></back>
-+
-+DataAnalysis -[#darkred,thickness=2]down-> Database : <back:#FFFFFF><color:#darkred>9. User data</color></back>
-+DataAnalysis -[#darkorange,thickness=2]down-> MessageQueue : <back:#FFFFFF><color:#darkorange>10. Async tasks</color></back>
-+
-+MessageQueue -[#darkpurple,thickness=2]right-> RecommendationService : <back:#FFFFFF><color:#darkpurple>11. Process tasks</color></back>
-+
-+MonitoringService -[#lightgreen,thickness=2]up-> SearchService : <back:#FFFFFF><color:#lightgreen>15. Monitor</color></back>
-+MonitoringService -[#lightyellow,thickness=2]up-> RecommendationService : <back:#FFFFFF><color:#lightyellow>16. Monitor</color></back>
-+MonitoringService -[#lightpink,thickness=2]up-> MessageQueue : <back:#FFFFFF><color:#lightpink>17. Monitor queue</color></back>
-+MonitoringService -[#lightgray,thickness=2]up-> BatchProcessing : <back:#FFFFFF><color:#lightgray>18. Monitor jobs</color></back>
-+
-+note top of Cache
-+  Key: ProductID/TweetID
-+  Value: ProductDetails/TweetDetails
-+end note
-+
-+note top of Database
-+  Indexed for fast retrieval
-+  Read-optimized
-+end note
-+
-+note top of MessageQueue
-+  Async processing
-+  Horizontal scaling
-+end note
-+
-+note bottom of SearchEngine
-+  Performance bottleneck:
-+  Optimize indexing and query processing
-+end note
-+
-+note top of RecommendationService
-+  Scalability concern:
-+  Implement caching and load balancing
-+end note
-+
-+@enduml
-diff --git a/twitter/twitter_search_service_architecture_with_caching_and_elasticsearch_integration.puml b/twitter/twitter_search_service_architecture_with_caching_and_elasticsearch_integration.puml
-new file mode 100644
---- /dev/null
-+++ ./twitter/twitter_search_service_architecture_with_caching_and_elasticsearch_integration.puml
-@@ -0,0 +1,63 @@
-+@startuml Twitter_Search_Service_Detailed
-+
-+!define LIGHTYELLOW #FFFACD
-+!define LIGHTGREEN #90EE90
-+!define LIGHTRED #FFB6C1
-+
-+skinparam backgroundColor #E6F3FF
-+skinparam shadowing false
-+skinparam RoundCorner 8
-+skinparam ArrowColor 454645
-+skinparam DefaultFontName Arial
-+skinparam DefaultFontSize 11
-+
-+allowmixing
-+
-+component "Search Service" as SearchService #90EE90 {
-+    component "Request Handler" as RH
-+    component "Query Parser" as QP
-+    component "Spell Check & Auto-complete" as SCAC
-+    component "Cache Query" as CQ
-+    component "Index Query" as IQ
-+    component "Result Handler" as RHdl {
-+        component "Result Sorting & Filtering" as RSF
-+        component "Result Caching" as RC
-+    }
-+}
-+
-+component "Search Engine" as SearchEngine #FFB6C1
-+component "Cache" as Cache #FFFACD {
-+    component "Search Result Cache" as SRC
-+}
-+
-+' Search Service Flow
-+RH -down-> QP : Parse query
-+QP -down-> SCAC : Check spelling & suggest
-+SCAC -down-> CQ : Query cache
-+CQ -right-> SRC : Read from cache
-+SRC -left-> CQ : Return results (Hit/Miss)
-+CQ -down-> IQ : Query index (if Cache Miss)
-+IQ -right-> SearchEngine : Query search engine
-+SearchEngine -left-> IQ : Return search results
-+IQ -up-> RSF : Sort & filter results
-+RSF -right-> RC : Cache results
-+RC -up-> SRC : Store in cache
-+
-+note right of SearchService
-+  性能优化:
-+  - 使用缓存（Redis）减少重复查询
-+  - 使用Elasticsearch提高搜索查询速度
-+  - 查询解析和结果排序优化
-+end note
-+
-+note right of SCAC
-+  提供拼写纠正和自动补全功能，
-+  改善用户搜索体验
-+end note
-+
-+note right of SearchEngine
-+  Performance bottleneck:
-+  Optimize query processing
 +end note
 +
 +@enduml

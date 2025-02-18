@@ -1,0 +1,122 @@
+@startuml Comprehensive Twitter Search and Recommendation System
+
+!include ../common_style.puml
+
+title Comprehensive Twitter Search and Recommendation System
+
+rectangle "Client Layer" {
+    component "Web Client" as webClient
+    component "Mobile Client" as mobileClient
+    component "API Client" as apiClient
+}
+
+rectangle "API Gateway" {
+    component "Request Router" as router
+    component "Rate Limiter" as rateLimiter
+    component "Cache" as apiCache
+}
+
+rectangle "Search Service" {
+    component "Query Parser" as queryParser
+    component "Query Rewriter" as queryRewriter
+    component "Search Executor" as searchExecutor
+    component "Ranking Service" as rankingService
+}
+
+rectangle "Recommendation Service" {
+    component "Content Recommender" as contentRecommender
+    component "User Similarity Engine" as userSimilarity
+    component "Interest Analyzer" as interestAnalyzer
+    component "Trending Topics" as trendingTopics
+}
+
+rectangle "ML Pipeline" {
+    component "Feature Extractor" as featureExtractor
+    component "Model Trainer" as modelTrainer
+    component "Model Server" as modelServer
+    component "A/B Testing" as abTesting
+}
+
+rectangle "Data Processing" {
+    queue "Event Stream\n(Kafka)" as eventStream
+    component "Stream Processor" as streamProcessor
+    component "Batch Processor" as batchProcessor
+}
+
+rectangle "Storage Layer" {
+    database "Search Index\n(Elasticsearch)" as searchIndex
+    database "User Profiles\n(MongoDB)" as userProfiles
+    database "Tweet Store\n(Cassandra)" as tweetStore
+    database "Feature Store\n(Redis)" as featureStore
+}
+
+rectangle "Analytics" {
+    component "Engagement Tracker" as engagementTracker
+    component "Performance Monitor" as perfMonitor
+    component "Analytics Dashboard" as dashboard
+    database "Analytics DB\n(ClickHouse)" as analyticsDB
+}
+
+' Search Flow
+Client --> router : Search/Recommend request
+router --> queryParser : Parse query
+queryParser --> queryRewriter : Rewrite query
+queryRewriter --> searchExecutor : Execute search
+searchExecutor --> searchIndex : Query index
+searchExecutor --> rankingService : Rank results
+rankingService --> modelServer : Get predictions
+
+' Recommendation Flow
+Client --> contentRecommender : Get recommendations
+contentRecommender --> userSimilarity : Find similar users
+userSimilarity --> interestAnalyzer : Analyze interests
+interestAnalyzer --> trendingTopics : Get trends
+contentRecommender --> modelServer : Get predictions
+
+' ML Pipeline
+eventStream --> streamProcessor : Process events
+streamProcessor --> featureExtractor : Extract features
+featureExtractor --> featureStore : Store features
+featureStore --> modelTrainer : Train models
+modelTrainer --> modelServer : Deploy models
+modelServer --> abTesting : Test variants
+
+' Data Flow
+tweetStore --> searchIndex : Index tweets
+userProfiles --> featureExtractor : Get user data
+engagementTracker --> analyticsDB : Store metrics
+perfMonitor --> dashboard : Show metrics
+
+note right of searchExecutor
+  Search capabilities:
+  - Full-text search
+  - Hashtag search
+  - User search
+  - Real-time search
+end note
+
+note right of contentRecommender
+  Recommendation types:
+  - Who to follow
+  - Tweets you might like
+  - Topics to follow
+  - Trending content
+end note
+
+note right of modelServer
+  ML models:
+  - Content relevance
+  - User engagement
+  - Topic classification
+  - Trend detection
+end note
+
+note right of featureExtractor
+  Features:
+  - User behavior
+  - Content metadata
+  - Social graph
+  - Temporal patterns
+end note
+
+@enduml 

@@ -1,0 +1,116 @@
+@startuml Comprehensive CDN System
+
+!include ../common_style.puml
+
+title Comprehensive CDN System with Security and Optimization
+
+rectangle "Global Load Balancer" as GLB {
+    component "DNS Load Balancing" as DNS
+    component "Anycast Routing" as Anycast
+    component "Health Checker" as HealthCheck
+}
+
+rectangle "Edge Locations" as Edge {
+    rectangle "Edge Server Cluster" as EdgeServer {
+        component "Cache Server" as Cache
+        component "SSL Termination" as SSL
+        component "WAF" as WAF
+        component "DDoS Protection" as DDoS
+    }
+    
+    database "Edge Cache" as EdgeCache {
+        component "Hot Content" as HotContent
+        component "Metadata" as Metadata
+    }
+    
+    component "Content Optimizer" as Optimizer {
+        component "Compression" as Compress
+        component "Image Optimizer" as ImageOpt
+        component "Minification" as Minify
+    }
+}
+
+rectangle "Origin Shield" as Shield {
+    component "Request Collapsing" as ReqCollapse
+    component "Cache Hierarchy" as CacheHier
+    component "Rate Limiting" as RateLimit
+}
+
+rectangle "Origin Infrastructure" as Origin {
+    database "Origin Server" as OriginServer
+    component "Content Manager" as ContentManager
+    component "Authentication" as Auth
+}
+
+rectangle "Security Layer" as Security {
+    component "Access Control" as AccessControl
+    component "Token Validator" as TokenValidator
+    component "Security Rules" as SecRules
+    component "Bot Detection" as BotDetect
+}
+
+rectangle "Analytics & Monitoring" as Analytics {
+    component "Real-time Metrics" as Metrics
+    component "Log Analytics" as LogAnalytics
+    component "Performance Monitor" as PerfMon
+    database "Analytics Store" as AnalyticsDB
+}
+
+' Connections
+Client --> GLB : Request content
+GLB --> Edge : Route to nearest edge
+Edge --> Shield : Cache miss
+Shield --> Origin : Fetch content
+Origin --> Shield : Return content
+Shield --> Edge : Update cache
+Edge --> Client : Serve content
+
+EdgeServer --> Security : Validate request
+Security --> AccessControl : Check permissions
+Security --> TokenValidator : Validate token
+Security --> BotDetect : Check for bots
+
+Cache --> EdgeCache : Read/Write
+Cache --> Optimizer : Optimize content
+Optimizer --> Client : Serve optimized content
+
+Edge --> Analytics : Send metrics
+Shield --> Analytics : Send metrics
+Origin --> Analytics : Send metrics
+Analytics --> AnalyticsDB : Store data
+
+note right of Edge
+  Content delivery optimization:
+  - Dynamic compression
+  - Image optimization
+  - File minification
+  - HTTP/2 and HTTP/3
+end note
+
+note right of Security
+  Security measures:
+  - DDoS protection
+  - WAF rules
+  - Bot detection
+  - Access control
+  - Token validation
+end note
+
+note right of Shield
+  Origin protection:
+  - Request collapsing
+  - Rate limiting
+  - Cache hierarchy
+  - Load shedding
+end note
+
+note right of Analytics
+  Monitoring aspects:
+  - Cache hit ratio
+  - Latency metrics
+  - Error rates
+  - Bandwidth usage
+  - Security events
+end note
+
+@enduml 

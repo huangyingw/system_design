@@ -1,2 +1,83 @@
 @startuml
+
+' Color palette
+!define PRIMARY_COLOR #FF5733
+!define SECONDARY_COLOR #0B4F6C
+!define AUXILIARY_COLOR #FFB400
+!define MANAGEMENT_COLOR #8B008B
+!define MONITORING_COLOR #00CED1
+
+skinparam backgroundColor #FFFFFF
+skinparam componentStyle rectangle
+
+package "Type-Ahead System" {
+    [Load Balancer] as LB
+    
+    package "Application Layer" {
+        [API Gateway] as AG
+        [Type-Ahead Service] as TAS
+        [Query Analysis Service] as QAS
+    }
+    
+    package "Cache Layer" {
+        database "Redis Cache" as RC {
+            [Prefix Trie] as PT
+            [Top Queries] as TQ
+        }
+    }
+    
+    package "Storage Layer" {
+        database "Primary Database" as DB {
+            [Query Logs] as QL
+            [User History] as UH
+        }
+        
+        database "Analytics Database" as ADB {
+            [Query Patterns] as QP
+            [Trending Searches] as TS
+        }
+    }
+    
+    package "Background Services" {
+        [Query Analytics Engine] as QAE
+        [Trend Detection Service] as TDS
+        [Cache Updater] as CU
+    }
+}
+
+' User request flow
+actor User as user
+user --> LB : Query Input
+LB --> AG
+AG --> TAS : Real-time Processing
+TAS --> RC : Cache Query
+TAS --> QAS : Query Analysis
+QAS --> DB : Persist Data
+
+' Background processing flow
+DB --> QAE : Log Analysis
+QAE --> ADB : Store Analysis Results
+ADB --> TDS : Trend Detection
+TDS --> CU : Update Cache Data
+CU --> RC : Refresh Cache
+
+note right of TAS
+  Real-time input processing
+  Return recommendations
+end note
+
+note right of RC
+  Storage:
+  - Prefix tree index
+  - Popular queries
+  - Personalized suggestions
+end note
+
+note right of QAE
+  Offline Processing:
+  - Query pattern analysis
+  - Trend identification
+  - Data cleanup
+end note
+
 @enduml

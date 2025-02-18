@@ -2,7 +2,7 @@
 !pragma layout dot
 allowmixing
 
-' 定义更深的颜色
+' Define deeper colors
 !define PRIMARY_COLOR #E67E22
 !define SECONDARY_COLOR #3498DB
 !define TERTIARY_COLOR #F1C40F
@@ -10,7 +10,7 @@ allowmixing
 !define QUINARY_COLOR #16A085
 !define P2P_COLOR #27AE60
 
-' 背景颜色
+' Background color
 skinparam backgroundColor #CCE8CF
 
 rectangle "Client Devices" as ClientDevices PRIMARY_COLOR {
@@ -54,7 +54,7 @@ cloud "TURN/STUN Servers" as TURNSTUNServers {
     component "STUN Server" as STUNServer
 }
 
-' 添加第二个客户端设备以表示P2P连接
+' Add second client device for P2P connection
 rectangle "Client Devices (Peer)" as ClientDevicesPeer PRIMARY_COLOR {
     component "Peer Device" as PeerDevice
 }
@@ -67,7 +67,7 @@ FrontendServices -[SECONDARY_COLOR,thickness=2]-> MediaServer : <back:#FFFFFF><c
 MediaServer -[QUATERNARY_COLOR,thickness=2]-> TURNSTUNServers : <back:#FFFFFF><color:QUATERNARY_COLOR>6. NAT traversal</color></back>
 SignalingServer -[TERTIARY_COLOR,thickness=2]-> MediaServer : <back:#FFFFFF><color:TERTIARY_COLOR>7. Coordinate media flow</color></back>
 
-' 添加P2P连接
+' Add P2P connection
 ClientDevices <-[P2P_COLOR,thickness=2]-> ClientDevicesPeer : <back:#FFFFFF><color:P2P_COLOR>8. P2P Communication</color></back>
 
 note right of ClientDevices

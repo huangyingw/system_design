@@ -1,0 +1,139 @@
+@startuml Security Protection System
+
+!include common_style.puml
+
+title Security Protection System (WAF/DDoS)
+
+rectangle "DDoS Protection" {
+    component "DDoS Mitigation" as ddosMitigation {
+        component "Traffic Analyzer" as trafficAnalyzer
+        component "Rate Limiter" as rateLimiter
+        component "Blacklist Manager" as blacklistManager
+    }
+    component "Traffic Scrubbing" as trafficScrubbing
+    database "Attack Signatures" as attackSignatures
+}
+
+rectangle "Web Application Firewall" {
+    component "WAF Engine" as wafEngine {
+        component "Rule Engine" as ruleEngine
+        component "Pattern Matcher" as patternMatcher
+        component "Protocol Validator" as protocolValidator
+    }
+    component "Request Inspector" as requestInspector
+    database "WAF Rules" as wafRules
+}
+
+rectangle "Threat Intelligence" {
+    component "Threat Analyzer" as threatAnalyzer {
+        component "IP Reputation" as ipReputation
+        component "Behavior Analysis" as behaviorAnalysis
+        component "ML Detector" as mlDetector
+    }
+    database "Threat Database" as threatDB
+}
+
+rectangle "Access Control" {
+    component "Access Manager" as accessManager {
+        component "Authentication" as auth
+        component "Authorization" as authz
+        component "Session Manager" as sessionManager
+    }
+    database "Access Rules" as accessRules
+}
+
+rectangle "SSL/TLS Security" {
+    component "SSL Manager" as sslManager {
+        component "Certificate Manager" as certManager
+        component "Cipher Suite" as cipherSuite
+        component "Protocol Security" as protocolSecurity
+    }
+    database "Certificate Store" as certStore
+}
+
+rectangle "Security Monitoring" {
+    component "Security Monitor" as securityMonitor {
+        component "Event Collector" as eventCollector
+        component "Alert Manager" as alertManager
+        component "Incident Handler" as incidentHandler
+    }
+    database "Security Logs" as securityLogs
+}
+
+rectangle "Response & Mitigation" {
+    component "Response Manager" as responseManager {
+        component "Block Manager" as blockManager
+        component "Challenge Manager" as challengeManager
+        component "Rate Control" as rateControl
+    }
+    queue "Response Queue" as responseQueue
+}
+
+' DDoS Flow
+trafficAnalyzer --> ddosMitigation
+ddosMitigation --> trafficScrubbing
+trafficScrubbing --> responseManager
+
+' WAF Flow
+requestInspector --> wafEngine
+wafEngine --> ruleEngine
+ruleEngine --> wafRules
+
+' Threat Flow
+threatAnalyzer --> threatDB
+ipReputation --> responseManager
+behaviorAnalysis --> mlDetector
+
+' Access Flow
+accessManager --> auth
+auth --> sessionManager
+authz --> accessRules
+
+' SSL Flow
+sslManager --> certManager
+certManager --> certStore
+cipherSuite --> protocolSecurity
+
+' Monitoring Flow
+securityMonitor --> securityLogs
+eventCollector --> alertManager
+alertManager --> incidentHandler
+
+' Response Flow
+responseManager --> responseQueue
+blockManager --> responseQueue
+challengeManager --> responseQueue
+
+note right of ddosMitigation
+  DDoS protection:
+  - Traffic analysis
+  - Rate limiting
+  - Blacklisting
+  - Traffic scrubbing
+end note
+
+note right of wafEngine
+  WAF features:
+  - Rule processing
+  - Pattern matching
+  - Protocol validation
+  - Request inspection
+end note
+
+note right of threatAnalyzer
+  Threat detection:
+  - IP reputation
+  - Behavior analysis
+  - Machine learning
+  - Pattern recognition
+end note
+
+note right of responseManager
+  Response actions:
+  - Blocking
+  - Challenge-response
+  - Rate control
+  - Incident handling
+end note
+
+@enduml 

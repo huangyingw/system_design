@@ -1,0 +1,132 @@
+@startuml Comprehensive Twitter Content Management System
+
+!include ../common_style.puml
+
+title Comprehensive Twitter Content Management System
+
+rectangle "Client Layer" {
+    component "Web Client" as webClient
+    component "Mobile Client" as mobileClient
+    component "Third-party Apps" as thirdParty
+}
+
+rectangle "API Gateway" {
+    component "Request Router" as router
+    component "Rate Limiter" as rateLimiter
+    component "Authentication" as auth
+    component "Load Balancer" as lb
+}
+
+rectangle "Content Service" {
+    component "Tweet Service" as tweetService
+    component "Media Service" as mediaService
+    component "Content Validator" as contentValidator
+    component "Content Moderator" as contentModerator
+}
+
+rectangle "Publishing Pipeline" {
+    queue "Publishing Queue\n(Kafka)" as pubQueue
+    component "Fan-out Service" as fanoutService
+    component "Timeline Service" as timelineService
+    component "Notification Service" as notificationService
+}
+
+rectangle "Storage Layer" {
+    database "Tweet Store\n(Cassandra)" as tweetStore
+    database "Media Store\n(Object Storage)" as mediaStore
+    database "Graph DB\n(Neo4j)" as graphDB
+    database "Cache\n(Redis)" as cache
+}
+
+rectangle "Content Processing" {
+    component "Text Processor" as textProcessor
+    component "Media Processor" as mediaProcessor
+    component "Link Expander" as linkExpander
+    component "Hashtag Extractor" as hashtagExtractor
+}
+
+rectangle "Content Safety" {
+    component "Spam Detector" as spamDetector
+    component "Content Filter" as contentFilter
+    component "Abuse Detector" as abuseDetector
+    component "Policy Enforcer" as policyEnforcer
+}
+
+rectangle "Analytics & Monitoring" {
+    component "Engagement Analytics" as engagementAnalytics
+    component "Content Analytics" as contentAnalytics
+    component "Performance Monitor" as perfMonitor
+    database "Analytics DB\n(ClickHouse)" as analyticsDB
+}
+
+' Content Creation Flow
+Client --> router : Submit content
+router --> auth : Authenticate
+auth --> contentValidator : Validate
+contentValidator --> contentModerator : Moderate
+contentModerator --> tweetService : Process tweet
+tweetService --> mediaService : Process media
+mediaService --> mediaStore : Store media
+
+' Content Processing Flow
+tweetService --> pubQueue : Queue for processing
+pubQueue --> textProcessor : Process text
+textProcessor --> linkExpander : Expand links
+textProcessor --> hashtagExtractor : Extract hashtags
+mediaService --> mediaProcessor : Process media
+
+' Content Safety Flow
+contentValidator --> spamDetector : Check spam
+contentValidator --> contentFilter : Filter content
+contentModerator --> abuseDetector : Detect abuse
+abuseDetector --> policyEnforcer : Enforce policy
+
+' Publishing Flow
+pubQueue --> fanoutService : Fan-out to followers
+fanoutService --> timelineService : Update timelines
+fanoutService --> notificationService : Send notifications
+timelineService --> cache : Update cache
+
+' Storage Flow
+tweetService --> tweetStore : Store tweet
+tweetService --> graphDB : Update graph
+fanoutService --> cache : Update cache
+
+' Analytics Flow
+Client --> engagementAnalytics : Track engagement
+tweetService --> contentAnalytics : Analyze content
+perfMonitor --> analyticsDB : Store metrics
+
+note right of contentValidator
+  Content validation:
+  - Text length
+  - Media types
+  - Link safety
+  - Rate limits
+end note
+
+note right of contentModerator
+  Content moderation:
+  - Spam detection
+  - Abuse prevention
+  - Policy compliance
+  - Content filtering
+end note
+
+note right of fanoutService
+  Fan-out strategies:
+  - Real-time for active users
+  - Lazy loading for inactive
+  - Selective push model
+  - Cache optimization
+end note
+
+note right of mediaProcessor
+  Media processing:
+  - Image optimization
+  - Video transcoding
+  - Thumbnail generation
+  - EXIF cleaning
+end note
+
+@enduml 

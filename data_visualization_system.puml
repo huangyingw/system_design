@@ -1,0 +1,129 @@
+@startuml Data Visualization System
+
+!include common_style.puml
+
+title Data Visualization System
+
+rectangle "Data Sources" {
+    database "Time Series DB" as tsdb
+    database "Analytics DB" as analyticsDB
+    database "Log Store" as logStore
+    queue "Real-time Stream" as realTimeStream
+}
+
+rectangle "Data Access Layer" {
+    component "Data Connector" as dataConnector {
+        component "DB Adapter" as dbAdapter
+        component "Stream Adapter" as streamAdapter
+    }
+    component "Query Builder" as queryBuilder
+    component "Data Cache" as dataCache
+}
+
+rectangle "Visualization Engine" {
+    component "Chart Generator" as chartGenerator {
+        component "Time Series Charts" as tsCharts
+        component "Statistical Charts" as statCharts
+        component "Geographic Maps" as geoMaps
+    }
+    component "Dashboard Builder" as dashboardBuilder
+    component "Theme Manager" as themeManager
+}
+
+rectangle "Interactive Features" {
+    component "Filter Manager" as filterManager
+    component "Drill Down Handler" as drillDownHandler
+    component "Interactive Controls" as interactiveControls
+    component "Auto-refresh" as autoRefresh
+}
+
+rectangle "Template System" {
+    component "Template Manager" as templateManager
+    component "Layout Engine" as layoutEngine
+    component "Widget Library" as widgetLibrary
+    database "Template Store" as templateStore
+}
+
+rectangle "Export & Share" {
+    component "Export Service" as exportService
+    component "Share Service" as shareService
+    component "Schedule Service" as scheduleService
+    component "Notification Service" as notificationService
+}
+
+rectangle "User Interface" {
+    component "Web Interface" as webUI
+    component "Mobile Interface" as mobileUI
+    component "Embedded View" as embeddedView
+}
+
+' Data Flow
+dataConnector --> tsdb
+dataConnector --> analyticsDB
+dataConnector --> logStore
+dataConnector --> realTimeStream
+
+queryBuilder --> dataConnector
+dataCache --> queryBuilder
+
+chartGenerator --> dataCache
+dashboardBuilder --> chartGenerator
+themeManager --> chartGenerator
+
+' Interactive Flow
+filterManager --> queryBuilder
+drillDownHandler --> queryBuilder
+interactiveControls --> chartGenerator
+autoRefresh --> dataConnector
+
+' Template Flow
+templateManager --> templateStore
+layoutEngine --> templateManager
+widgetLibrary --> layoutEngine
+
+' Export Flow
+exportService --> chartGenerator
+shareService --> dashboardBuilder
+scheduleService --> exportService
+notificationService --> scheduleService
+
+' UI Flow
+webUI --> dashboardBuilder
+mobileUI --> dashboardBuilder
+embeddedView --> chartGenerator
+
+note right of chartGenerator
+  Visualization types:
+  - Line/Area charts
+  - Bar/Pie charts
+  - Heat maps
+  - Scatter plots
+  - Geographic maps
+end note
+
+note right of interactiveControls
+  Interactive features:
+  - Filtering
+  - Drill-down
+  - Zooming
+  - Pan/Scroll
+  - Real-time updates
+end note
+
+note right of templateManager
+  Template features:
+  - Pre-built layouts
+  - Custom widgets
+  - Themes
+  - Responsive design
+end note
+
+note right of exportService
+  Export capabilities:
+  - PDF reports
+  - CSV/Excel data
+  - Image formats
+  - Embedded views
+end note
+
+@enduml 

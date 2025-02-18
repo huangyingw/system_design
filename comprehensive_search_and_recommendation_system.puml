@@ -1,0 +1,169 @@
+@startuml Comprehensive Search and Recommendation System
+
+!include common_style.puml
+
+title Comprehensive Search and Recommendation System
+
+rectangle "Client Layer" {
+    component "Web Interface" as webUI
+    component "Mobile App" as mobileApp
+    component "API Client" as apiClient
+}
+
+rectangle "API Gateway" {
+    component "Request Router" as router
+    component "Rate Limiter" as rateLimiter
+    component "Cache" as apiCache
+    component "Load Balancer" as loadBalancer
+}
+
+rectangle "Search Core" {
+    component "Query Parser" as queryParser
+    component "Query Analyzer" as queryAnalyzer
+    component "Query Rewriter" as queryRewriter
+    component "Search Executor" as searchExecutor
+}
+
+rectangle "Recommendation Core" {
+    component "Content Recommender" as contentRecommender
+    component "User Similarity Engine" as userSimilarity
+    component "Interest Analyzer" as interestAnalyzer
+    component "Trending Engine" as trendingEngine
+}
+
+rectangle "Ranking & Personalization" {
+    component "Ranking Service" as rankingService
+    component "Personalization Service" as personalizationService
+    component "A/B Testing" as abTesting
+    component "Feature Service" as featureService
+}
+
+rectangle "Data Collection" {
+    component "Crawler Manager" as crawlerManager
+    component "Document Processor" as docProcessor
+    component "Feature Extractor" as featureExtractor
+    component "Event Collector" as eventCollector
+}
+
+rectangle "ML Pipeline" {
+    component "Model Registry" as modelRegistry
+    component "Model Training" as modelTraining
+    component "Model Serving" as modelServing
+    component "Model Monitor" as modelMonitor
+}
+
+rectangle "Data Processing" {
+    queue "Event Stream\n(Kafka)" as eventStream
+    component "Stream Processor" as streamProcessor
+    component "Batch Processor" as batchProcessor
+    component "Feature Pipeline" as featurePipeline
+}
+
+rectangle "Storage Layer" {
+    database "Search Index\n(Elasticsearch)" as searchIndex
+    database "Document Store\n(MongoDB)" as documentStore
+    database "Feature Store\n(Redis)" as featureStore
+    database "Model Store\n(S3)" as modelStore
+}
+
+rectangle "Analytics & Monitoring" {
+    component "Performance Monitor" as perfMonitor
+    component "Quality Monitor" as qualityMonitor
+    component "Analytics Service" as analyticsService
+    database "Analytics Store\n(ClickHouse)" as analyticsStore
+}
+
+' Client Connections
+webUI --> router
+mobileApp --> router
+apiClient --> router
+
+' Gateway Connections
+router --> queryParser
+router --> contentRecommender
+router --> apiCache
+
+' Search Flow
+queryParser --> queryAnalyzer
+queryAnalyzer --> queryRewriter
+queryRewriter --> searchExecutor
+searchExecutor --> searchIndex
+searchExecutor --> rankingService
+
+' Recommendation Flow
+contentRecommender --> userSimilarity
+userSimilarity --> interestAnalyzer
+interestAnalyzer --> trendingEngine
+contentRecommender --> rankingService
+
+' Ranking & Personalization Flow
+rankingService --> personalizationService
+personalizationService --> featureService
+featureService --> featureStore
+abTesting --> modelServing
+
+' Data Collection Flow
+crawlerManager --> docProcessor
+docProcessor --> featureExtractor
+eventCollector --> eventStream
+featureExtractor --> featurePipeline
+
+' ML Pipeline Flow
+featurePipeline --> modelTraining
+modelTraining --> modelRegistry
+modelRegistry --> modelServing
+modelServing --> modelStore
+modelMonitor --> analyticsService
+
+' Data Processing Flow
+eventStream --> streamProcessor
+streamProcessor --> batchProcessor
+batchProcessor --> documentStore
+streamProcessor --> analyticsStore
+
+' Monitoring Flow
+perfMonitor --> analyticsStore
+qualityMonitor --> analyticsStore
+analyticsService --> analyticsStore
+
+note right of searchExecutor
+  Search capabilities:
+  - Full-text search
+  - Faceted search
+  - Semantic search
+  - Real-time search
+end note
+
+note right of contentRecommender
+  Recommendation types:
+  - Collaborative filtering
+  - Content-based filtering
+  - Hybrid recommendations
+  - Contextual recommendations
+end note
+
+note right of rankingService
+  Ranking features:
+  - Relevance scoring
+  - Personalized ranking
+  - Business rules
+  - Diversity optimization
+end note
+
+note right of modelTraining
+  ML capabilities:
+  - Distributed training
+  - Online learning
+  - Model evaluation
+  - Feature importance
+end note
+
+note right of featurePipeline
+  Feature engineering:
+  - Real-time features
+  - Batch features
+  - Feature selection
+  - Feature validation
+end note
+
+@enduml 

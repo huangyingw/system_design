@@ -1,0 +1,132 @@
+@startuml Comprehensive Distributed Storage System
+
+!include common_style.puml
+
+title Comprehensive Distributed Storage System Architecture
+
+rectangle "Client Layer" {
+    component "Web Client" as webClient
+    component "Mobile Client" as mobileClient
+    component "SDK/API Client" as sdkClient
+    component "Command Line Tool" as cliTool
+}
+
+rectangle "Access Layer" {
+    component "API Gateway" as apiGateway
+    component "Authentication Service" as authService
+    component "Rate Limiter" as rateLimiter
+    component "Load Balancer" as loadBalancer
+}
+
+rectangle "Metadata Management" {
+    component "Metadata Service" as metadataService
+    component "Namespace Manager" as namespaceManager
+    component "Version Controller" as versionController
+    database "Metadata Store\n(PostgreSQL)" as metadataDB
+}
+
+rectangle "Storage Management" {
+    component "Storage Manager" as storageManager
+    component "Replication Manager" as replicationManager
+    component "Consistency Manager" as consistencyManager
+    component "Partition Manager" as partitionManager
+}
+
+rectangle "Data Processing" {
+    component "Data Chunker" as dataChunker
+    component "Compression Service" as compressionService
+    component "Encryption Service" as encryptionService
+    component "Deduplication Service" as dedupService
+}
+
+rectangle "Storage Layer" {
+    database "Object Storage\n(S3-like)" as objectStorage
+    database "Block Storage" as blockStorage
+    database "Cache Layer\n(Redis)" as cacheLayer
+    queue "Write Ahead Log" as writeAheadLog
+}
+
+rectangle "Synchronization" {
+    component "Change Detector" as changeDetector
+    component "Sync Manager" as syncManager
+    component "Conflict Resolver" as conflictResolver
+    queue "Change Queue" as changeQueue
+}
+
+rectangle "Monitoring & Recovery" {
+    component "Health Monitor" as healthMonitor
+    component "Data Recovery" as dataRecovery
+    component "Audit Logger" as auditLogger
+    database "Monitoring Store" as monitoringDB
+}
+
+' Client to Access Layer
+webClient --> apiGateway
+mobileClient --> apiGateway
+sdkClient --> apiGateway
+cliTool --> apiGateway
+
+' Access Layer Connections
+apiGateway --> authService
+apiGateway --> loadBalancer
+loadBalancer --> metadataService
+loadBalancer --> storageManager
+
+' Metadata Management Connections
+metadataService --> metadataDB
+namespaceManager --> metadataDB
+versionController --> metadataDB
+
+' Storage Management Connections
+storageManager --> dataChunker
+storageManager --> replicationManager
+replicationManager --> consistencyManager
+partitionManager --> objectStorage
+partitionManager --> blockStorage
+
+' Data Processing Connections
+dataChunker --> compressionService
+compressionService --> encryptionService
+encryptionService --> dedupService
+dedupService --> objectStorage
+
+' Synchronization Connections
+changeDetector --> changeQueue
+changeQueue --> syncManager
+syncManager --> conflictResolver
+conflictResolver --> metadataService
+
+' Monitoring Connections
+healthMonitor --> monitoringDB
+dataRecovery --> objectStorage
+auditLogger --> monitoringDB
+
+note right of storageManager
+  Data placement
+  Replication strategy
+  Consistency management
+  Partition handling
+end note
+
+note right of metadataService
+  File metadata
+  Version control
+  Access permissions
+  Namespace management
+end note
+
+note right of syncManager
+  Change detection
+  Conflict resolution
+  Delta sync
+  Version reconciliation
+end note
+
+note right of dataChunker
+  Content-based chunking
+  Compression
+  Encryption
+  Deduplication
+end note
+
+@enduml 
