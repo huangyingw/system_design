@@ -1,0 +1,129 @@
+@startuml Microservices Gateway System
+
+!include common_style.puml
+
+title Microservices Gateway System
+
+rectangle "Gateway Entry" {
+    component "Protocol Handler" as protocolHandler {
+        component "HTTP/HTTPS" as http
+        component "gRPC" as grpc
+        component "WebSocket" as websocket
+    }
+    component "SSL Termination" as sslTermination
+}
+
+rectangle "Traffic Management" {
+    component "Load Balancer" as loadBalancer {
+        component "Round Robin" as roundRobin
+        component "Least Conn" as leastConn
+        component "Hash Based" as hashBased
+    }
+    component "Rate Limiter" as rateLimiter
+    component "Traffic Shaper" as trafficShaper
+}
+
+rectangle "Security" {
+    component "Authentication" as auth {
+        component "OAuth2/OIDC" as oauth
+        component "JWT Validator" as jwtValidator
+        component "API Key" as apiKey
+    }
+    component "Authorization" as authz
+    component "WAF" as waf
+}
+
+rectangle "Request Processing" {
+    component "Router" as router {
+        component "Path Matcher" as pathMatcher
+        component "Version Router" as versionRouter
+        component "Service Router" as serviceRouter
+    }
+    component "Request Transformer" as reqTransformer
+    component "Response Transformer" as respTransformer
+}
+
+rectangle "Service Integration" {
+    component "Service Discovery" as serviceDiscovery
+    component "Protocol Translator" as protocolTranslator
+    component "Circuit Breaker" as circuitBreaker
+    component "Retry Handler" as retryHandler
+}
+
+rectangle "Monitoring & Analytics" {
+    component "Access Logger" as accessLogger
+    component "Metrics Collector" as metricsCollector
+    component "Tracing" as tracing
+    database "Analytics Store" as analyticsStore
+}
+
+rectangle "Management & Config" {
+    component "Admin API" as adminAPI
+    component "Config Manager" as configManager
+    component "Route Manager" as routeManager
+    database "Config Store" as configStore
+}
+
+' Entry Flow
+Client --> protocolHandler
+protocolHandler --> sslTermination
+sslTermination --> auth
+
+' Security Flow
+auth --> authz
+authz --> waf
+waf --> router
+
+' Routing Flow
+router --> serviceDiscovery
+serviceDiscovery --> loadBalancer
+loadBalancer --> protocolTranslator
+
+' Request Flow
+reqTransformer --> Backend_Service
+Backend_Service --> respTransformer
+respTransformer --> Client
+
+' Management Flow
+adminAPI --> configManager
+configManager --> configStore
+routeManager --> router
+
+' Monitoring Flow
+accessLogger --> analyticsStore
+metricsCollector --> analyticsStore
+tracing --> analyticsStore
+
+note right of protocolHandler
+  Protocol support:
+  - HTTP/1.1, HTTP/2
+  - gRPC
+  - WebSocket
+  - Protocol translation
+end note
+
+note right of auth
+  Security features:
+  - Authentication
+  - Authorization
+  - API key management
+  - JWT validation
+end note
+
+note right of router
+  Routing features:
+  - Path-based routing
+  - Version-based routing
+  - Service discovery
+  - Load balancing
+end note
+
+note right of reqTransformer
+  Transformation:
+  - Request modification
+  - Response modification
+  - Protocol translation
+  - Content negotiation
+end note
+
+@enduml 

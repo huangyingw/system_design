@@ -1,0 +1,122 @@
+@startuml Fault Tolerance and Circuit Breaker System
+
+!include common_style.puml
+
+title Fault Tolerance and Circuit Breaker System
+
+rectangle "Circuit Breaker" {
+    component "Breaker Manager" as breakerManager {
+        component "State Machine" as stateMachine
+        component "Failure Counter" as failureCounter
+        component "Recovery Timer" as recoveryTimer
+    }
+    database "Breaker State Store\n(Redis)" as breakerStore
+}
+
+rectangle "Fault Detection" {
+    component "Error Detector" as errorDetector {
+        component "Timeout Detector" as timeoutDetector
+        component "Error Classifier" as errorClassifier
+        component "Pattern Analyzer" as patternAnalyzer
+    }
+    queue "Error Events\n(Kafka)" as errorEvents
+}
+
+rectangle "Fallback Management" {
+    component "Fallback Handler" as fallbackHandler {
+        component "Cache Reader" as cacheReader
+        component "Default Response" as defaultResponse
+        component "Degraded Mode" as degradedMode
+    }
+    database "Fallback Cache\n(Redis)" as fallbackCache
+}
+
+rectangle "Retry Management" {
+    component "Retry Manager" as retryManager {
+        component "Retry Policy" as retryPolicy
+        component "Backoff Calculator" as backoffCalc
+        component "Max Retries" as maxRetries
+    }
+    queue "Retry Queue\n(RabbitMQ)" as retryQueue
+}
+
+rectangle "Bulkhead" {
+    component "Resource Isolator" as resourceIsolator {
+        component "Thread Pool" as threadPool
+        component "Connection Pool" as connPool
+        component "Semaphore" as semaphore
+    }
+    component "Queue Manager" as queueManager
+}
+
+rectangle "Monitoring & Analytics" {
+    component "Circuit Monitor" as circuitMonitor
+    component "Performance Analyzer" as perfAnalyzer
+    component "Alert Manager" as alertManager
+    database "Metrics Store" as metricsStore
+}
+
+' Circuit Breaker Flow
+errorDetector --> errorEvents
+errorEvents --> breakerManager
+breakerManager --> breakerStore
+stateMachine --> fallbackHandler
+
+' Fault Detection Flow
+timeoutDetector --> errorClassifier
+errorClassifier --> patternAnalyzer
+patternAnalyzer --> errorEvents
+
+' Fallback Flow
+fallbackHandler --> cacheReader
+cacheReader --> fallbackCache
+degradedMode --> defaultResponse
+
+' Retry Flow
+retryManager --> retryQueue
+retryPolicy --> backoffCalc
+backoffCalc --> maxRetries
+
+' Bulkhead Flow
+resourceIsolator --> queueManager
+threadPool --> semaphore
+connPool --> semaphore
+
+' Monitoring Flow
+circuitMonitor --> metricsStore
+perfAnalyzer --> metricsStore
+alertManager --> metricsStore
+
+note right of breakerManager
+  Circuit breaker features:
+  - State management
+  - Failure threshold
+  - Recovery timeout
+  - Half-open state
+end note
+
+note right of errorDetector
+  Error detection:
+  - Timeout tracking
+  - Error classification
+  - Pattern recognition
+  - Threshold monitoring
+end note
+
+note right of fallbackHandler
+  Fallback strategies:
+  - Cache responses
+  - Default values
+  - Degraded service
+  - Graceful degradation
+end note
+
+note right of resourceIsolator
+  Isolation features:
+  - Thread isolation
+  - Connection limits
+  - Queue management
+  - Resource protection
+end note
+
+@enduml 

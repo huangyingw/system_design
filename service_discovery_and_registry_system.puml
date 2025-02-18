@@ -1,0 +1,103 @@
+@startuml Service Discovery and Registry System
+
+!include common_style.puml
+
+title Service Discovery and Registry System
+
+rectangle "Service Registry" {
+    component "Registry Server" as registryServer {
+        component "Registration Handler" as regHandler
+        component "Health Checker" as healthChecker
+        component "Configuration Manager" as configManager
+    }
+    database "Registry Store\n(etcd)" as registryStore
+    database "Configuration Store\n(etcd)" as configStore
+}
+
+rectangle "Service Providers" {
+    component "Service Instance" as serviceInstance {
+        component "Registration Client" as regClient
+        component "Health Reporter" as healthReporter
+        component "Config Watcher" as configWatcher
+    }
+    component "Service Metadata" as serviceMetadata
+}
+
+rectangle "Service Consumers" {
+    component "Client SDK" as clientSDK {
+        component "Service Resolver" as serviceResolver
+        component "Load Balancer" as loadBalancer
+        component "Circuit Breaker" as circuitBreaker
+    }
+    component "Service Cache" as serviceCache
+}
+
+rectangle "Management & Monitoring" {
+    component "Admin Console" as adminConsole
+    component "Metrics Collector" as metricsCollector
+    component "Event Logger" as eventLogger
+    database "Metrics Store" as metricsStore
+}
+
+rectangle "Security" {
+    component "Authentication" as auth
+    component "Authorization" as authz
+    component "SSL/TLS Manager" as sslManager
+    database "Security Store" as securityStore
+}
+
+' Registration Flow
+serviceInstance --> regHandler : Register
+regHandler --> registryStore : Store
+healthReporter --> healthChecker : Report
+configWatcher --> configManager : Watch
+
+' Discovery Flow
+clientSDK --> serviceResolver : Resolve
+serviceResolver --> registryStore : Query
+serviceResolver --> serviceCache : Cache
+loadBalancer --> serviceCache : Read
+
+' Management Flow
+adminConsole --> registryServer : Manage
+metricsCollector --> metricsStore : Store
+eventLogger --> metricsStore : Log
+
+' Security Flow
+auth --> securityStore : Verify
+authz --> securityStore : Check
+sslManager --> securityStore : Manage
+
+note right of registryServer
+  Registry features:
+  - Service registration
+  - Health checking
+  - Configuration management
+  - Service discovery
+end note
+
+note right of serviceInstance
+  Service features:
+  - Auto-registration
+  - Health reporting
+  - Config updates
+  - Metadata management
+end note
+
+note right of clientSDK
+  Client features:
+  - Service discovery
+  - Load balancing
+  - Circuit breaking
+  - Caching
+end note
+
+note right of adminConsole
+  Management features:
+  - Service management
+  - Configuration updates
+  - Health monitoring
+  - Event tracking
+end note
+
+@enduml 
