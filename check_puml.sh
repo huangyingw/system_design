@@ -24,19 +24,28 @@ check_file() {
     # Check syntax
     java -jar "$PLANTUML_JAR" -checkonly "$file"
     if [ $? -eq 0 ]; then
-        echo "✅ Syntax OK"
+        echo -e "${GREEN}✅ Syntax OK${NC}"
         
         # Try to render
-        java -jar "$PLANTUML_JAR" "$file"
-        if [ $? -eq 0 ]; then
-            echo "✅ Render OK"
+        java -jar "$PLANTUML_JAR" "$file" > /dev/null 2>&1
+        render_status=$?
+        
+        if [ $render_status -eq 0 ]; then
+            echo -e "${GREEN}✅ Render OK${NC}"
+            # 检查是否生成了png文件
+            png_file="${file%.*}.png"
+            if [ -f "$png_file" ]; then
+                echo -e "${GREEN}✅ Generated: $png_file${NC}"
+            else
+                echo -e "${YELLOW}⚠️  Warning: PNG file not found: $png_file${NC}"
+            fi
             return 0
         else
-            echo "❌ Render Failed"
+            echo -e "${RED}❌ Render Failed${NC}"
             return 1
         fi
     else
-        echo "❌ Syntax Error"
+        echo -e "${RED}❌ Syntax Error${NC}"
         echo "\nFile contents with line numbers:"
         nl -ba "$file"
         return 1
@@ -62,13 +71,11 @@ main() {
     # If no arguments provided, check all .puml files
     if [[ $# -eq 0 ]]; then
         echo "No file specified. Checking all .puml files...\n"
-        for file in *.puml; do
-            check_file $file
-        done
+        find . -name '*.puml' -exec env CHECK_PUML_CHILD=true zsh -c 'source "$0"; check_file "$1"' check_puml.sh {} \;
     else
         # Check each specified file
         for file in "$@"; do
-            check_file $file
+            check_file "$file"
         done
     fi
 }
