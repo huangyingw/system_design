@@ -1,6 +1,6 @@
 @startuml
 !theme plain
-title Cohesity Data Delivery System
+title Cohesity Data Delivery System - Security Integration Framework
 
 ' Custom styles
 skinparam {
@@ -56,80 +56,79 @@ actor "External Client" as client
 component "Client SDK" as sdk
 
 ' Gateway & Auth
-component "API Gateway" as gateway
-component "Auth Service" as auth
+component "API Gateway" as gateway {
+    component "Idempotency Handler" as idempotency
+    component "Rate Limiter" as ratelimit
+    component "Request Validator" as validator
+}
+
+component "Auth Service" as auth {
+    component "Token Manager" as tokenMgr
+    component "Encryption Service" as encrypt
+}
 
 ' Data Services
 component "Data Tracking Service" as tracker
 component "Data Delivery Service" as sender
+component "Reconciliation Service" as reconciliation
 
 ' Storage
 database "Token Store\n(Redis)" as tokenDB
 database "Delivery Records\n(PostgreSQL)" as deliveryDB
 database "Source Data\n(S3)" as sourceDB
 database "Cache\n(Redis)" as cache
+database "Event Store" as eventStore
 
 ' Queue
-queue "Kafka Queue" as queue
+queue "Kafka Queue" as queue {
+    queue "Events Queue" as eventsQueue
+    queue "Retry Queue" as retryQueue
+    queue "DLQ" as deadLetterQueue
+}
 
 ' Connections
 client --> sdk : "Use"
 sdk --> gateway : "1. Request with Token"
 gateway --> auth : "2. Authenticate"
 auth <--> tokenDB : "3. Validate Token"
-auth --> tracker : "4. Token Valid"
-tracker <--> deliveryDB : "5. Query History"
-tracker <--> sourceDB : "6. Fetch New Data"
-tracker --> queue : "7. Enqueue"
-queue --> sender : "8. Process"
-sender --> client : "9. Stream Data"
-sender --> deliveryDB : "10. Update Status"
-sender <--> cache : "11. Cache"
 
-note right of tokenDB
-  <b>Token Store</b>
+
+tracker <--> deliveryDB : "4. Query History"
+tracker <--> sourceDB : "5. Fetch New Data"
+tracker --> queue : "6. Enqueue"
+queue --> sender : "7. Process"
+sender --> client : "8. Stream Data"
+sender --> deliveryDB : "9. Update Status"
+sender <--> cache : "10. Cache"
+
+reconciliation --> eventStore : "11. Audit"
+reconciliation --> deliveryDB : "12. Verify"
+
+note right of reconciliation
+  <b>Reconciliation Service</b>
   --
-  • JWT tokens
-  • Role permissions
-  • Rate limits
+  • Data validation
+  • Consistency checks
+  • Discrepancy resolution
+  • Audit logging
+end note
+
+note right of auth
+  <b>Security Layer</b>
+  --
+  • E2E encryption
   • Token rotation
-end note
-
-note right of deliveryDB
-  <b>Delivery Records</b>
-  --
-  • UUID & client_id
-  • Time range (start/end)
-  • Checksum & status
-  • Retry count
-  • Metadata (JSONB)
-end note
-
-note right of sourceDB
-  <b>Source Data</b>
-  --
-  • Time-series data
-  • Time partitioned
-  • Range indexed
-  • Version control
+  • Access control
+  • Audit logging
 end note
 
 note right of queue
-  <b>Kafka Topics</b>
+  <b>Event Processing</b>
   --
-  • delivery.requests
-  • delivery.retries
-  • delivery.status
   • Exactly-once delivery
-end note
-
-note right of cache
-  <b>Cache Layer</b>
-  --
-  • TTL: 24h
-  • LRU policy
-  • Circuit breaker
-  • Rate limiting
+  • Dead letter handling
+  • Order preservation
+  • Transaction boundaries
 end note
 
 @enduml 
