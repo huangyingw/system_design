@@ -1,6 +1,6 @@
 @startuml
 !theme plain
-title <size:20>Cohesity Data Delivery System</size:20>
+title Cohesity Data Delivery System
 
 ' Custom styles
 skinparam {
@@ -37,6 +37,10 @@ skinparam {
         borderColor #666666
         FontSize 13
     }
+
+    arrow {
+        FontSize 13
+    }
 }
 
 ' Custom colors
@@ -69,18 +73,18 @@ database "Cache\n(Redis)" as cache
 queue "Kafka Queue" as queue
 
 ' Connections
-client --> sdk : "<size:13>Use</size:13>"
-sdk --> gateway : "<size:13>1. Request with Token</size:13>"
-gateway --> auth : "<size:13>2. Authenticate</size:13>"
-auth <--> tokenDB : "<size:13>3. Validate Token</size:13>"
-auth --> tracker : "<size:13>4. Token Valid</size:13>"
-tracker <--> deliveryDB : "<size:13>5. Query History</size:13>"
-tracker <--> sourceDB : "<size:13>6. Fetch New Data</size:13>"
-tracker --> queue : "<size:13>7. Enqueue</size:13>"
-queue --> sender : "<size:13>8. Process</size:13>"
-sender --> client : "<size:13>9. Stream Data</size:13>"
-sender --> deliveryDB : "<size:13>10. Update Status</size:13>"
-sender <--> cache : "<size:13>11. Cache</size:13>"
+client --> sdk : "Use"
+sdk --> gateway : "1. Request with Token"
+gateway --> auth : "2. Authenticate"
+auth <--> tokenDB : "3. Validate Token"
+auth --> tracker : "4. Token Valid"
+tracker <--> deliveryDB : "5. Query History"
+tracker <--> sourceDB : "6. Fetch New Data"
+tracker --> queue : "7. Enqueue"
+queue --> sender : "8. Process"
+sender --> client : "9. Stream Data"
+sender --> deliveryDB : "10. Update Status"
+sender <--> cache : "11. Cache"
 
 note right of tokenDB
   <b>Token Store</b>
