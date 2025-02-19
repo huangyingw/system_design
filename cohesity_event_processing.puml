@@ -1,0 +1,142 @@
+@startuml
+!define RECTANGLE class
+
+skinparam {
+    backgroundColor #FFFFFF
+    componentStyle rectangle
+    defaultFontSize 14
+    noteFontSize 12
+    packageFontSize 16
+    titleFontSize 20
+}
+
+' 颜色定义
+!define PRIMARY_COLOR #FF7043
+!define SECONDARY_COLOR #1976D2
+!define CACHE_COLOR #FDD835
+!define MANAGEMENT_COLOR #7E57C2
+!define MONITORING_COLOR #00BCD4
+
+title Cohesity Distributed Event Processing System Architecture
+
+package "Event Ingestion Layer" {
+    [Event Collector API Gateway] as EventCollector
+    [Load Balancer (HAProxy)] as LoadBalancer
+    [Kafka Stream Processor] as KafkaProcessor
+    [Schema Validator] as SchemaValidator
+    
+    note right of EventCollector
+        API Gateway Features:
+        - Rate limiting
+        - Request validation
+        - Authentication
+        - Request routing
+    end note
+}
+
+package "Processing Layer" {
+    rectangle "Parallel Processing Unit" as ProcessingUnit {
+        [Event Batch Processor] as BatchProcessor
+        [Event Validator] as EventValidator
+        [Rule Engine] as RuleEngine
+        [Event Enrichment Service] as EnrichmentService
+        [Threat Detection Engine] as ThreatEngine
+    }
+    
+    database "Rule Cache Layer" as RuleCache {
+        [Redis Cluster] as RedisCluster
+        [Frequent Rules] as FrequentRules
+        [Rule Statistics] as RuleStats
+    }
+
+    queue "Message Queue" as MessageQueue {
+        [Kafka Topics] as KafkaTopics
+        [Dead Letter Queue] as DLQ
+    }
+}
+
+package "Storage Layer" {
+    database "Event Store" as EventStore {
+        [Time Series DB] as TSDB
+        [Event Index] as EventIndex
+    }
+    
+    database "Rule Store" as RuleStore {
+        [Rule Definitions] as RuleDefinitions
+        [Rule Metadata] as RuleMetadata
+        [Version Control] as VersionControl
+    }
+    
+    database "Analytics Store" as AnalyticsStore {
+        [Aggregated Metrics] as Metrics
+        [Performance Data] as PerfData
+    }
+}
+
+package "Operations" {
+    [K8s/Istio] as K8s
+    [Monitoring] as Monitor
+}
+
+package "Security & Compliance" {
+    [Identity Provider] as IDP
+    [Audit Logger] as AuditLog
+    [Encryption Service] as EncryptionService
+}
+
+' Relationships
+EventCollector --> LoadBalancer : Route requests
+LoadBalancer --> KafkaProcessor : Distribute load
+KafkaProcessor --> SchemaValidator : Validate format
+SchemaValidator --> MessageQueue : Queue events
+
+MessageQueue --> BatchProcessor : Batch processing
+BatchProcessor --> EventValidator : Validate business rules
+EventValidator --> RuleEngine : Apply rules
+RuleEngine <--> RuleCache : Quick rule lookup
+RuleEngine --> EnrichmentService : Enrich events
+EnrichmentService --> ThreatEngine : Detect threats
+
+RuleCache <--> RuleStore : Rule sync
+ThreatEngine --> EventStore : Store results
+EventStore --> AnalyticsStore : Analytics data
+
+K8s --> ProcessingUnit : Orchestration
+Monitor --> ProcessingUnit : Metrics
+
+IDP --> EventCollector : Authentication
+AuditLog --> EventStore : Audit trail
+EncryptionService --> EventStore : Encryption
+
+note right of RuleCache
+    Cache Design:
+    - Redis cluster with sentinel
+    - LRU eviction policy
+    - Cache warming
+    - Distributed sync
+end note
+
+note right of BatchProcessor
+    Processing:
+    - Dynamic batching
+    - Backpressure
+    - Error retry
+    - Circuit breaker
+end note
+
+note right of EventStore
+    Storage:
+    - Time-series opt
+    - Data partitioning
+    - Hot/Cold data
+    - Compression
+end note
+
+note bottom of K8s
+    SLOs:
+    - P99 < 800ms
+    - 99.99% uptime
+    - 1M events/sec
+end note
+
+@enduml 
