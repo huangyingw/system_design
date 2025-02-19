@@ -1,0 +1,131 @@
+@startuml
+!theme plain
+title <size:20>Cohesity Data Delivery System</size:20>
+
+' Custom styles
+skinparam {
+    backgroundColor #FAFAFA
+    handwritten false
+    defaultFontName Arial
+    defaultFontSize 14
+    componentStyle rectangle
+    packageStyle rectangle
+    padding 5
+    nodesep 60
+    ranksep 80
+    
+    component {
+        backgroundColor #FFFFFF
+        borderColor #666666
+        FontSize 14
+    }
+    
+    database {
+        backgroundColor #FFFFFF
+        borderColor #666666
+        FontSize 14
+    }
+    
+    queue {
+        backgroundColor #FFFFFF
+        borderColor #666666
+        FontSize 14
+    }
+    
+    note {
+        backgroundColor #FAFAFA
+        borderColor #666666
+        FontSize 13
+    }
+}
+
+' Custom colors
+!define ORANGE #FFA500
+!define BLUE #4285F4
+!define GREEN #34A853
+!define RED #EA4335
+!define PURPLE #9334E6
+!define GRAY #7F8C8D
+
+' Client Zone
+actor "External Client" as client
+component "Client SDK" as sdk
+
+' Gateway & Auth
+component "API Gateway" as gateway
+component "Auth Service" as auth
+
+' Data Services
+component "Data Tracking Service" as tracker
+component "Data Delivery Service" as sender
+
+' Storage
+database "Token Store\n(Redis)" as tokenDB
+database "Delivery Records\n(PostgreSQL)" as deliveryDB
+database "Source Data\n(S3)" as sourceDB
+database "Cache\n(Redis)" as cache
+
+' Queue
+queue "Kafka Queue" as queue
+
+' Connections
+client --> sdk : "<size:13>Use</size:13>"
+sdk --> gateway : "<size:13>1. Request with Token</size:13>"
+gateway --> auth : "<size:13>2. Authenticate</size:13>"
+auth <--> tokenDB : "<size:13>3. Validate Token</size:13>"
+auth --> tracker : "<size:13>4. Token Valid</size:13>"
+tracker <--> deliveryDB : "<size:13>5. Query History</size:13>"
+tracker <--> sourceDB : "<size:13>6. Fetch New Data</size:13>"
+tracker --> queue : "<size:13>7. Enqueue</size:13>"
+queue --> sender : "<size:13>8. Process</size:13>"
+sender --> client : "<size:13>9. Stream Data</size:13>"
+sender --> deliveryDB : "<size:13>10. Update Status</size:13>"
+sender <--> cache : "<size:13>11. Cache</size:13>"
+
+note right of tokenDB
+  <b>Token Store</b>
+  --
+  • JWT tokens
+  • Role permissions
+  • Rate limits
+  • Token rotation
+end note
+
+note right of deliveryDB
+  <b>Delivery Records</b>
+  --
+  • UUID & client_id
+  • Time range (start/end)
+  • Checksum & status
+  • Retry count
+  • Metadata (JSONB)
+end note
+
+note right of sourceDB
+  <b>Source Data</b>
+  --
+  • Time-series data
+  • Time partitioned
+  • Range indexed
+  • Version control
+end note
+
+note right of queue
+  <b>Kafka Topics</b>
+  --
+  • delivery.requests
+  • delivery.retries
+  • delivery.status
+  • Exactly-once delivery
+end note
+
+note right of cache
+  <b>Cache Layer</b>
+  --
+  • TTL: 24h
+  • LRU policy
+  • Circuit breaker
+  • Rate limiting
+end note
+
+@enduml 
