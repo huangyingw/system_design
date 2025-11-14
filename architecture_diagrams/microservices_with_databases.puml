@@ -1,4 +1,13 @@
 @startuml MongoDB Sharded Cluster Architecture
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database, #mongodb, #microservices
+' @application: General
+' @tech-stack: MongoDB
+' @pattern: Microservices
+' @description: Microservices With Databases
+' ==================================================
+
 
 skinparam backgroundColor #F0F0F0
 skinparam handwritten false

@@ -1,4 +1,13 @@
 @startuml Uber Matching Algorithm System
+' ==================== Metadata ====================
+' @category: ride-hailing
+' @tags: #database, #uber
+' @application: Uber
+' @tech-stack: General
+' @pattern: Architecture
+' @description: Uber Driver Rider Matching Algorithm Detailed Flow
+' ==================================================
+
 !pragma layout dot
 allowmixing
 skinparam backgroundColor #F0F0F0

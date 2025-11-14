@@ -1,4 +1,13 @@
 @startuml service_mesh_architecture_with_istio_components
+' ==================== Metadata ====================
+' @category: ride-hailing
+' @tags: #kubernetes, #uber
+' @application: Uber
+' @tech-stack: Kubernetes
+' @pattern: Architecture
+' @description: Service Mesh Architecture With Istio Components
+' ==================================================
+
 
 !pragma layout dot
 skinparam backgroundColor #FEFEFE

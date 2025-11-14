@@ -1,4 +1,13 @@
 @startuml Fault Tolerant and High Availability System Design
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database
+' @application: General
+' @tech-stack: General
+' @pattern: Architecture
+' @description: Fault Tolerant High Availability System Design With Automated Recovery And Data Consistency Management
+' ==================================================
+
 
 !define RECTANGLE class
 

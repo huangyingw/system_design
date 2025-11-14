@@ -1,4 +1,13 @@
 @startuml Container Orchestration System Design
+' ==================== Metadata ====================
+' @category: ride-hailing
+' @tags: #kubernetes, #database, #uber, #prometheus
+' @application: Uber
+' @tech-stack: Kubernetes, Prometheus, Grafana
+' @pattern: Architecture
+' @description: Kubernetes Based Container Orchestration System Architecture
+' ==================================================
+
 
 skinparam backgroundColor #FAFAFA
 skinparam handwritten false

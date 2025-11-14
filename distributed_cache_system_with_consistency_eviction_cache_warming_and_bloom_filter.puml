@@ -1,4 +1,13 @@
 @startuml Distributed Cache System with Consistency Strategies
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database
+' @application: General
+' @tech-stack: General
+' @pattern: Architecture
+' @description: Distributed Cache System With Consistency Eviction Cache Warming And Bloom Filter
+' ==================================================
+
 
 !pragma layout dot
 

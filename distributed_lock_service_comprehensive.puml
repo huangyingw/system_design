@@ -1,0 +1,278 @@
+@startuml Distributed Lock Service - Comprehensive Design
+' ==================== Metadata ====================
+' @category: distributed-systems
+' @tags: #distributed-systems, #redis, #zookeeper, #event-driven
+' @application: General
+' @tech-stack: Redis, ZooKeeper
+' @pattern: Event-Driven, Architecture
+' @description: Distributed Lock Service - Comprehensive Design with Redis, ZooKeeper, and Deadlock Prevention
+' @features: Basic Lock Service, Hybrid Lock Strategy, Deadlock Prevention, Monitoring & Recovery
+' ==================================================
+
+!define RECTANGLE class
+!define STORAGE database
+!define BASIC_COLOR #9E9E9E
+!define REDIS_COLOR #DC382D
+!define ZK_COLOR #3A8BDB
+!define MONITOR_COLOR #4CAF50
+
+skinparam backgroundColor #FAFAFA
+skinparam handwritten false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam roundcorner 20
+skinparam shadowing false
+skinparam componentStyle rectangle
+
+allowmixing
+!pragma layout dot
+
+title Distributed Lock Service - Comprehensive Design
+
+' ========================================
+' Client Layer
+' ========================================
+rectangle "Client Applications" as ClientApps #E1F5FE {
+    component "Lock Client" as LockClient
+    component "Connection Manager" as ConnManager
+    component "Retry Handler" as RetryHandler
+    component "Circuit Breaker" as CircuitBreaker
+}
+
+' ========================================
+' Core Lock Service
+' ========================================
+rectangle "Distributed Lock Service" as LockService #B3E5FC {
+    component "Lock Manager" as LockManager
+    component "Lock Validator" as LockValidator
+    component "Deadlock Detector" as DeadlockDetector #FF6B6B
+    component "Lock Cleaner" as LockCleaner
+    component "Lock Monitor" as LockMonitor MONITOR_COLOR
+}
+
+' ========================================
+' Redis Implementation
+' ========================================
+rectangle "Redis Cluster" as RedisCluster REDIS_COLOR {
+    component "Redis Lock" as RedisLock
+    component "Lock TTL Manager" as TTLManager
+    component "Watch Dog" as WatchDog
+    STORAGE "Lock Data" as RedisLockData
+}
+
+' ========================================
+' ZooKeeper Implementation
+' ========================================
+rectangle "Zookeeper Ensemble" as ZookeeperEnsemble ZK_COLOR {
+    component "ZK Lock" as ZKLock
+    component "Sequential Nodes" as SeqNodes
+    component "Session Manager" as SessionManager
+    STORAGE "Lock Znodes" as ZKLockData
+}
+
+' ========================================
+' Monitoring & Recovery
+' ========================================
+rectangle "Monitoring & Recovery" as Monitoring MONITOR_COLOR {
+    component "Health Checker" as HealthChecker
+    component "Alert System" as AlertSystem
+    component "Lock Acquisition Metrics" as LockMetrics
+    component "Performance Monitor" as PerfMonitor
+}
+
+' ========================================
+' Resource Layer
+' ========================================
+cloud "Resource Services" as Resources #ECEFF1
+
+' ========================================
+' Client to Service Connections
+' ========================================
+ClientApps -[#FF5722,thickness=2]-> LockService : <back:#FFFFFF><color:#FF5722>1. Request Lock</color></back>
+LockClient --> ConnManager : Establish Connection
+ConnManager --> LockManager : Forward Request
+
+' ========================================
+' Core Lock Management Flow
+' ========================================
+LockManager --> LockValidator : Validate Lock
+LockValidator -[#DC382D,thickness=2]-> RedisCluster : <back:#FFFFFF><color:#DC382D>2a. Acquire Redis Lock</color></back>
+LockValidator -[#3A8BDB,thickness=2]-> ZookeeperEnsemble : <back:#FFFFFF><color:#3A8BDB>2b. Create Znode</color></back>
+
+' ========================================
+' Lock Access Flow
+' ========================================
+RedisLock -[#4CAF50,thickness=2]-> Resources : <back:#FFFFFF><color:#4CAF50>3. Access if Locked</color></back>
+ZKLock -[#4CAF50,thickness=2]-> Resources : <back:#FFFFFF><color:#4CAF50>3. Access if Locked</color></back>
+
+' ========================================
+' Monitoring Connections
+' ========================================
+LockMonitor -[#8BC34A,thickness=2]-> RedisCluster : <back:#FFFFFF><color:#8BC34A>4a. Monitor Lock TTL</color></back>
+LockMonitor -[#8BC34A,thickness=2]-> ZookeeperEnsemble : <back:#FFFFFF><color:#8BC34A>4b. Watch Znode</color></back>
+
+' ========================================
+' Deadlock & Recovery
+' ========================================
+DeadlockDetector -[#2196F3,thickness=2]-> LockManager : <back:#FFFFFF><color:#2196F3>5. Detect & Resolve Deadlocks</color></back>
+
+' ========================================
+' Client Resilience
+' ========================================
+RetryHandler --> LockClient : Retry Failed Requests
+CircuitBreaker --> ConnManager : Prevent Cascading Failures
+
+' ========================================
+' Lock Maintenance
+' ========================================
+WatchDog --> RedisLock : Extend Lock TTL
+SessionManager --> ZKLock : Maintain Session
+LockCleaner --> RedisLock : Clean Expired Locks
+
+' ========================================
+' Monitoring & Metrics
+' ========================================
+LockService -[#9C27B0,thickness=2]-> Monitoring : <back:#FFFFFF><color:#9C27B0>6. Report Metrics</color></back>
+HealthChecker --> LockService : Health Check
+AlertSystem --> ClientApps : Send Alerts
+PerfMonitor --> LockMetrics : Track Performance
+
+' ========================================
+' Response Flow
+' ========================================
+LockService -[#3F51B5,thickness=2]-> ClientApps : <back:#FFFFFF><color:#3F51B5>7. Grant/Deny Lock</color></back>
+
+' ========================================
+' Feature Notes
+' ========================================
+note top of RedisLock
+  <b>Redis-based Lock (Fast Path):</b>
+  - Fast, low-latency operations
+  - Uses SET NX with TTL
+  - Lua scripts for atomicity
+  - Automatic expiration with TTL
+  - Watch dog for TTL extension
+  - Unique lock identifiers
+  - Suitable for high-concurrency
+  - Short-lived locks
+end note
+
+note top of ZKLock
+  <b>ZooKeeper-based Lock (Consistent Path):</b>
+  - Strong consistency
+  - Sequential ephemeral nodes
+  - Built-in leader election
+  - Session management
+  - Automatic node cleanup
+  - Lock queue management
+  - Suitable for long-lived locks
+  - Critical operations
+end note
+
+note right of LockService
+  <b>Hybrid Approach:</b>
+  1. Use Redis for short-lived,
+     high-concurrency locks
+  2. Use Zookeeper for long-lived,
+     critical locks
+  3. Implement lock escalation strategy
+  4. Automatic failover between systems
+end note
+
+note right of DeadlockDetector
+  <b>Deadlock Prevention (ENHANCED):</b>
+  1. Implement timeout mechanism
+  2. Use global lock ordering
+  3. Detect cycles in lock graph
+  4. Automatic deadlock resolution
+  5. Lock acquisition tracing
+end note
+
+note bottom of CircuitBreaker
+  <b>Client Resilience:</b>
+  - Retry with exponential backoff
+  - Circuit breaker pattern
+  - Connection pooling
+  - Graceful degradation
+end note
+
+note left of Monitoring
+  <b>Observability Features:</b>
+  - Lock acquisition metrics
+  - Performance monitoring
+  - Health checking
+  - Alert system
+  - Usage tracking
+end note
+
+' ========================================
+' Comprehensive Legend
+' ========================================
+legend right
+<b>Implementation Features:</b>
+==
+<b>BASIC Lock Service:</b>
+- Lock client with connection management
+- Lock manager and validator
+- Redis implementation (SET NX + TTL)
+- ZooKeeper implementation (ephemeral nodes)
+- Lock cleaner for expired locks
+- Health monitoring
+- Retry handler
+
+<b>ENHANCED Features (Hybrid):</b>
+- Hybrid Redis + ZooKeeper strategy
+- Lock escalation mechanism
+- Automatic failover between lock systems
+- Watch dog for TTL extension
+- Session management
+- Circuit breaker pattern
+
+<b>ENHANCED Features (Deadlock Prevention):</b>
+- Deadlock detection algorithm
+- Cycle detection in lock graph
+- Timeout mechanism
+- Global lock ordering
+- Automatic deadlock resolution
+- Lock acquisition tracing
+
+<b>Redis Lock Strategy:</b>
+- SET NX with TTL for atomicity
+- Lua scripts for operations
+- Watch dog for TTL extension
+- Unique lock identifiers
+- Fast, low-latency
+- High concurrency support
+
+<b>ZooKeeper Lock Strategy:</b>
+- Sequential ephemeral nodes
+- Session management
+- Automatic cleanup on session end
+- Lock queue management
+- Strong consistency
+- Leader election support
+
+<b>High Availability:</b>
+- Multiple lock providers
+- Automatic failover
+- Circuit breaker pattern
+- Connection pooling
+- Graceful degradation
+
+<b>Performance Features:</b>
+- Local lock caching
+- Bulk lock operations
+- Lock request batching
+- Optimistic locking
+- Lock coalescing
+
+<b>Monitoring & Observability:</b>
+- Lock acquisition metrics
+- Performance monitoring
+- Health checking
+- Alert system
+- Usage tracking
+- Lock contention analysis
+end legend
+
+@enduml

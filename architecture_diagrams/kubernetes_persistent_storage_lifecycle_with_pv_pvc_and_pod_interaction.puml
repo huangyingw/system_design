@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: ride-hailing
+' @tags: #kubernetes, #uber
+' @application: Uber
+' @tech-stack: Kubernetes
+' @pattern: Architecture
+' @description: Kubernetes Persistent Storage Lifecycle With Pv Pvc And Pod Interaction
+' ==================================================
+
 skinparam backgroundColor #D3D3D3
 
 actor 管理员

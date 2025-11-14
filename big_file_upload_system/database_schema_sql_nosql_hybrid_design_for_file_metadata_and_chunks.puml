@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database, #sharding
+' @application: General
+' @tech-stack: General
+' @pattern: Sharding
+' @description: Database Schema Sql Nosql Hybrid Design For File Metadata And Chunks
+' ==================================================
+
 !define table(x) class x << (T,#FFAAAA) >>
 !define nosql(x) class x << (N,#AAFFAA) >>
 !define primary_key(x) <u>x</u>

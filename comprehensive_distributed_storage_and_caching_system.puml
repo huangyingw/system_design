@@ -1,4 +1,13 @@
 @startuml Comprehensive Distributed Storage and Caching System
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database, #redis, #mongodb
+' @application: General
+' @tech-stack: Redis, MongoDB
+' @pattern: Architecture
+' @description: Comprehensive Distributed Storage And Caching System
+' ==================================================
+
 
 !include common_style.puml
 

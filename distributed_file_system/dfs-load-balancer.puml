@@ -1,4 +1,13 @@
 @startuml dfs-load-balancer
+' ==================== Metadata ====================
+' @category: distributed-systems
+' @tags: #distributed-systems
+' @application: General
+' @tech-stack: General
+' @pattern: Architecture
+' @description: Dfs-Load-Balancer
+' ==================================================
+
 !define RECTANGLE rectangle
 skinparam backgroundColor #E0E0E0
 skinparam handwritten false

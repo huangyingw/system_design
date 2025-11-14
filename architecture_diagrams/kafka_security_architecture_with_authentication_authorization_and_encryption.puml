@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: security
+' @tags: #kafka, #security
+' @application: General
+' @tech-stack: Kafka
+' @pattern: Architecture
+' @description: Kafka Security Architecture With Authentication Authorization And Encryption
+' ==================================================
+
 skinparam backgroundColor #FFF8DC
 
 package "Security Components" {

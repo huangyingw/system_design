@@ -1,4 +1,13 @@
 @startuml Google Docs Architecture
+' ==================== Metadata ====================
+' @category: real-time-communication
+' @tags: #kafka, #database, #google-docs, #collaboration, #redis, #websocket, #sharding
+' @application: Google Docs
+' @tech-stack: Kafka, Redis, WebSocket
+' @pattern: Sharding
+' @description: Google Docs Architecture With Real Time Collaboration And Version Control
+' ==================================================
+
 
 skinparam backgroundColor #F5F5F5
 skinparam defaultFontName Arial

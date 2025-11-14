@@ -1,4 +1,13 @@
 @startuml Large Scale Geographic Information System Architecture
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database, #redis, #sharding, #microservices
+' @application: General
+' @tech-stack: Redis
+' @pattern: Microservices
+' @description: Large Scale Geographic Information System Architecture With Microservices And Spatial Data Processing
+' ==================================================
+
 
 !define PRIMARY_COLOR #E67E22
 !define SECONDARY_COLOR #3498DB

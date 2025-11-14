@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: distributed-systems
+' @tags: #distributed-systems
+' @application: General
+' @tech-stack: General
+' @pattern: Architecture
+' @description: Resnet18 Deep Learning Model Architecture With Detailed Layer Structure
+' ==================================================
+
 package "Sequential" {
   package "Sequential_1" {
     Conv2d_0 : 3 -> 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False

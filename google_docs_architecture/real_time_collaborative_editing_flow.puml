@@ -1,4 +1,13 @@
 @startuml Real-time Collaborative Editing Flow
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database, #websocket
+' @application: General
+' @tech-stack: WebSocket
+' @pattern: Architecture
+' @description: Real Time Collaborative Editing Flow
+' ==================================================
+
 
 skinparam backgroundColor #FEFEFE
 skinparam handwritten false

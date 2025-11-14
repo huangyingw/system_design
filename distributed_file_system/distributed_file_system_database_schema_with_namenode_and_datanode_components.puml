@@ -1,4 +1,13 @@
 @startuml HDFS Data Model
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database, #redis
+' @application: General
+' @tech-stack: Redis
+' @pattern: Architecture
+' @description: Distributed File System Database Schema With Namenode And Datanode Components
+' ==================================================
+
 !define TABLE(name,desc) class name as "desc" << (T,#FFAAAA) >>
 !define PK(x) <u>x</u>
 !define FK(x) <i>x</i>

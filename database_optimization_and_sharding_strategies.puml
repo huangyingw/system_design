@@ -1,4 +1,13 @@
 @startuml Database Optimization and Sharding Strategies
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database, #redis, #sharding
+' @application: General
+' @tech-stack: Redis
+' @pattern: Sharding
+' @description: Database Optimization And Sharding Strategies
+' ==================================================
+
 
 skinparam backgroundColor #FAFAFA
 skinparam handwritten false

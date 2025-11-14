@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: message-queue
+' @tags: #kafka
+' @application: General
+' @tech-stack: Kafka
+' @pattern: Architecture
+' @description: Kafka Producer Consumer Detailed Structure
+' ==================================================
+
 skinparam backgroundColor #F5F5F5
 skinparam packageStyle rectangle
 allowmixing

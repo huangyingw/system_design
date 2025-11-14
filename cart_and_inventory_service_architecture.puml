@@ -1,4 +1,13 @@
 @startuml Cart_Inventory_Architecture
+' ==================== Metadata ====================
+' @category: database
+' @tags: #kafka, #database, #redis
+' @application: General
+' @tech-stack: Kafka, Redis
+' @pattern: Architecture
+' @description: Cart And Inventory Service Architecture
+' ==================================================
+
 !pragma layout dot
 allowmixing
 skinparam backgroundColor #F0F8FF

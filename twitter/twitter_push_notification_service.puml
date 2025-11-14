@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: social-media
+' @tags: #database, #twitter, #websocket
+' @application: Twitter
+' @tech-stack: WebSocket
+' @pattern: Architecture
+' @description: Twitter Push Notification Service
+' ==================================================
+
 
 skinparam backgroundColor #D3D3D3
 skinparam defaultFontName "Arial"

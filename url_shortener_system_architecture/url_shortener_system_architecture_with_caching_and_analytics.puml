@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: database
+' @tags: #kafka, #database, #redis, #mongodb, #prometheus, #sharding, #microservices
+' @application: General
+' @tech-stack: Kafka, Redis, MongoDB, Prometheus, Grafana
+' @pattern: Microservices
+' @description: Url Shortener System Architecture With Caching And Analytics
+' ==================================================
+
 !pragma layout dot
 allowmixing
 

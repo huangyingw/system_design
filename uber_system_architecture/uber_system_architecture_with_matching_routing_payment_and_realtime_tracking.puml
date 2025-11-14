@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: ride-hailing
+' @tags: #kafka, #database, #uber, #redis, #sharding, #microservices
+' @application: Uber
+' @tech-stack: Kafka, Redis
+' @pattern: Microservices
+' @description: Uber System Architecture With Matching Routing Payment And Realtime Tracking
+' ==================================================
+
 !pragma layout dot
 allowmixing
 

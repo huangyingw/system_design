@@ -1,4 +1,13 @@
 @startuml Online Advertising System Architecture with Optimizations
+' ==================== Metadata ====================
+' @category: data-processing
+' @tags: #kafka, #database, #spark, #redis, #sharding
+' @application: General
+' @tech-stack: Kafka, Spark, Redis
+' @pattern: Sharding
+' @description: Online Advertising System Architecture With Targeting Bidding Analytics And Ml Optimizations
+' ==================================================
+
 
 !define RECTANGLE class
 !define STORAGE database

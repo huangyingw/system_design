@@ -1,4 +1,13 @@
 @startuml Comprehensive Real-time Communication System
+' ==================== Metadata ====================
+' @category: database
+' @tags: #kafka, #database, #redis, #mongodb, #websocket
+' @application: General
+' @tech-stack: Kafka, Redis, MongoDB, WebSocket
+' @pattern: Architecture
+' @description: Comprehensive Real Time Communication System
+' ==================================================
+
 
 !include common_style.puml
 

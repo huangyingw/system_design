@@ -1,4 +1,13 @@
 @startuml Comprehensive Search and Recommendation System
+' ==================== Metadata ====================
+' @category: database
+' @tags: #kafka, #database, #redis, #mongodb, #elasticsearch
+' @application: General
+' @tech-stack: Kafka, Redis, MongoDB, Elasticsearch
+' @pattern: Architecture
+' @description: Comprehensive Search And Recommendation System
+' ==================================================
+
 
 !include common_style.puml
 

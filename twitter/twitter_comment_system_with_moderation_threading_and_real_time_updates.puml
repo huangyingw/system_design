@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: social-media
+' @tags: #kafka, #database, #twitter, #redis, #elasticsearch, #prometheus
+' @application: Twitter
+' @tech-stack: Kafka, Redis, Elasticsearch, Prometheus
+' @pattern: Architecture
+' @description: Twitter Comment System With Moderation Threading And Real Time Updates
+' ==================================================
+
 !pragma layout dot
 allowmixing
 skinparam backgroundColor #E8E8E8

@@ -1,4 +1,13 @@
 @startuml Event-Driven Architecture with Kafka and Microservices
+' ==================== Metadata ====================
+' @category: database
+' @tags: #kafka, #database, #prometheus, #microservices, #event-driven
+' @application: General
+' @tech-stack: Kafka, Prometheus, Grafana
+' @pattern: Event-Driven
+' @description: Event Driven Architecture With Kafka And Microservices
+' ==================================================
+
 
 !define RECTANGLE class
 !define STORAGE database

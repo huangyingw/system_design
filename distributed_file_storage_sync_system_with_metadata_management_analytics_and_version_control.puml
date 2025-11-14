@@ -1,4 +1,13 @@
 @startuml Dropbox-like Distributed Storage System Architecture
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database, #redis
+' @application: General
+' @tech-stack: Redis
+' @pattern: Architecture
+' @description: Distributed File Storage Sync System With Metadata Management Analytics And Version Control
+' ==================================================
+
 
 !pragma layout dot
 skinparam backgroundColor #FAFAFA

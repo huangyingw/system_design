@@ -1,4 +1,13 @@
 @startuml Telegram_Multi_Device_Sync_Optimized
+' ==================== Metadata ====================
+' @category: real-time-communication
+' @tags: #kafka, #database, #telegram, #redis, #prometheus
+' @application: Telegram
+' @tech-stack: Kafka, Redis, Prometheus, Grafana
+' @pattern: Architecture
+' @description: Telegram Multi Device Sync
+' ==================================================
+
 !pragma layout dot
 allowmixing
 

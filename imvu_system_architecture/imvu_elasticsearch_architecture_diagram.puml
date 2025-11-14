@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: data-processing
+' @tags: #kafka, #database, #spark, #imvu, #elasticsearch
+' @application: IMVU
+' @tech-stack: Kafka, Spark, Elasticsearch, Grafana
+' @pattern: Architecture
+' @description: Imvu Elasticsearch Architecture Diagram
+' ==================================================
+
 skinparam backgroundColor #D3D3D3
 
 component "Logstash" as Logstash

@@ -1,4 +1,13 @@
 @startuml Distributed System Deployment Strategies
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database
+' @application: General
+' @tech-stack: General
+' @pattern: Architecture
+' @description: Canary Release And Blue Green Deployment Strategies
+' ==================================================
+
 
 !pragma layout dot
 

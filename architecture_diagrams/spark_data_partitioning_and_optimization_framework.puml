@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: data-processing
+' @tags: #spark
+' @application: General
+' @tech-stack: Spark
+' @pattern: Architecture
+' @description: Spark Data Partitioning And Optimization Framework
+' ==================================================
+
 skinparam backgroundColor #D3D3D3
 
 class "Data Partitioning" as Partitioning {

@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: database
+' @tags: #kafka, #database
+' @application: General
+' @tech-stack: Kafka
+' @pattern: Architecture
+' @description: Real Time Data Analytics Platform With Stream Processing
+' ==================================================
+
 skinparam componentStyle rectangle
 
 package "Real-time Data Analytics Platform" {

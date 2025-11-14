@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: database
+' @tags: #kafka, #kubernetes, #database, #redis, #event-driven
+' @application: General
+' @tech-stack: Kafka, Kubernetes, Redis
+' @pattern: Event-Driven
+' @description: Cohesity Event Processing
+' ==================================================
+
 !define RECTANGLE class
 
 skinparam {

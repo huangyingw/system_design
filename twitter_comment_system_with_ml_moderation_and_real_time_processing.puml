@@ -1,4 +1,13 @@
 @startuml Twitter Comment System Design
+' ==================== Metadata ====================
+' @category: social-media
+' @tags: #kafka, #database, #twitter, #redis, #sharding
+' @application: Twitter
+' @tech-stack: Kafka, Redis
+' @pattern: Sharding
+' @description: Twitter Comment System With Ml Moderation And Real Time Processing
+' ==================================================
+
 
 !define FONTNAME Roboto
 !define FONTSIZE 12

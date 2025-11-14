@@ -1,4 +1,13 @@
 @startuml Hybrid and Multi-Cloud Architecture
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database
+' @application: General
+' @tech-stack: General
+' @pattern: Architecture
+' @description: Hybrid Multi Cloud Architecture With Data Sync And Failover
+' ==================================================
+
 
 !pragma layout dot
 allowmixing

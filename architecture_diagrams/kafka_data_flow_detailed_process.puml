@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: database
+' @tags: #kafka, #database, #zookeeper
+' @application: General
+' @tech-stack: Kafka, ZooKeeper
+' @pattern: Architecture
+' @description: Kafka Data Flow Detailed Process
+' ==================================================
+
 skinparam backgroundColor #E8E8E8
 
 ' Define components

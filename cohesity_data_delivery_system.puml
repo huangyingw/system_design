@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: database
+' @tags: #kafka, #database, #redis
+' @application: General
+' @tech-stack: Kafka, Redis
+' @pattern: Architecture
+' @description: Cohesity Data Delivery System
+' ==================================================
+
 !theme plain
 title Cohesity Data Delivery System - Security Integration Framework
 

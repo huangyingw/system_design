@@ -1,4 +1,13 @@
 @startuml Optimized Cross-Datacenter Distributed File System Architecture
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database, #redis, #zookeeper, #sharding
+' @application: General
+' @tech-stack: Redis, ZooKeeper
+' @pattern: Sharding
+' @description: Cross Datacenter Distributed File System Architecture With Consistency Fault Tolerance And Global Load Balancing
+' ==================================================
+
 !define RECTANGLE rectangle
 !define DATABASE database
 !define CLOUD cloud

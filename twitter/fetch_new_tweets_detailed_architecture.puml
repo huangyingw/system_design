@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: database
+' @tags: #kafka, #database, #redis
+' @application: General
+' @tech-stack: Kafka, Redis
+' @pattern: Architecture
+' @description: Fetch New Tweets Detailed Architecture
+' ==================================================
+
 allowmixing
 
 skinparam backgroundColor #FEFEFE

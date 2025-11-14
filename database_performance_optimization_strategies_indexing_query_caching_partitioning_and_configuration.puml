@@ -1,4 +1,13 @@
 @startuml Database Software Optimization Strategies
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database, #redis
+' @application: General
+' @tech-stack: Redis
+' @pattern: Architecture
+' @description: Database Performance Optimization Strategies Indexing Query Caching Partitioning And Configuration
+' ==================================================
+
 
 skinparam backgroundColor #F5F5F5
 skinparam defaultFontName Arial

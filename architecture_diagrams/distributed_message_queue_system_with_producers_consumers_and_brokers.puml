@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: message-queue
+' @tags: #kafka, #zookeeper
+' @application: General
+' @tech-stack: Kafka, ZooKeeper
+' @pattern: Architecture
+' @description: Distributed Message Queue System With Producers Consumers And Brokers
+' ==================================================
+
 !pragma layout dot
 skinparam backgroundColor #EEEEEE
 allowmixing

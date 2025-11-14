@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: database
+' @tags: #kafka, #database, #imvu, #redis, #elasticsearch
+' @application: IMVU
+' @tech-stack: Kafka, Redis, Elasticsearch
+' @pattern: Architecture
+' @description: Imvu Data Storage Overview
+' ==================================================
+
 skinparam backgroundColor #D3D3D3
 
 package "Relational Database" as RDB {

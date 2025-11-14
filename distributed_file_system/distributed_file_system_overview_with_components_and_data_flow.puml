@@ -1,4 +1,13 @@
 @startuml dfs-overview
+' ==================== Metadata ====================
+' @category: distributed-systems
+' @tags: #redis
+' @application: General
+' @tech-stack: Redis
+' @pattern: Architecture
+' @description: Distributed File System Overview With Components And Data Flow
+' ==================================================
+
 !pragma layout dot
 allowmixing
 skinparam backgroundColor #D0D0D0

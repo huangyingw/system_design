@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database, #sharding, #high-concurrency
+' @application: General
+' @tech-stack: General
+' @pattern: High-Concurrency
+' @description: Database Design Nosql Sharding Caching For High Concurrency
+' ==================================================
+
 !define TABLE(name,desc) class name as "desc" << (T,#FFAAAA) >>
 !define NOSQL(name,desc) class name as "desc" << (N,#AAFFAA) >>
 !define PK(x) <b><color:red>PK: </color></b>x

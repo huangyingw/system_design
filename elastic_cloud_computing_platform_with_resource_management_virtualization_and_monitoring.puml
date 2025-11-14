@@ -1,4 +1,13 @@
 @startuml Elastic Cloud Computing Platform
+' ==================== Metadata ====================
+' @category: monitoring
+' @tags: #monitoring
+' @application: General
+' @tech-stack: General
+' @pattern: Architecture
+' @description: Elastic Cloud Computing Platform With Resource Management Virtualization And Monitoring
+' ==================================================
+
 
 skinparam backgroundColor #FAFAFA
 skinparam handwritten false

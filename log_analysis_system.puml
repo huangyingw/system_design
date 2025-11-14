@@ -1,4 +1,13 @@
 @startuml Log Analysis System
+' ==================== Metadata ====================
+' @category: database
+' @tags: #kafka, #database, #mongodb, #elasticsearch
+' @application: General
+' @tech-stack: Kafka, MongoDB, Elasticsearch
+' @pattern: Architecture
+' @description: Log Analysis System
+' ==================================================
+
 
 !include common_style.puml
 

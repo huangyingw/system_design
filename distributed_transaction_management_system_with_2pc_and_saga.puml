@@ -1,4 +1,13 @@
 @startuml Distributed Transaction Management System
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database, #microservices
+' @application: General
+' @tech-stack: General
+' @pattern: Microservices
+' @description: Distributed Transaction Management System With 2Pc And Saga
+' ==================================================
+
 
 !pragma layout dot
 

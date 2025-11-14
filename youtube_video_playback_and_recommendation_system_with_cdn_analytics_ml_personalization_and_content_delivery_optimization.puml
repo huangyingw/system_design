@@ -1,4 +1,13 @@
 @startuml YouTube_Video_Playback_Architecture
+' ==================== Metadata ====================
+' @category: video-streaming
+' @tags: #database, #youtube
+' @application: YouTube
+' @tech-stack: General
+' @pattern: Architecture
+' @description: Youtube Video Playback And Recommendation System With Cdn Analytics Ml Personalization And Content Delivery Optimization
+' ==================================================
+
 !pragma layout smetana
 allowmixing
 

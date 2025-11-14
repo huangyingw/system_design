@@ -1,4 +1,13 @@
 @startuml Comprehensive Load Balancer
+' ==================== Metadata ====================
+' @category: security
+' @tags: #database, #security
+' @application: General
+' @tech-stack: General
+' @pattern: Architecture
+' @description: Comprehensive Load Balancer With Disaster Recovery Health Checking And Security
+' ==================================================
+
 
 !include common_style.puml
 

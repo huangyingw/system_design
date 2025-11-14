@@ -1,4 +1,13 @@
 @startuml Telegram_Enhanced_Group_Chat_System_Architecture
+' ==================== Metadata ====================
+' @category: real-time-communication
+' @tags: #kafka, #database, #telegram, #redis, #mongodb, #elasticsearch, #websocket, #prometheus, #sharding, #microservices
+' @application: Telegram
+' @tech-stack: Kafka, Redis, MongoDB, Elasticsearch, WebSocket, Prometheus
+' @pattern: Microservices
+' @description: Telegram Enhanced Group Chat System Architecture
+' ==================================================
+
 
 !pragma layout dot
 skinparam backgroundColor #F0F0F0

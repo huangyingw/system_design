@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: social-media
+' @tags: #kafka, #twitter, #high-concurrency
+' @application: Twitter
+' @tech-stack: Kafka
+' @pattern: High-Concurrency
+' @description: Twitter System Performance Bottlenecks And Optimizations For High Concurrency
+' ==================================================
+
 skinparam backgroundColor #F0F8FF
 skinparam defaultFontName "Arial"
 skinparam defaultFontSize 16

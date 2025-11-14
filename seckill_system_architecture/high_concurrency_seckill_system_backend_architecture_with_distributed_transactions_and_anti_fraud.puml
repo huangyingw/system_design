@@ -1,4 +1,13 @@
 @startuml High Concurrency Seckill System Backend Architecture
+' ==================== Metadata ====================
+' @category: ecommerce
+' @tags: #kafka, #database, #seckill, #high-concurrency, #redis, #mongodb, #elasticsearch, #sharding
+' @application: Seckill
+' @tech-stack: Kafka, Redis, MongoDB, Elasticsearch
+' @pattern: High-Concurrency
+' @description: High Concurrency Seckill System Backend Architecture With Distributed Transactions And Anti Fraud
+' ==================================================
+
 !pragma layout dot
 
 skinparam defaultFontSize 19

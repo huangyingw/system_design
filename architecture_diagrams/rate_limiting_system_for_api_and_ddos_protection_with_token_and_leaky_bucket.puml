@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: distributed-systems
+' @tags: #redis
+' @application: General
+' @tech-stack: Redis
+' @pattern: Architecture
+' @description: Rate Limiting System For Api And Ddos Protection With Token And Leaky Bucket
+' ==================================================
+
 skinparam backgroundColor #ECECEC
 skinparam linetype ortho
 skinparam rectangle {

@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database, #websocket
+' @application: General
+' @tech-stack: WebSocket
+' @pattern: Architecture
+' @description: Real Time Audio Video Communication System Architecture With Webrtc And Media Servers
+' ==================================================
+
 !pragma layout dot
 allowmixing
 

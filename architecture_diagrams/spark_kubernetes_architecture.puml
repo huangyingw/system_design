@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: ride-hailing
+' @tags: #kubernetes, #spark, #uber, #elasticsearch
+' @application: Uber
+' @tech-stack: Kubernetes, Spark, Elasticsearch
+' @pattern: Architecture
+' @description: Spark Kubernetes Architecture
+' ==================================================
+
 !pragma layout dot
 skinparam backgroundColor #F0F0F0
 allowmixing

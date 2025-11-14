@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: real-time-communication
+' @tags: #kafka, #database, #telegram, #redis, #mongodb, #sharding
+' @application: Telegram
+' @tech-stack: Kafka, Redis, MongoDB
+' @pattern: Sharding
+' @description: Telegram Message Prioritization And Delivery System With Load Balancing
+' ==================================================
+
 !pragma layout dot
 allowmixing
 

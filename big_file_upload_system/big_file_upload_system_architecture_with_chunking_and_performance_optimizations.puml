@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database, #redis, #sharding
+' @application: General
+' @tech-stack: Redis
+' @pattern: Sharding
+' @description: Big File Upload System Architecture With Chunking And Performance Optimizations
+' ==================================================
+
 !pragma layout smetana
 skinparam backgroundColor #FAFAFA
 skinparam handwritten false

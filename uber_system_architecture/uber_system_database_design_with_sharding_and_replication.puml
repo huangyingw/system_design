@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: ride-hailing
+' @tags: #kafka, #database, #uber, #redis, #sharding, #microservices
+' @application: Uber
+' @tech-stack: Kafka, Redis
+' @pattern: Microservices
+' @description: Uber System Database Design With Sharding And Replication
+' ==================================================
+
 !define RECTANGLE class
 !define DATABASE database
 

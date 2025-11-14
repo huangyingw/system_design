@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database
+' @application: General
+' @tech-stack: General
+' @pattern: Architecture
+' @description: Flight Booking System Architecture With Caching Api Integration And Database
+' ==================================================
+
 !pragma layout dot
 allowmixing
 

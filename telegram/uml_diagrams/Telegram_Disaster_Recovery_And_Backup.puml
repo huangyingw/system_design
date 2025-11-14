@@ -1,4 +1,13 @@
 @startuml Telegram_Disaster_Recovery_And_Backup
+' ==================== Metadata ====================
+' @category: real-time-communication
+' @tags: #database, #telegram
+' @application: Telegram
+' @tech-stack: General
+' @pattern: Architecture
+' @description: Telegram Disaster Recovery And Backup
+' ==================================================
+
 
 skinparam backgroundColor #FEFEFE
 skinparam handwritten false

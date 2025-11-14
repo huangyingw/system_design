@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database, #redis
+' @application: General
+' @tech-stack: Redis
+' @pattern: Architecture
+' @description: Test
+' ==================================================
+
 
 ' Color palette
 !define PRIMARY_COLOR #FF5733

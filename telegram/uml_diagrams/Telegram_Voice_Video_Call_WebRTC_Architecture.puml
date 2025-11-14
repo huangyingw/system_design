@@ -1,4 +1,13 @@
 @startuml Telegram_Voice_Video_Call_Architecture_Optimized
+' ==================== Metadata ====================
+' @category: real-time-communication
+' @tags: #database, #telegram, #redis
+' @application: Telegram
+' @tech-stack: Redis
+' @pattern: Architecture
+' @description: Telegram Voice Video Call Webrtc Architecture
+' ==================================================
+
 !theme plain
 skinparam backgroundColor #E6E6FA
 skinparam handwritten false

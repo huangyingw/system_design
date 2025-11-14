@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: data-processing
+' @tags: #database, #spark
+' @application: General
+' @tech-stack: Spark
+' @pattern: Architecture
+' @description: Spark Mapreduce Comparison
+' ==================================================
+
 skinparam backgroundColor #D3D3D3
 
 skinparam class {

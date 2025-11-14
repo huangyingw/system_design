@@ -1,4 +1,13 @@
 @startuml Telegram_End_To_End_Encryption
+' ==================== Metadata ====================
+' @category: security
+' @tags: #telegram, #security
+' @application: Telegram
+' @tech-stack: General
+' @pattern: Architecture
+' @description: Telegram End To End Encryption
+' ==================================================
+
 !define RECTANGLE class
 
 skinparam backgroundColor #FEFEFE

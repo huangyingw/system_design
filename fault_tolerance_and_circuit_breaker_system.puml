@@ -1,4 +1,13 @@
 @startuml Fault Tolerance and Circuit Breaker System
+' ==================== Metadata ====================
+' @category: database
+' @tags: #kafka, #database, #redis
+' @application: General
+' @tech-stack: Kafka, Redis
+' @pattern: Architecture
+' @description: Fault Tolerance And Circuit Breaker System
+' ==================================================
+
 
 !include common_style.puml
 

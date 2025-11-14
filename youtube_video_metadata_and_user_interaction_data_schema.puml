@@ -1,4 +1,13 @@
 @startuml YouTube Data Model
+' ==================== Metadata ====================
+' @category: video-streaming
+' @tags: #database, #youtube, #redis
+' @application: YouTube
+' @tech-stack: Redis
+' @pattern: Architecture
+' @description: Youtube Video Metadata And User Interaction Data Schema
+' ==================================================
+
 
 ' Color scheme
 skinparam backgroundColor #2E3440

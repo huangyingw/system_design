@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database
+' @application: General
+' @tech-stack: General
+' @pattern: Architecture
+' @description: Avatar Loading Optimization Process
+' ==================================================
+
 skinparam backgroundColor #D3D3D3
 
 actor User

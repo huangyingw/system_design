@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database
+' @application: General
+' @tech-stack: General
+' @pattern: Architecture
+' @description: Dynamodb Distributed Storage System With Partitioning Consistency Models Streams And Lambda Integration
+' ==================================================
+
 skinparam componentStyle rectangle
 skinparam backgroundColor #FAFAFA
 skinparam defaultFontSize 14

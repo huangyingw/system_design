@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: distributed-systems
+' @tags: #redis
+' @application: General
+' @tech-stack: Redis
+' @pattern: Architecture
+' @description: Distributed Session Management System With Redis Cluster
+' ==================================================
+
 skinparam componentStyle rectangle
 
 package "Distributed Session Management System" {

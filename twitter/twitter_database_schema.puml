@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: social-media
+' @tags: #database, #twitter, #redis, #sharding
+' @application: Twitter
+' @tech-stack: Redis
+' @pattern: Sharding
+' @description: Twitter Database Schema
+' ==================================================
+
 
 !define MAIN_ENTITY #E2F0D9
 !define SECONDARY_ENTITY #FFF2CC

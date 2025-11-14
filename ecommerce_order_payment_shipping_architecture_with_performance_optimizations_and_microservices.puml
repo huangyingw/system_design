@@ -1,4 +1,13 @@
 @startuml Order Payment and Shipping System Architecture
+' ==================== Metadata ====================
+' @category: database
+' @tags: #kafka, #database, #redis, #microservices
+' @application: General
+' @tech-stack: Kafka, Redis
+' @pattern: Microservices
+' @description: Ecommerce Order Payment Shipping Architecture With Performance Optimizations And Microservices
+' ==================================================
+
 
 skinparam backgroundColor #F0F0F0
 allowmixing

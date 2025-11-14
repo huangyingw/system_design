@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database, #mongodb
+' @application: General
+' @tech-stack: MongoDB
+' @pattern: Architecture
+' @description: Url Shortener System Database Schema
+' ==================================================
+
 !define MONGO(x) class x << (M,#3498db) >>
 
 skinparam class {

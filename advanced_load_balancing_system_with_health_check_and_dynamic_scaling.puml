@@ -1,4 +1,13 @@
 @startuml Load Balancing System
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database
+' @application: General
+' @tech-stack: General
+' @pattern: Architecture
+' @description: Advanced Load Balancing System With Health Check And Dynamic Scaling
+' ==================================================
+
 
 !pragma layout dot
 !define PRIMARY_COLOR #4CAF50

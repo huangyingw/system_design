@@ -1,4 +1,13 @@
 @startuml Comprehensive Twitter Search and Recommendation System
+' ==================== Metadata ====================
+' @category: social-media
+' @tags: #kafka, #database, #twitter, #redis, #mongodb, #elasticsearch
+' @application: Twitter
+' @tech-stack: Kafka, Redis, MongoDB, Elasticsearch
+' @pattern: Architecture
+' @description: Comprehensive Twitter Search And Recommendation System
+' ==================================================
+
 
 !include ../common_style.puml
 

@@ -1,4 +1,13 @@
 @startuml Comprehensive Twitter Content Management System
+' ==================== Metadata ====================
+' @category: social-media
+' @tags: #kafka, #database, #twitter, #redis
+' @application: Twitter
+' @tech-stack: Kafka, Redis
+' @pattern: Architecture
+' @description: Comprehensive Twitter Content Management System
+' ==================================================
+
 
 !include ../common_style.puml
 

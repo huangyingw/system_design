@@ -1,4 +1,13 @@
 @startuml Distributed Web Crawler System Architecture
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database
+' @application: General
+' @tech-stack: General
+' @pattern: Architecture
+' @description: Distributed Web Crawler With Url Frontier Content Fetching Parsing And Indexing Pipeline
+' ==================================================
+
 
 !define RECTANGLE class
 

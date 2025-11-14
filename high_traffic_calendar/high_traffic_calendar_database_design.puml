@@ -1,0 +1,416 @@
+@startuml High Traffic Calendar System - Database Design
+' ==================== Metadata ====================
+' @category: database
+' @tags: #kafka, #database, #redis, #mongodb, #elasticsearch, #sharding
+' @application: Calendar System
+' @tech-stack: Kafka, Redis, MongoDB, Elasticsearch
+' @pattern: Sharding, Replication, Caching
+' @description: High Traffic Calendar System - Complete Database Design with Sharding, Indexing, and Cluster Architecture
+' @features: MongoDB Cluster, Sharding Strategy, Indexing, Replication, Cache Design, Data Model
+' ==================================================
+
+!define SHARD_COLOR #4CAF50
+!define CONFIG_COLOR #2196F3
+!define ROUTER_COLOR #FF9800
+!define CACHE_COLOR #E91E63
+!define ENTITY_COLOR #9C27B0
+
+skinparam backgroundColor #F5F5F5
+skinparam defaultFontSize 14
+skinparam roundcorner 15
+skinparam shadowing false
+allowmixing
+
+title High Traffic Calendar System - Database Design
+
+' ========================================
+' User & Client Layer
+' ========================================
+actor User #607D8B
+
+rectangle "Web Server" as WebServer #FFC107 {
+    component "API Gateway" as APIGateway
+    component "Business Logic" as BizLogic
+}
+
+' ========================================
+' MongoDB Cluster Architecture
+' ========================================
+package "MongoDB Cluster" as MongoCluster #E8F5E9 {
+    package "Config Servers" as ConfigServers CONFIG_COLOR {
+        component "Config Server 1" as CS1
+        component "Config Server 2" as CS2
+        component "Config Server 3" as CS3
+    }
+
+    package "Query Routers" as QueryRouters ROUTER_COLOR {
+        component "mongos 1" as Mongos1
+        component "mongos 2" as Mongos2
+    }
+
+    package "Shards" as Shards SHARD_COLOR {
+        package "Shard 1" as Shard1 {
+            component "Primary Node 1" as P1 #2E7D32
+            component "Secondary Node 1" as S1 #66BB6A
+            component "Secondary Node 2" as S2 #66BB6A
+        }
+        package "Shard 2" as Shard2 {
+            component "Primary Node 2" as P2 #2E7D32
+            component "Secondary Node 3" as S3 #66BB6A
+            component "Secondary Node 4" as S4 #66BB6A
+        }
+        package "Shard 3" as Shard3 {
+            component "Primary Node 3" as P3 #2E7D32
+            component "Secondary Node 5" as S5 #66BB6A
+            component "Secondary Node 6" as S6 #66BB6A
+        }
+    }
+}
+
+' ========================================
+' Cache & External Services
+' ========================================
+database "Cache" as Cache CACHE_COLOR {
+    component "Redis" as Redis
+}
+
+queue "Message Queue" as MQ #9575CD {
+    component "Kafka" as Kafka
+}
+
+database "Search Engine" as SearchEngine #7E57C2 {
+    component "Elasticsearch" as ES
+}
+
+' ========================================
+' User to Web Server Flow
+' ========================================
+User -[#FF5722,thickness=2]-> APIGateway : <back:#FFFFFF><color:#FF5722>1. Request</color></back>
+APIGateway -[#FF9800,thickness=2]-> BizLogic : <back:#FFFFFF><color:#FF9800>2. Forward Request</color></back>
+
+' ========================================
+' Cache Check Flow
+' ========================================
+BizLogic -[CACHE_COLOR,thickness=2]-> Redis : <back:#FFFFFF><color:CACHE_COLOR>3. Check Cache</color></back>
+Redis -[CACHE_COLOR,thickness=2]-> BizLogic : <back:#FFFFFF><color:CACHE_COLOR>Cache Hit/Miss</color></back>
+
+' ========================================
+' Read Flow (Cache Miss)
+' ========================================
+BizLogic -[ROUTER_COLOR,thickness=2]-> QueryRouters : <back:#FFFFFF><color:ROUTER_COLOR>4. Read Request</color></back>
+Mongos1 -[SHARD_COLOR,thickness=2]-> S1 : <back:#FFFFFF><color:SHARD_COLOR>Read Data</color></back>
+Mongos1 -[SHARD_COLOR,thickness=2]-> S3 : <back:#FFFFFF><color:SHARD_COLOR>Read Data</color></back>
+Mongos1 -[SHARD_COLOR,thickness=2]-> S5 : <back:#FFFFFF><color:SHARD_COLOR>Read Data</color></back>
+
+' ========================================
+' Write Flow (Async via Kafka)
+' ========================================
+BizLogic -[#9575CD,thickness=2]-> Kafka : <back:#FFFFFF><color:#9575CD>5. Publish Write Request</color></back>
+Kafka -[#2E7D32,thickness=2]-> P1 : <back:#FFFFFF><color:#2E7D32>Consume Write</color></back>
+Kafka -[#2E7D32,thickness=2]-> P2 : <back:#FFFFFF><color:#2E7D32>Consume Write</color></back>
+Kafka -[#2E7D32,thickness=2]-> P3 : <back:#FFFFFF><color:#2E7D32>Consume Write</color></back>
+
+' ========================================
+' Replication Flow
+' ========================================
+P1 -[#81C784,thickness=1]-> S1 : <back:#FFFFFF><color:#81C784>Replicate</color></back>
+P1 -[#81C784,thickness=1]-> S2 : <back:#FFFFFF><color:#81C784>Replicate</color></back>
+P2 -[#81C784,thickness=1]-> S3 : <back:#FFFFFF><color:#81C784>Replicate</color></back>
+P2 -[#81C784,thickness=1]-> S4 : <back:#FFFFFF><color:#81C784>Replicate</color></back>
+P3 -[#81C784,thickness=1]-> S5 : <back:#FFFFFF><color:#81C784>Replicate</color></back>
+P3 -[#81C784,thickness=1]-> S6 : <back:#FFFFFF><color:#81C784>Replicate</color></back>
+
+' ========================================
+' Cache Invalidation Flow
+' ========================================
+BizLogic -[CACHE_COLOR,thickness=2]-> Kafka : <back:#FFFFFF><color:CACHE_COLOR>6. Publish Cache Invalidation</color></back>
+Kafka -[CACHE_COLOR,thickness=2]-> Redis : <back:#FFFFFF><color:CACHE_COLOR>Consume and Invalidate</color></back>
+
+' ========================================
+' Search Integration
+' ========================================
+BizLogic --> ES : <back:#FFFFFF>Search/Index</back>
+
+' ========================================
+' Data Model Definition
+' ========================================
+note as DataModel
+<b>DATA MODEL & SCHEMA DESIGN</b>
+==
+<b>Users Collection:</b>
+{
+  _id: ObjectId (PK)
+  username: String
+  email: String
+  password: String (hashed)
+  created_at: Date
+  updated_at: Date
+}
+
+<b>Events Collection:</b>
+{
+  _id: ObjectId (PK)
+  owner_id: ObjectId (FK to Users)
+  event_name: String
+  description: String
+  start_time: Date
+  end_time: Date
+  recurrence_id: ObjectId (FK to Events)
+  recurrence_rule: String (RRULE format)
+  status: String (active/cancelled/completed)
+  participants: Array<{
+    user_id: ObjectId,
+    status: String,
+    response: String
+  }>
+  location: String
+  timezone: String
+  created_at: Date
+  updated_at: Date
+}
+
+<b>Participants Sub-document:</b>
+{
+  participant_id: ObjectId
+  event_id: ObjectId (FK to Events)
+  user_id: ObjectId (FK to Users)
+  status: String (invited/accepted/declined)
+  response_time: Date
+}
+
+<b>Reminders Collection:</b>
+{
+  _id: ObjectId (PK)
+  event_id: ObjectId (FK to Events)
+  user_id: ObjectId (FK to Users)
+  reminder_time: Date
+  reminder_type: String (email/push/sms)
+  sent: Boolean
+  created_at: Date
+}
+end note
+
+note as IndexingStrategy
+<b>INDEXING STRATEGY</b>
+==
+<b>Events Collection Indexes:</b>
+1. Compound Index:
+   { owner_id: 1, start_time: 1, end_time: 1 }
+   - Primary query pattern
+   - Supports user's event listing
+
+2. Time Range Index:
+   { start_time: 1, end_time: 1 }
+   - Calendar view queries
+   - Date range searches
+
+3. Text Search Index:
+   { event_name: "text", description: "text" }
+   - Full-text search capability
+
+4. Recurrence Index:
+   { recurrence_id: 1 }
+   - Recurring event queries
+
+<b>Sharding Key for Events:</b>
+{ owner_id: 1, start_time: 1 }
+- Ensures user's events co-located
+- Time-based distribution
+- Efficient range queries
+
+<b>Reminders Collection Indexes:</b>
+1. User Index: { user_id: 1 }
+2. Event Index: { event_id: 1 }
+3. Reminder Time: { reminder_time: 1, sent: 1 }
+
+<b>Sharding Key for Reminders:</b>
+hash(user_id)
+- Evenly distributes data
+- Prevents hotspots
+end note
+
+note as CacheDesign
+<b>REDIS CACHE DESIGN</b>
+==
+<b>Cache Keys & Structures:</b>
+
+1. <b>User Calendar Cache:</b>
+   Key: user_calendar:{user_id}:{date_range}
+   Type: List of Event Objects
+   TTL: 5 minutes
+   Usage: Calendar view
+
+2. <b>Event Detail Cache:</b>
+   Key: event_detail:{event_id}
+   Type: Hash (Event Object)
+   TTL: 15 minutes
+   Usage: Event details page
+
+3. <b>Event Participants Cache:</b>
+   Key: event_participants:{event_id}
+   Type: Set of User IDs
+   TTL: 10 minutes
+   Usage: Participant list
+
+4. <b>Upcoming Reminders Cache:</b>
+   Key: upcoming_reminders:{user_id}
+   Type: Sorted Set (by reminder_time)
+   TTL: 30 minutes
+   Usage: Notification service
+
+5. <b>Frequently Accessed Events:</b>
+   Key: frequently_accessed_events
+   Type: Sorted Set (by access count)
+   TTL: 1 hour
+   Usage: Prefetch candidates
+
+6. <b>User Preferences Cache:</b>
+   Key: user_preferences:{user_id}
+   Type: Hash
+   TTL: 1 day
+   Usage: User settings
+
+<b>Cache Invalidation Strategy:</b>
+- Write-through via Kafka
+- TTL-based expiration
+- Manual invalidation for critical updates
+- Lazy loading for cache misses
+end note
+
+note as KafkaTopics
+<b>KAFKA TOPICS</b>
+==
+1. <b>event_updates:</b>
+   - Event CRUD operations
+   - Partitioned by user_id
+
+2. <b>cache_invalidations:</b>
+   - Cache invalidation events
+   - High throughput
+
+3. <b>reminder_notifications:</b>
+   - Scheduled reminders
+   - Time-based processing
+
+4. <b>analytics_events:</b>
+   - User activity tracking
+   - Data analysis
+end note
+
+note as ElasticsearchIndex
+<b>ELASTICSEARCH INDEX</b>
+==
+<b>events_index:</b>
+{
+  event_id: String
+  event_name: Text (analyzed)
+  description: Text (analyzed)
+  owner_id: Keyword
+  start_time: Date
+  end_time: Date
+  participants: Keyword[]
+  tags: Keyword[]
+  location: Text
+}
+
+<b>Search Features:</b>
+- Full-text search
+- Fuzzy matching
+- Autocomplete
+- Aggregations
+- Faceted search
+end note
+
+' ========================================
+' MongoDB Cluster Notes
+' ========================================
+note right of Kafka
+  <b>Enables asynchronous processing</b>
+  and decouples components
+  - Write buffering
+  - Event streaming
+  - Retry mechanism
+end note
+
+note right of MongoCluster
+  <b>Provides high availability</b>
+  and horizontal scalability
+  - Automatic failover
+  - Load distribution
+  - Data partitioning
+end note
+
+note bottom of ConfigServers
+  <b>Config Servers:</b>
+  - Store cluster metadata
+  - Shard mappings
+  - Chunk distribution
+  - Replica set for reliability
+end note
+
+note top of QueryRouters
+  <b>Query Routers (mongos):</b>
+  - Route queries to correct shards
+  - Merge results from multiple shards
+  - Load balancing
+  - Transparent to application
+end note
+
+note left of Shard1
+  <b>Shard Replica Set:</b>
+  - Primary: Handles writes
+  - Secondary: Handles reads
+  - Automatic failover
+  - Data redundancy
+end note
+
+' ========================================
+' Legend
+' ========================================
+legend right
+<b>Database Design Highlights:</b>
+==
+<b>MongoDB Cluster:</b>
+- 3 Shards with 3 nodes each
+- Config servers for metadata
+- Query routers for routing
+- Replica sets for HA
+
+<b>Sharding Strategy:</b>
+- Events: { owner_id, start_time }
+- Reminders: hash(user_id)
+- Co-location of user data
+- Balanced distribution
+
+<b>Indexing Strategy:</b>
+- Compound indexes for common queries
+- Text indexes for search
+- Time-based indexes for ranges
+- Optimized for read performance
+
+<b>Caching Strategy:</b>
+- Multi-level caching
+- Redis for hot data
+- TTL-based expiration
+- Kafka-based invalidation
+
+<b>Read/Write Pattern:</b>
+- Reads from secondaries
+- Writes to primaries
+- Async writes via Kafka
+- Cache-first reads
+
+<b>Scalability:</b>
+- Horizontal scaling via sharding
+- Read scaling via replicas
+- Write buffering via Kafka
+- Cache offloading
+
+<b>Components:</b>
+- <color:SHARD_COLOR>Shard Nodes</color>
+- <color:CONFIG_COLOR>Config Servers</color>
+- <color:ROUTER_COLOR>Query Routers</color>
+- <color:CACHE_COLOR>Cache Layer</color>
+end legend
+
+@enduml

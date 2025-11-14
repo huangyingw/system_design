@@ -1,4 +1,13 @@
 @startuml YouTube_Video_Upload_Architecture
+' ==================== Metadata ====================
+' @category: video-streaming
+' @tags: #database, #youtube
+' @application: YouTube
+' @tech-stack: General
+' @pattern: Architecture
+' @description: Youtube Video Upload Processing And Transcoding Schema With Queues
+' ==================================================
+
 
 !pragma layout dot
 allowmixing

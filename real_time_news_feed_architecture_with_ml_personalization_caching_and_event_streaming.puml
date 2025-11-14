@@ -1,4 +1,13 @@
 @startuml Real-time News Feed Architecture
+' ==================== Metadata ====================
+' @category: database
+' @tags: #kafka, #database, #websocket, #microservices, #event-driven
+' @application: General
+' @tech-stack: Kafka, WebSocket
+' @pattern: Event-Driven
+' @description: Real Time News Feed Architecture With Ml Personalization Caching And Event Streaming
+' ==================================================
+
 
 !define RECTANGLE class
 skinparam backgroundColor #F0F0F0

@@ -1,4 +1,13 @@
 @startuml Timeline Update Service Detailed Architecture
+' ==================== Metadata ====================
+' @category: database
+' @tags: #kafka, #database, #redis, #sharding
+' @application: General
+' @tech-stack: Kafka, Redis
+' @pattern: Sharding
+' @description: Timeline Update Service Detailed Architecture
+' ==================================================
+
 
 !define RECTANGLE rectangle
 allowmixing

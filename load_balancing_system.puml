@@ -1,4 +1,13 @@
 @startuml Load Balancing System
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database
+' @application: General
+' @tech-stack: General
+' @pattern: Architecture
+' @description: Load Balancing System
+' ==================================================
+
 
 !include common_style.puml
 

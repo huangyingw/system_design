@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database, #elasticsearch
+' @application: General
+' @tech-stack: Elasticsearch
+' @pattern: Architecture
+' @description: Data Storage Options Comparison And Use Cases
+' ==================================================
+
 skinparam backgroundColor #D3D3D3
 
 skinparam rectangle {

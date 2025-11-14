@@ -1,4 +1,13 @@
 @startuml Data Visualization System
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database
+' @application: General
+' @tech-stack: General
+' @pattern: Architecture
+' @description: Data Visualization System
+' ==================================================
+
 
 !include common_style.puml
 

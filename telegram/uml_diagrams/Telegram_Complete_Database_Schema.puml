@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: real-time-communication
+' @tags: #database, #telegram, #redis, #mongodb, #sharding
+' @application: Telegram
+' @tech-stack: Redis, MongoDB
+' @pattern: Sharding
+' @description: Telegram Complete Database Schema
+' ==================================================
+
 !theme plain
 skinparam backgroundColor #F0F0F0
 skinparam defaultFontName "Arial"

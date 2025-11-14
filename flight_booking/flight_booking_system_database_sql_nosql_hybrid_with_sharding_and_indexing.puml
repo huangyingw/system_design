@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database, #redis, #sharding
+' @application: General
+' @tech-stack: Redis
+' @pattern: Sharding
+' @description: Flight Booking System Database Sql Nosql Hybrid With Sharding And Indexing
+' ==================================================
+
 !define RECTANGLE class
 skinparam backgroundColor #EEEBDC
 skinparam handwritten false

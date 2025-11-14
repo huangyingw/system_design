@@ -1,4 +1,13 @@
 @startuml Comprehensive CDN System
+' ==================== Metadata ====================
+' @category: security
+' @tags: #database, #security
+' @application: General
+' @tech-stack: General
+' @pattern: Architecture
+' @description: Comprehensive Cdn System With Security And Optimization
+' ==================================================
+
 
 !include ../common_style.puml
 

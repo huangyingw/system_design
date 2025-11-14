@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: database
+' @tags: #kafka, #database, #zookeeper
+' @application: General
+' @tech-stack: Kafka, ZooKeeper
+' @pattern: Architecture
+' @description: Kafka Fault Handling And Recovery
+' ==================================================
+
 skinparam backgroundColor #FFFAFA
 skinparam defaultFontName Arial
 skinparam defaultFontSize 14

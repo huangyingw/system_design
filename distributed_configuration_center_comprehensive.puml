@@ -1,0 +1,260 @@
+@startuml Advanced Distributed Configuration Center - Comprehensive Design
+' ==================== Metadata ====================
+' @category: distributed-systems
+' @tags: #distributed-systems, #kafka, #database, #redis, #websocket, #microservices
+' @application: General
+' @tech-stack: Kafka, Redis, WebSocket, ZooKeeper
+' @pattern: Microservices, Event-Driven
+' @description: Distributed Configuration Center - Comprehensive Design with Version Control, Caching, Real-time Updates, and Multi-Environment Management
+' @features: Basic Architecture, Caching & Notifications, Version Control, Multi-Environment, Access Control, Security
+' ==================================================
+
+!define PRIMARY_COLOR #4CAF50
+!define SECONDARY_COLOR #FFA000
+!define ACCENT_COLOR #00BCD4
+!define DARK_COLOR #607D8B
+!define LIGHT_COLOR #ECEFF1
+!define ERROR_COLOR #FF5252
+!define CACHE_COLOR #FF9800
+!define BASIC_COLOR #9E9E9E
+
+skinparam backgroundColor #F0F0F0
+skinparam defaultFontSize 14
+skinparam componentFontSize 16
+skinparam noteFontSize 14
+allowmixing
+!pragma layout dot
+
+' ========================================
+' Client Applications Layer
+' ========================================
+rectangle "Client Applications" as ClientApps PRIMARY_COLOR {
+    component "Web App" as WebApp
+    component "Mobile App" as MobileApp
+    component "Microservices" as Microservices
+    component "Client SDK" as ClientSDK
+    component "Local Cache" as LocalCache CACHE_COLOR
+    component "Change Listener" as ChangeListener BASIC_COLOR
+    component "Config Validator" as ConfigValidator BASIC_COLOR
+}
+
+' ========================================
+' Configuration Center Core
+' ========================================
+rectangle "Configuration Center" as ConfigCenter SECONDARY_COLOR {
+    component "API Gateway" as APIGateway
+    component "Load Balancer" as LoadBalancer
+    component "Config Service" as ConfigService
+    component "Config Manager" as ConfigManager BASIC_COLOR
+    component "Version Control" as VersionControl
+    component "Change Notifier" as ChangeNotifier
+    component "Config Pusher" as ConfigPusher BASIC_COLOR
+    component "Environment Manager" as EnvManager
+    component "Access Control" as AccessControl
+    component "Audit Logger" as AuditLogger
+    component "Encryption Service" as EncryptionService
+    component "Lock Validator" as LockValidator BASIC_COLOR
+}
+
+' ========================================
+' Storage Layer
+' ========================================
+database "Configuration Storage" as ConfigStorage ACCENT_COLOR {
+    component "Config Data" as ConfigData
+    component "Config Store" as ConfigStore BASIC_COLOR
+    component "Version History" as VersionHistory
+    component "Version Store" as VersionStore BASIC_COLOR
+    component "Audit Logs" as AuditLogs
+    component "Change Log" as ChangeLog BASIC_COLOR
+}
+
+' ========================================
+' Admin Interface
+' ========================================
+rectangle "Admin Interface" as AdminInterface DARK_COLOR {
+    component "Web Console" as WebConsole
+    component "Web UI" as WebUI BASIC_COLOR
+    component "CLI Tool" as CLITool
+    component "Config Editor" as ConfigEditor BASIC_COLOR
+    component "Version Manager" as VersionManager BASIC_COLOR
+    component "Release Manager" as ReleaseManager BASIC_COLOR
+    component "API Documentation" as APIDocs
+}
+
+' ========================================
+' External Services & Monitoring
+' ========================================
+cloud "External Services" as ExternalServices LIGHT_COLOR {
+    component "Monitoring" as Monitoring
+    component "Alerting" as Alerting
+    component "Analytics" as Analytics
+    component "Health Monitor" as HealthMonitor BASIC_COLOR
+}
+
+' ========================================
+' Caching Layer
+' ========================================
+database "Caching Layer" as CachingLayer CACHE_COLOR {
+    component "Redis Cluster" as RedisCluster
+}
+
+' ========================================
+' Core Data Flow Connections
+' ========================================
+ClientApps -[PRIMARY_COLOR,thickness=2]down-> LoadBalancer : <back:#FFFFFF><color:PRIMARY_COLOR>1. Request config</color></back>
+LoadBalancer -[SECONDARY_COLOR,thickness=2]right-> APIGateway : <back:#FFFFFF><color:SECONDARY_COLOR>2. Route request</color></back>
+APIGateway -[SECONDARY_COLOR,thickness=2]right-> ConfigService : <back:#FFFFFF><color:SECONDARY_COLOR>3. Fetch config</color></back>
+ConfigService -[ACCENT_COLOR,thickness=2]down-> CachingLayer : <back:#FFFFFF><color:ACCENT_COLOR>4. Check cache</color></back>
+ConfigService -[ACCENT_COLOR,thickness=2]right-> ConfigStorage : <back:#FFFFFF><color:ACCENT_COLOR>5. Read/Write if not in cache</color></back>
+AdminInterface -[DARK_COLOR,thickness=2]up-> APIGateway : <back:#FFFFFF><color:DARK_COLOR>6. Manage configs</color></back>
+ChangeNotifier -[SECONDARY_COLOR,thickness=2]up-> ClientApps : <back:#FFFFFF><color:SECONDARY_COLOR>7. Push updates</color></back>
+ConfigCenter -[LIGHT_COLOR,thickness=2]right-> ExternalServices : <back:#FFFFFF><color:LIGHT_COLOR>8. Send metrics and logs</color></back>
+
+' ========================================
+' Additional Internal Connections
+' ========================================
+ClientSDK --> LocalCache : Read Local
+ClientSDK --> ConfigManager : Request Update
+ConfigManager --> ConfigStore : Fetch Config
+ConfigManager --> VersionStore : Check Version
+ConfigManager --> ChangeNotifier : Notify Change
+
+WebUI --> ConfigEditor : Edit Config
+ConfigEditor --> ConfigManager : Submit Change
+ChangeNotifier --> ChangeListener : Push Update
+
+VersionControl --> VersionStore : Track Versions
+AuditLogger --> ChangeLog : Record Changes
+HealthMonitor --> Monitoring : Report Status
+
+' ========================================
+' Feature Level Notes
+' ========================================
+note top of ClientSDK
+  <b>BASIC</b> + <b>ENHANCED</b>
+  - Provides easy integration
+  - Local caching with version check
+  - Automatic config reload
+  - Handles failover
+end note
+
+note right of VersionControl
+  <b>ENHANCED v2</b>
+  Git-like version control
+  Supports branching and merging
+  Enables easy rollbacks
+  Version tracking
+end note
+
+note bottom of EnvManager
+  <b>ENHANCED v2</b>
+  Manages configs for multiple
+  environments and regions
+  Supports config inheritance
+end note
+
+note left of AccessControl
+  <b>ENHANCED v1</b>
+  Role-based access control (RBAC)
+  Multi-factor authentication
+  Integration with SSO systems
+end note
+
+note bottom of ChangeNotifier
+  <b>ENHANCED v1</b>
+  Supports various protocols:
+  WebSocket, Long Polling, Kafka
+  Real-time change notification
+end note
+
+note top of EncryptionService
+  <b>ENHANCED v1</b>
+  Handles encryption/decryption
+  of sensitive config values
+  Supports key rotation
+  Config encryption
+end note
+
+note right of RedisCluster
+  <b>ENHANCED v1</b>
+  Distributed caching
+  Improves read performance
+  Reduces database load
+end note
+
+note bottom of AuditLogger
+  <b>BASIC</b> + <b>ENHANCED v1</b>
+  Logs all config changes
+  Supports compliance requirements
+  Access logging
+  Change tracking
+end note
+
+note left of ConfigManager
+  <b>BASIC</b>
+  Version control
+  Change notification
+  Config validation
+end note
+
+' ========================================
+' Comprehensive Legend
+' ========================================
+legend right
+<b>Implementation Features by Level:</b>
+==
+<b>BASIC Features (Gray Components):</b>
+- Local cache with version check
+- Automatic config reload
+- Version control & tracking
+- Change notification & tracking
+- Config validation
+- Health monitoring
+- Audit logging
+
+<b>ENHANCED v1 Features (Caching & Security):</b>
+- Redis distributed caching
+- Real-time change notification (WebSocket/Kafka)
+- Role-based access control (RBAC)
+- Multi-factor authentication
+- Config encryption/decryption
+- Key rotation support
+- Compliance logging
+
+<b>ENHANCED v2 Features (Version & Environment):</b>
+- Git-like version control
+- Branching and merging support
+- Multi-environment management
+- Multi-region configuration
+- Config inheritance
+- Easy rollbacks
+
+<b>High Availability:</b>
+- Multi-region deployment
+- Config replication
+- Fallback mechanisms
+- Automatic failover
+
+<b>Performance Features:</b>
+- Local caching (Client SDK)
+- Distributed caching (Redis)
+- Change notification
+- Batch updates
+- Bulk operations
+
+<b>Security Features:</b>
+- Access control (RBAC)
+- Config encryption
+- Audit logging
+- SSO integration
+- Secure communication
+
+<b>Monitoring & Observability:</b>
+- Performance metrics
+- Health monitoring
+- Alerting system
+- Analytics
+- Change tracking
+end legend
+
+@enduml

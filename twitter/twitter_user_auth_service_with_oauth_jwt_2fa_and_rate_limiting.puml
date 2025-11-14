@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: security
+' @tags: #database, #twitter, #redis, #security
+' @application: Twitter
+' @tech-stack: Redis
+' @pattern: Architecture
+' @description: Twitter User Auth Service With Oauth Jwt 2Fa And Rate Limiting
+' ==================================================
+
 
 skinparam backgroundColor #D3D3D3
 skinparam defaultFontName "Arial"

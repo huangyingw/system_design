@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: social-media
+' @tags: #kafka, #database, #twitter, #redis, #websocket, #prometheus
+' @application: Twitter
+' @tech-stack: Kafka, Redis, WebSocket, Prometheus
+' @pattern: Architecture
+' @description: Twitter Realtime Communication Service
+' ==================================================
+
 
 !pragma layout dot
 skinparam backgroundColor #F0F0F0

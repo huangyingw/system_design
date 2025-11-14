@@ -1,4 +1,13 @@
 @startuml distributed_task_scheduling_system_architecture
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database
+' @application: General
+' @tech-stack: General
+' @pattern: Architecture
+' @description: Distributed Task Scheduling System Architecture
+' ==================================================
+
 
 !pragma layout smetana
 skinparam backgroundColor #FEFEFE

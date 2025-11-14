@@ -1,4 +1,13 @@
 @startuml Distributed System Monitoring
+' ==================== Metadata ====================
+' @category: monitoring
+' @tags: #database, #mongodb, #prometheus, #monitoring
+' @application: General
+' @tech-stack: MongoDB, Prometheus
+' @pattern: Architecture
+' @description: Distributed System Monitoring
+' ==================================================
+
 
 !include common_style.puml
 

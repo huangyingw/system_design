@@ -1,4 +1,13 @@
 @startuml Microservices Architecture and Service Discovery
+' ==================== Metadata ====================
+' @category: database
+' @tags: #kafka, #database, #zookeeper, #microservices
+' @application: General
+' @tech-stack: Kafka, ZooKeeper
+' @pattern: Microservices
+' @description: Microservices Architecture And Service Discovery
+' ==================================================
+
 
 skinparam {
     backgroundColor #E0E0E0

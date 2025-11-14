@@ -1,4 +1,13 @@
 @startuml Distributed Log Collection, Processing, and Analysis System
+' ==================== Metadata ====================
+' @category: data-processing
+' @tags: #kafka, #database, #spark, #elasticsearch
+' @application: General
+' @tech-stack: Kafka, Spark, Elasticsearch, Grafana
+' @pattern: Architecture
+' @description: Iot Log Collection Processing And Alerting System Architecture
+' ==================================================
+
 
 skinparam backgroundColor #FAFAFA
 skinparam handwritten false

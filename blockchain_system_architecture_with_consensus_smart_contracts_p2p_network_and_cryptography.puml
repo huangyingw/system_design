@@ -1,4 +1,13 @@
 @startuml Blockchain System Design
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database
+' @application: General
+' @tech-stack: General
+' @pattern: Architecture
+' @description: Blockchain System Architecture With Consensus Smart Contracts P2P Network And Cryptography
+' ==================================================
+
 
 skinparam backgroundColor #FAFAFA
 skinparam handwritten false

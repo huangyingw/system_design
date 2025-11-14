@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: monitoring
+' @tags: #kafka, #prometheus, #monitoring
+' @application: General
+' @tech-stack: Kafka, Prometheus
+' @pattern: Architecture
+' @description: Kafka Cluster Monitoring And Management Tools With Prometheus Integration
+' ==================================================
+
 skinparam backgroundColor #F0F8FF
 
 class Broker << (K,orchid) >>

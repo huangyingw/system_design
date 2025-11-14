@@ -1,4 +1,13 @@
 @startuml Seckill System Frontend Architecture
+' ==================== Metadata ====================
+' @category: ecommerce
+' @tags: #seckill, #high-concurrency, #websocket
+' @application: Seckill
+' @tech-stack: WebSocket
+' @pattern: Architecture
+' @description: Seckill System Frontend Architecture With Cdn And Local Caching
+' ==================================================
+
 !pragma layout smetana
 skinparam backgroundColor #F0F0F0
 skinparam defaultFontName Arial

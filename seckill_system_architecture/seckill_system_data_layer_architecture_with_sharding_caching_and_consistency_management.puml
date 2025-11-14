@@ -1,4 +1,13 @@
 @startuml Seckill System Data Layer Architecture
+' ==================== Metadata ====================
+' @category: ecommerce
+' @tags: #database, #seckill, #high-concurrency, #redis, #sharding
+' @application: Seckill
+' @tech-stack: Redis
+' @pattern: Sharding
+' @description: Seckill System Data Layer Architecture With Sharding Caching And Consistency Management
+' ==================================================
+
 !pragma layout smetana
 skinparam backgroundColor #FFFFFF
 skinparam defaultFontName Arial

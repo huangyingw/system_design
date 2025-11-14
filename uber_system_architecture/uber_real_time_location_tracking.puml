@@ -1,4 +1,13 @@
 @startuml Uber Real-time Location Tracking System
+' ==================== Metadata ====================
+' @category: ride-hailing
+' @tags: #kafka, #database, #uber, #redis
+' @application: Uber
+' @tech-stack: Kafka, Redis
+' @pattern: Architecture
+' @description: Uber Real Time Location Tracking
+' ==================================================
+
 !pragma layout dot
 allowmixing
 skinparam backgroundColor #F0F0F0

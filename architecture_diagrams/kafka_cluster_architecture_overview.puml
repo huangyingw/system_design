@@ -1,4 +1,13 @@
 @startuml Kafka Cluster Architecture Overview
+' ==================== Metadata ====================
+' @category: message-queue
+' @tags: #kafka, #zookeeper, #prometheus
+' @application: General
+' @tech-stack: Kafka, ZooKeeper, Prometheus, Grafana
+' @pattern: Architecture
+' @description: Kafka Cluster Architecture Overview
+' ==================================================
+
 !pragma layout dot
 skinparam backgroundColor #F0F0F0
 skinparam defaultFontName Arial

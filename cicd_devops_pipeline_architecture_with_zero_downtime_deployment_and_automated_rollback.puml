@@ -1,4 +1,13 @@
 @startuml CI CD and DevOps Pipeline Architecture
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database
+' @application: General
+' @tech-stack: General
+' @pattern: Architecture
+' @description: Cicd Devops Pipeline Architecture With Zero Downtime Deployment And Automated Rollback
+' ==================================================
+
 
 !define PRIMARY_COLOR #E67E22
 !define SECONDARY_COLOR #3498DB

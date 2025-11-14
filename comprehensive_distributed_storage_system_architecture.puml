@@ -1,4 +1,13 @@
 @startuml Comprehensive Distributed Storage System
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database, #redis
+' @application: General
+' @tech-stack: Redis
+' @pattern: Architecture
+' @description: Comprehensive Distributed Storage System Architecture
+' ==================================================
+
 
 !include common_style.puml
 

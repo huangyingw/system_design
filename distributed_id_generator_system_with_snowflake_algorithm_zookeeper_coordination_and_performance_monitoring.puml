@@ -1,4 +1,13 @@
 @startuml Distributed ID Generator System Design
+' ==================== Metadata ====================
+' @category: monitoring
+' @tags: #database, #zookeeper, #monitoring
+' @application: General
+' @tech-stack: ZooKeeper
+' @pattern: Architecture
+' @description: Distributed Id Generator System With Snowflake Algorithm Zookeeper Coordination And Performance Monitoring
+' ==================================================
+
 allowmixing
 
 !define RECTANGLE class

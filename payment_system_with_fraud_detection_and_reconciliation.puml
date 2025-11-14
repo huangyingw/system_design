@@ -1,4 +1,13 @@
 @startuml Payment System
+' ==================== Metadata ====================
+' @category: database
+' @tags: #kafka, #database, #redis, #mongodb
+' @application: General
+' @tech-stack: Kafka, Redis, MongoDB
+' @pattern: Architecture
+' @description: Payment System With Fraud Detection And Reconciliation
+' ==================================================
+
 
 !include common_style.puml
 

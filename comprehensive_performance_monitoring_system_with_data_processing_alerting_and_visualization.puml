@@ -1,4 +1,13 @@
 @startuml Performance Monitoring System
+' ==================== Metadata ====================
+' @category: monitoring
+' @tags: #database, #prometheus, #monitoring
+' @application: General
+' @tech-stack: Prometheus, Grafana
+' @pattern: Architecture
+' @description: Comprehensive Performance Monitoring System With Data Processing Alerting And Visualization
+' ==================================================
+
 
 !define PRIMARY_COLOR #E67E22
 !define SECONDARY_COLOR #3498DB

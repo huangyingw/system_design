@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: data-processing
+' @tags: #kafka, #database, #spark, #imvu, #mongodb, #elasticsearch
+' @application: IMVU
+' @tech-stack: Kafka, Spark, MongoDB, Elasticsearch
+' @pattern: Architecture
+' @description: Imvu Kafka Spark Real Time Processing For User Activity And Analytics
+' ==================================================
+
 skinparam backgroundColor #D3D3D3
 
 package "IMVU Data Sources" {

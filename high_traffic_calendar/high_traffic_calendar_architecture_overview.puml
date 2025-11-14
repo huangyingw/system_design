@@ -1,0 +1,270 @@
+@startuml High Traffic Calendar System - Architecture Overview
+' ==================== Metadata ====================
+' @category: database
+' @tags: #kafka, #database, #redis, #mongodb, #elasticsearch, #microservices, #event-driven
+' @application: Calendar System
+' @tech-stack: Kafka, Redis, MongoDB, Elasticsearch
+' @pattern: Event-Driven, Microservices, CQRS
+' @description: High Traffic Calendar System - Complete Architecture Overview with Optimized Data Flow
+' @features: API Gateway, Message Queue, Worker Pools, Caching Strategy, Read/Write Separation, Prefetch Service
+' ==================================================
+
+!define PRIMARY_COLOR #4CAF50
+!define SECONDARY_COLOR #2196F3
+!define CACHE_COLOR #FF9800
+!define STORAGE_COLOR #9C27B0
+!define WORKER_COLOR #FFC107
+
+skinparam backgroundColor #F5F5F5
+skinparam defaultFontSize 14
+skinparam roundcorner 15
+skinparam shadowing false
+allowmixing
+
+title High Traffic Calendar System - Architecture Overview
+
+' ========================================
+' User Layer
+' ========================================
+actor User PRIMARY_COLOR
+
+' ========================================
+' Front End Layer
+' ========================================
+rectangle "Front End" as FrontEnd SECONDARY_COLOR {
+    rectangle "Load Balancer" {
+        component "Nginx/HAProxy" as LB
+    }
+    rectangle "API Gateway" as APIGateway {
+        component "Create Event" as CreateAPI
+        component "Update Event" as UpdateAPI
+        component "Delete Event" as DeleteAPI
+        component "Get Events" as GetAPI
+    }
+}
+
+' ========================================
+' Back End Layer
+' ========================================
+rectangle "Back End" as BackEnd PRIMARY_COLOR {
+    rectangle "Web Server" as WebServer {
+        component "Business Logic" as BizLogic
+        component "Read Handler" as ReadHandler
+        component "Write Handler" as WriteHandler
+    }
+
+    queue "Message Queue" as MQ WORKER_COLOR {
+        component "Kafka" as Kafka
+        queue "Write Events" as WriteEvents
+        queue "Cache Invalidation" as CacheInvalidation
+    }
+
+    rectangle "Workers" as Workers WORKER_COLOR {
+        component "Send Notification" as NotifyWorker
+        component "Process Recurring Events" as RecurWorker
+        component "Data Analysis & Reporting" as AnalyticsWorker
+        component "Cache Update" as CacheWorker
+        component "Search Index Update" as SearchWorker
+    }
+
+    rectangle "Worker Nodes" as WorkerNodes WORKER_COLOR {
+        component "Kafka Consumer" as KafkaConsumer
+    }
+
+    rectangle "Prefetch Service" as PrefetchService #E1BEE7 {
+        component "Data Analyzer" as DataAnalyzer
+        component "Prefetch Worker" as PrefetchWorker
+    }
+}
+
+' ========================================
+' Data Storage Layer
+' ========================================
+package "Data Storage" as DataStorage STORAGE_COLOR {
+    rectangle "Cache" as Cache CACHE_COLOR {
+        component "Redis" as Redis
+    }
+
+    database "Databases" as Databases STORAGE_COLOR {
+        component "Primary DB: MongoDB" as PrimaryDB
+    }
+
+    rectangle "MongoDB Cluster" as MongoCluster #7B1FA2 {
+        component "Query Routers (mongos)" as Mongos
+        component "Primary Node" as PrimaryNode
+        component "Secondary Node 1" as Secondary1
+        component "Secondary Node 2" as Secondary2
+    }
+
+    database "Search Engine" as SearchEngine #673AB7 {
+        component "Elasticsearch" as ES
+    }
+}
+
+' ========================================
+' User to Front End Flow
+' ========================================
+User -[PRIMARY_COLOR,thickness=2]-> LB : <back:#FFFFFF><color:PRIMARY_COLOR>1. Request</color></back>
+LB -[SECONDARY_COLOR,thickness=2]-> APIGateway : <back:#FFFFFF><color:SECONDARY_COLOR>2. Route</color></back>
+
+' ========================================
+' API Gateway to Web Server
+' ========================================
+APIGateway -[PRIMARY_COLOR,thickness=2]-> WebServer : <back:#FFFFFF><color:PRIMARY_COLOR>3. Forward Request</color></back>
+
+' ========================================
+' Read Path (Optimized)
+' ========================================
+ReadHandler -[CACHE_COLOR,thickness=2]-> Redis : <back:#FFFFFF><color:CACHE_COLOR>4a. Check Cache</color></back>
+Redis -[CACHE_COLOR,thickness=2]-> ReadHandler : <back:#FFFFFF><color:CACHE_COLOR>Cache Hit/Miss</color></back>
+ReadHandler -[STORAGE_COLOR,thickness=2]-> Mongos : <back:#FFFFFF><color:STORAGE_COLOR>4b. Read Request (on miss)</color></back>
+Mongos -[STORAGE_COLOR,thickness=2]-> Secondary1 : <back:#FFFFFF><color:STORAGE_COLOR>Distribute Read</color></back>
+Mongos -[STORAGE_COLOR,thickness=2]-> Secondary2 : <back:#FFFFFF><color:STORAGE_COLOR>Distribute Read</color></back>
+
+' ========================================
+' Write Path (Async)
+' ========================================
+WriteHandler -[WORKER_COLOR,thickness=2]-> Kafka : <back:#FFFFFF><color:WORKER_COLOR>5a. Publish Write Event</color></back>
+Kafka -[STORAGE_COLOR,thickness=2]-> PrimaryNode : <back:#FFFFFF><color:STORAGE_COLOR>5b. Consume Write Event</color></back>
+PrimaryNode -[STORAGE_COLOR,thickness=1]-> Secondary1 : <back:#FFFFFF><color:STORAGE_COLOR>Replicate</color></back>
+PrimaryNode -[STORAGE_COLOR,thickness=1]-> Secondary2 : <back:#FFFFFF><color:STORAGE_COLOR>Replicate</color></back>
+
+' ========================================
+' Cache Invalidation Flow
+' ========================================
+WriteHandler -[CACHE_COLOR,thickness=2]-> Kafka : <back:#FFFFFF><color:CACHE_COLOR>6. Publish Cache Invalidation</color></back>
+Kafka -[CACHE_COLOR,thickness=2]-> Redis : <back:#FFFFFF><color:CACHE_COLOR>Consume and Invalidate</color></back>
+
+' ========================================
+' Worker Pool Flow
+' ========================================
+Kafka -[WORKER_COLOR,thickness=2]-> Workers : <back:#FFFFFF><color:WORKER_COLOR>7. Distribute Tasks</color></back>
+Workers -[WORKER_COLOR,thickness=1]-> Kafka : <back:#FFFFFF><color:WORKER_COLOR>Results</color></back>
+
+' ========================================
+' Worker Nodes Flow
+' ========================================
+Kafka --> WorkerNodes : <back:#FFFFFF>Tasks</back>
+WorkerNodes <--> PrimaryDB : <back:#FFFFFF>Query/Update</back>
+WorkerNodes --> Redis : <back:#FFFFFF>Invalidate/Update</back>
+WorkerNodes --> ES : <back:#FFFFFF>Update Index</back>
+
+' ========================================
+' Prefetch Service Flow
+' ========================================
+PrefetchService -[#E1BEE7,thickness=2]-> MongoCluster : <back:#FFFFFF><color:#E1BEE7>8a. Analyze Data Patterns</color></back>
+PrefetchService -[#E1BEE7,thickness=2]-> Redis : <back:#FFFFFF><color:#E1BEE7>8b. Prefetch Likely Needed Data</color></back>
+
+' ========================================
+' Search Integration
+' ========================================
+BizLogic --> ES : <back:#FFFFFF>Search</back>
+
+' ========================================
+' Additional Connections
+' ========================================
+BizLogic <--> Redis : <back:#FFFFFF>Check/Update</back>
+BizLogic <--> PrimaryDB : <back:#FFFFFF>Query/Update</back>
+
+' ========================================
+' Feature Notes
+' ========================================
+note right of WebServer
+  <b>Handles core business logic:</b>
+  - Read/Write separation (CQRS)
+  - Interacts with cache first
+  - Publishes messages to Kafka
+  - Asynchronous write operations
+end note
+
+note right of Kafka
+  <b>Enables event-driven architecture:</b>
+  - Loose coupling
+  - High-throughput event streaming
+  - Asynchronous processing
+  - Message persistence
+  - Retry mechanism
+end note
+
+note right of Redis
+  <b>Caching Strategy:</b>
+  - Read-through cache
+  - Cache-aside pattern
+  - Automatic invalidation via Kafka
+  - TTL-based expiration
+  - Hot data prefetching
+end note
+
+note right of MongoCluster
+  <b>Read/Write Optimization:</b>
+  - Reads from secondary nodes
+  - Writes to primary node
+  - Automatic replication
+  - Horizontal scalability
+  - Sharding support
+end note
+
+note bottom of PrefetchService
+  <b>Intelligent Prefetching:</b>
+  - Analyzes user access patterns
+  - Prefetches likely needed data
+  - Reduces cache misses
+  - Improves response time
+  - Machine learning based
+end note
+
+note left of Workers
+  <b>Worker Pool Functions:</b>
+  - Notification sending
+  - Recurring event processing
+  - Analytics and reporting
+  - Cache updates
+  - Search index updates
+  - All asynchronous
+end note
+
+' ========================================
+' Legend
+' ========================================
+legend right
+<b>Architecture Highlights:</b>
+==
+<b>Request Flow:</b>
+1. User request → Load Balancer
+2. Load Balancer → API Gateway
+3. API Gateway → Web Server
+4. Read: Cache → DB (if miss)
+5. Write: Kafka → MongoDB → Cache Invalidation
+
+<b>Optimization Strategies:</b>
+- CQRS: Read/Write separation
+- Cache-aside pattern
+- Asynchronous writes via Kafka
+- Read from secondary nodes
+- Write to primary node only
+- Intelligent prefetching
+
+<b>Scalability Features:</b>
+- Load balancing
+- MongoDB sharding & replication
+- Redis clustering
+- Kafka partitioning
+- Worker pool scaling
+- Horizontal scaling
+
+<b>Performance Features:</b>
+- Multi-layer caching
+- Prefetch service
+- Async processing
+- Read replicas
+- Search indexing
+
+<b>Components:</b>
+- <color:PRIMARY_COLOR>Primary Flow</color>
+- <color:SECONDARY_COLOR>API Gateway</color>
+- <color:CACHE_COLOR>Cache Layer</color>
+- <color:STORAGE_COLOR>Storage Layer</color>
+- <color:WORKER_COLOR>Worker Pool</color>
+end legend
+
+@enduml

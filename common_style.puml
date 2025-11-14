@@ -1,4 +1,13 @@
 @startuml Common Style
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database
+' @application: General
+' @tech-stack: General
+' @pattern: Architecture
+' @description: Common Style
+' ==================================================
+
 
 ' Set the default style for all diagrams
 skinparam backgroundColor white

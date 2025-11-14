@@ -1,4 +1,13 @@
 @startuml API Gateway Design
+' ==================== Metadata ====================
+' @category: security
+' @tags: #database, #microservices, #security
+' @application: General
+' @tech-stack: General
+' @pattern: Microservices
+' @description: Api Gateway Design With Routing Authentication And Rate Limiting
+' ==================================================
+
 
 allowmixing
 

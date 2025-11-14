@@ -1,4 +1,13 @@
 @startuml Real-time Collaborative Editing System
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database, #redis, #mongodb, #elasticsearch, #websocket
+' @application: General
+' @tech-stack: Redis, MongoDB, Elasticsearch, WebSocket
+' @pattern: Architecture
+' @description: Real Time Collaborative Editing System
+' ==================================================
+
 
 !include common_style.puml
 

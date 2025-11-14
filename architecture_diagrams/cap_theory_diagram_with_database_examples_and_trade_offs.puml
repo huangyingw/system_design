@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database
+' @application: General
+' @tech-stack: General
+' @pattern: Architecture
+' @description: Cap Theory Diagram With Database Examples And Trade Offs
+' ==================================================
+
 !pragma layout smetana
 skinparam backgroundColor #F0F0F0
 allowmixing

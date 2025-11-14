@@ -1,4 +1,13 @@
 @startuml Service Discovery and Registry System
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database
+' @application: General
+' @tech-stack: General
+' @pattern: Architecture
+' @description: Service Discovery And Registry System
+' ==================================================
+
 
 !include common_style.puml
 

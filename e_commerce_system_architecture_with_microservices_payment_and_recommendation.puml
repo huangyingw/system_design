@@ -1,4 +1,13 @@
 @startuml E-commerce System Architecture
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database, #microservices
+' @application: General
+' @tech-stack: General
+' @pattern: Microservices
+' @description: E Commerce System Architecture With Microservices Payment And Recommendation
+' ==================================================
+
 !theme toy
 allowmixing
 

@@ -1,4 +1,13 @@
 @startuml
+' ==================== Metadata ====================
+' @category: social-media
+' @tags: #database, #twitter, #redis
+' @application: Twitter
+' @tech-stack: Redis
+' @pattern: Architecture
+' @description: Twitter Social Interaction Service
+' ==================================================
+
 
 skinparam backgroundColor #D3D3D3
 skinparam class {

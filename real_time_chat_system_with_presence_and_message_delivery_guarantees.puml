@@ -1,4 +1,13 @@
 @startuml Real-time Chat System
+' ==================== Metadata ====================
+' @category: message-queue
+' @tags: #kafka, #database, #redis, #mongodb, #websocket
+' @application: General
+' @tech-stack: Kafka, Redis, MongoDB, WebSocket
+' @pattern: Architecture
+' @description: Real Time Chat System With Presence And Message Delivery Guarantees
+' ==================================================
+
 
 !include common_style.puml
 

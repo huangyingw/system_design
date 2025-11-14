@@ -1,4 +1,13 @@
 @startuml RBAC ABAC System with Auditing and Fine-Grained Access Control
+' ==================== Metadata ====================
+' @category: database
+' @tags: #database
+' @application: General
+' @tech-stack: General
+' @pattern: Architecture
+' @description: Rbac Abac System With Auditing And Fine Grained Access Control
+' ==================================================
+
 
 !define PRIMARY_COLOR #E67E22
 !define SECONDARY_COLOR #3498DB

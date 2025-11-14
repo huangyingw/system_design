@@ -1,4 +1,13 @@
 @startuml Security Protection System
+' ==================== Metadata ====================
+' @category: security
+' @tags: #database, #security
+' @application: General
+' @tech-stack: General
+' @pattern: Architecture
+' @description: Security Protection System
+' ==================================================
+
 
 !include common_style.puml
 
