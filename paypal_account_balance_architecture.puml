@@ -1,0 +1,319 @@
+@startuml PayPal Account Balance Architecture
+' ==================== Metadata ====================
+' @category: database
+' @tags: #paypal-core, #account-balance, #architecture, #postgresql, #redis, #kafka, #microservices, #high-consistency, #audit-trail, #replication, #sharding, #read-replica, #write-master, #database-architecture
+' @application: PayPal
+' @tech-stack: PostgreSQL, Redis, Kafka, Prometheus, Grafana
+' @pattern: Master-Slave Replication, Read-Write Splitting, Horizontal Sharding
+' @description: PayPal账户余额系统完整架构 - 高一致性、高可用、可审计
+' @interview-focus: HIGH
+' ==================================================
+
+!include common_style.puml
+
+title PayPal Account Balance System - 完整架构设计
+
+' 定义颜色
+!define CLIENT_COLOR #E3F2FD
+!define GATEWAY_COLOR #81D4FA
+!define SERVICE_COLOR #A5D6A7
+!define DB_COLOR #42A5F5
+!define CACHE_COLOR #EF5350
+!define MQ_COLOR #FF7043
+!define MONITOR_COLOR #E1BEE7
+
+skinparam componentStyle rectangle
+
+' ================================
+' 客户端层
+' ================================
+rectangle "客户端层" as ClientLayer CLIENT_COLOR {
+    component "Web App" as WebApp
+    component "Mobile App" as MobileApp
+    component "Merchant API" as MerchantAPI
+}
+
+' ================================
+' 负载均衡层
+' ================================
+component "Load Balancer\n(Nginx/ALB)" as LB #BBDEFB
+
+' ================================
+' API网关层
+' ================================
+rectangle "API网关层" as GatewayLayer GATEWAY_COLOR {
+    component "API Gateway\nCluster" as APIGateway {
+        component "Authentication" as Auth
+        component "Rate Limiter" as RateLimiter
+        component "Request Router" as Router
+    }
+
+    note right of APIGateway
+        **网关职责**:
+        - JWT认证
+        - 按user_id限流（防止恶意请求）
+        - 路由到对应的服务
+        - 请求日志记录
+    end note
+}
+
+' ================================
+' 余额服务层
+' ================================
+rectangle "余额服务层" as BalanceServiceLayer SERVICE_COLOR {
+    component "Balance Service\nCluster (3+ nodes)" as BalanceService {
+        component "Transfer Handler" as TransferHandler
+        component "Query Handler" as QueryHandler
+        component "Lock Manager" as LockManager
+    }
+
+    note right of BalanceService
+        **服务职责**:
+        1. 转账业务逻辑
+        2. 余额查询（缓存优先）
+        3. 并发控制（锁管理）
+        4. 事务管理
+        5. 审计日志记录
+    end note
+}
+
+' ================================
+' 数据库层（分片）
+' ================================
+rectangle "数据库层（按user_id分片）" as DBLayer DB_COLOR {
+    ' Shard 0
+    database "Shard 0\n(user_id % 16 = 0)" as Shard0 {
+        component "Primary DB 0" as Primary0
+        component "Replica DB 0-1" as Replica0_1
+        component "Replica DB 0-2" as Replica0_2
+    }
+
+    ' Shard 1
+    database "Shard 1\n(user_id % 16 = 1)" as Shard1 {
+        component "Primary DB 1" as Primary1
+        component "Replica DB 1-1" as Replica1_1
+    }
+
+    ' ... 其他分片
+    component "Shards 2-15\n(共16个分片)" as OtherShards
+
+    note right of Shard0
+        **分片策略**:
+        - 按user_id哈希分片
+        - 16个分片（可扩展到256）
+        - 每个分片：1主2从
+        - 主库：写操作
+        - 从库：读操作（对账、查询）
+
+        **容量规划**:
+        - 单分片：1000万用户
+        - 16分片：1.6亿用户
+        - 单分片DB：500GB-2TB
+    end note
+}
+
+' ================================
+' 缓存层
+' ================================
+rectangle "缓存层" as CacheLayer CACHE_COLOR {
+    database "Redis Cluster" as RedisCluster {
+        component "Redis Master 1" as RedisMaster1
+        component "Redis Slave 1" as RedisSlave1
+        component "Redis Master 2" as RedisMaster2
+        component "Redis Sentinel" as Sentinel
+    }
+
+    note right of RedisCluster
+        **缓存策略**:
+        - Key: balance:{user_id}
+        - Value: {balance, version, updated_at}
+        - TTL: 5分钟（短TTL防止不一致）
+        - Write-Through（写后更新）
+
+        **缓存命中率**:
+        - 查询接口：95%命中
+        - 减少DB压力20倍
+    end note
+}
+
+' ================================
+' 消息队列层
+' ================================
+rectangle "消息队列层" as MQLayer MQ_COLOR {
+    queue "Kafka Cluster" as KafkaCluster {
+        component "balance-events" as BalanceTopic
+        component "transaction-events" as TransactionTopic
+        component "audit-events" as AuditTopic
+    }
+
+    note right of KafkaCluster
+        **事件类型**:
+        - TransferCompletedEvent
+        - BalanceUpdatedEvent
+        - AuditTrailEvent
+        - ReconciliationEvent
+
+        **消费者**:
+        - 通知服务（Email/SMS）
+        - 风控服务（异常检测）
+        - 数据仓库（报表分析）
+    end note
+}
+
+' ================================
+' 对账服务
+' ================================
+rectangle "对账服务" as ReconciliationLayer #FFF9C4 {
+    component "Reconciliation Service\n(Cron Job)" as ReconciliationService
+    database "Reconciliation Log" as ReconciliationLog
+
+    note right of ReconciliationService
+        **对账任务**:
+        1. 日常对账（每天凌晨3点）
+        2. 实时监控（每5分钟）
+        3. 月度审计（每月1号）
+
+        **对账逻辑**:
+        - 从balance_transactions重算
+        - 与accounts.balance对比
+        - 发现差异立即告警
+
+        **执行位置**:
+        - 从Replica DB读取（不影响主库）
+    end note
+}
+
+' ================================
+' 监控告警层
+' ================================
+rectangle "监控告警层" as MonitorLayer MONITOR_COLOR {
+    component "Prometheus" as Prometheus
+    component "Grafana" as Grafana
+    component "Alert Manager" as AlertManager
+}
+
+' ================================
+' 连接关系
+' ================================
+
+' 客户端到网关
+WebApp --> LB
+MobileApp --> LB
+MerchantAPI --> LB
+LB --> APIGateway
+
+' 网关到服务
+APIGateway --> BalanceService : 转发请求
+
+' 服务到缓存（查询路径）
+QueryHandler --> RedisCluster : 1. 查缓存（读）
+QueryHandler --> Shard0 : 2. 缓存Miss → 查DB
+
+' 服务到数据库（写路径）
+TransferHandler --> Shard0 : 写主库（事务）
+TransferHandler --> Shard1 : 写主库（事务）
+TransferHandler --> OtherShards : 写主库（事务）
+
+' 服务到缓存（更新路径）
+TransferHandler --> RedisCluster : 3. 更新缓存
+
+' 服务到消息队列
+TransferHandler --> KafkaCluster : 4. 发送事件
+
+' 对账服务
+ReconciliationService --> Replica0_1 : 读从库（对账）
+ReconciliationService --> Replica1_1 : 读从库（对账）
+ReconciliationService --> ReconciliationLog : 记录结果
+ReconciliationService --> KafkaCluster : 发送告警
+
+' 监控
+BalanceService --> Prometheus : 上报指标
+DBLayer --> Prometheus : 上报指标
+Prometheus --> Grafana : 可视化
+Prometheus --> AlertManager : 告警
+
+' ================================
+' 关键设计说明
+' ================================
+
+legend right
+    **关键设计决策**
+
+    **1. 为什么使用PostgreSQL而不是NoSQL？**
+    → PostgreSQL提供ACID事务和强一致性
+    → 支付场景必须保证余额绝对准确
+    → NoSQL的最终一致性不适合金融场景
+
+    **2. 为什么使用悲观锁（SELECT FOR UPDATE）？**
+    → 防止并发超扣（Lost Update问题）
+    → 金融场景：宁愿慢也要准确
+    → 乐观锁适合读多写少，余额是写多场景
+
+    **3. 为什么分片？**
+    → 单表支持不了亿级用户
+    → 按user_id分片，单次查询不跨分片
+    → 水平扩展能力
+
+    **4. 为什么主从复制？**
+    → 读写分离（主写从读）
+    → 高可用（主库宕机故障转移）
+    → 对账任务读从库（不影响主库）
+
+    **5. 为什么缓存TTL只有5分钟？**
+    → 缓存可能与DB不一致
+    → 短TTL降低不一致窗口
+    → 余额查询频率高，5分钟足够
+
+    **6. 为什么需要对账？**
+    → 发现系统Bug（并发问题）
+    → 检测数据不一致
+    → 满足监管合规要求
+endlegend
+
+' ================================
+' 性能指标
+' ================================
+
+note top of BalanceService
+    **性能指标**:
+    - QPS: 50,000+ (查询)
+    - QPS: 10,000+ (转账)
+    - P99延迟: <50ms (查询，缓存命中)
+    - P99延迟: <200ms (转账)
+    - 可用性: 99.99%
+
+    **扩展策略**:
+    - 服务层：水平扩展（无状态）
+    - 数据库层：分片扩展（16 → 256）
+    - 缓存层：Redis Cluster扩展
+end note
+
+' ================================
+' 故障场景
+' ================================
+
+note bottom of DBLayer
+    **故障场景与降级**:
+
+    **场景1: 主库宕机**
+    → 自动故障转移到Replica
+    → 30秒内恢复
+    → 服务重试机制
+
+    **场景2: Redis宕机**
+    → 降级到直接查DB
+    → P99延迟上升（50ms → 100ms）
+    → 限流保护DB
+
+    **场景3: Kafka宕机**
+    → 事件缓存在本地队列
+    → Kafka恢复后重新发送
+    → 不影响主流程（转账仍成功）
+
+    **场景4: 对账发现差异**
+    → 立即告警
+    → 人工介入调查
+    → 暂停受影响账户
+end note
+
+@enduml

@@ -1,0 +1,290 @@
+@startuml PayPal Balance Concurrency Control
+' ==================== Metadata ====================
+' @category: database
+' @tags: #paypal-core, #concurrency-control, #pessimistic-lock, #optimistic-lock, #database-design, #acid, #transaction-isolation, #interview-must-know, #trade-offs, #lost-update, #deadlock, #postgresql, #locking-strategy
+' @application: PayPal
+' @tech-stack: PostgreSQL
+' @pattern: Pessimistic Locking, Optimistic Locking
+' @description: PayPal余额系统并发控制 - 悲观锁 vs 乐观锁的详细对比和选择依据
+' @interview-focus: HIGH
+' ==================================================
+
+!include common_style.puml
+
+title PayPal余额系统 - 并发控制深度对比
+
+' ================================
+' 悲观锁方案（SELECT FOR UPDATE）
+' ================================
+
+participant "事务1\n(转账50)" as TX1 #LightGreen
+participant "事务2\n(转账60)" as TX2 #LightCoral
+database "PostgreSQL\n(账户A余额=100)" as DB #SkyBlue
+
+== 方案1: 悲观锁（Pessimistic Locking） ==
+
+note over TX1, DB
+  **悲观锁假设**:
+  - 假设冲突会经常发生
+  - 提前锁定资源，防止其他人修改
+  - "宁可慢，也要准"
+end note
+
+TX1 -> DB: 1. BEGIN TRANSACTION
+TX2 -> DB: 1. BEGIN TRANSACTION
+
+TX1 -> DB: 2. SELECT balance FROM accounts\nWHERE user_id = 'A'\n**FOR UPDATE**
+
+activate DB
+DB --> TX1: ✅ 锁定成功\nbalance = 100
+
+note right of DB
+  **排他锁（Exclusive Lock）**:
+  - 事务1获得排他锁
+  - 其他事务不能读取或修改
+  - 锁持续到COMMIT或ROLLBACK
+end note
+
+TX2 -> DB: 2. SELECT balance FROM accounts\nWHERE user_id = 'A'\n**FOR UPDATE**
+
+note right of DB
+  **事务2阻塞**:
+  - 尝试获取锁失败
+  - 进入等待队列
+  - 等待超时时间：10秒
+  - 超时抛出：lock_timeout错误
+end note
+
+TX1 -> TX1: 3. 检查余额\n100 >= 50 ✅
+
+TX1 -> DB: 4. UPDATE accounts\nSET balance = 100 - 50\nWHERE user_id = 'A'
+
+TX1 -> DB: 5. COMMIT
+deactivate DB
+
+note right of DB
+  **事务1提交后**:
+  - 余额：100 → 50
+  - 释放锁
+  - 事务2被唤醒
+end note
+
+DB --> TX2: ✅ 锁定成功\nbalance = 50
+
+TX2 -> TX2: 3. 检查余额\n50 < 60 ❌
+
+TX2 -> DB: 4. ROLLBACK\n(余额不足)
+
+note over TX1, DB
+  **结果**:
+  - 事务1成功（50元）
+  - 事务2失败（余额不足）
+  - ✅ 没有超扣问题
+  - ✅ 数据一致性保证
+  - ⚠️ 事务2等待了较长时间
+end note
+
+== 方案2: 乐观锁（Optimistic Locking） ==
+
+participant "事务3\n(转账50)" as TX3 #LightGreen
+participant "事务4\n(转账60)" as TX4 #LightCoral
+database "PostgreSQL\n(账户A余额=100, version=1)" as DB2 #SkyBlue
+
+note over TX3, DB2
+  **乐观锁假设**:
+  - 假设冲突很少发生
+  - 不锁定资源，用版本号检测冲突
+  - "先操作，有冲突再重试"
+end note
+
+TX3 -> DB2: 1. BEGIN TRANSACTION
+TX4 -> DB2: 1. BEGIN TRANSACTION
+
+TX3 -> DB2: 2. SELECT balance, version\nFROM accounts\nWHERE user_id = 'A'
+
+DB2 --> TX3: balance = 100\nversion = 1
+
+note right of DB2
+  **无锁读取**:
+  - 不加任何锁
+  - 其他事务可以并发读取
+  - 记录当前version
+end note
+
+TX4 -> DB2: 2. SELECT balance, version\nFROM accounts\nWHERE user_id = 'A'
+
+DB2 --> TX4: balance = 100\nversion = 1
+
+note right of DB2
+  **并发读取**:
+  - 事务3和事务4同时读取
+  - 都读到balance=100, version=1
+  - 没有阻塞
+end note
+
+TX3 -> TX3: 3. 计算新余额\n100 - 50 = 50
+
+TX3 -> DB2: 4. UPDATE accounts\nSET balance = 50,\n    version = 2\nWHERE user_id = 'A'\n**AND version = 1**
+
+activate DB2
+DB2 --> TX3: ✅ 更新成功\n(version匹配)
+
+TX3 -> DB2: 5. COMMIT
+deactivate DB2
+
+note right of DB2
+  **事务3提交后**:
+  - 余额：100 → 50
+  - version：1 → 2
+end note
+
+TX4 -> TX4: 3. 计算新余额\n100 - 60 = 40
+
+TX4 -> DB2: 4. UPDATE accounts\nSET balance = 40,\n    version = 2\nWHERE user_id = 'A'\n**AND version = 1**
+
+DB2 --> TX4: ❌ 更新失败\n(version已变为2)
+
+note right of DB2
+  **版本冲突**:
+  - 期望version=1
+  - 实际version=2（被事务3更新）
+  - UPDATE影响0行
+  - 检测到并发冲突
+end note
+
+TX4 -> DB2: 5. ROLLBACK
+
+TX4 -> TX4: 6. 重试逻辑\n重新读取balance和version
+
+TX4 -> DB2: 7. SELECT balance, version\nFROM accounts\nWHERE user_id = 'A'
+
+DB2 --> TX4: balance = 50\nversion = 2
+
+TX4 -> TX4: 8. 检查余额\n50 < 60 ❌
+
+TX4 -> TX4: 9. 放弃操作\n(余额不足)
+
+note over TX3, DB2
+  **结果**:
+  - 事务3成功（50元）
+  - 事务4失败（余额不足）
+  - ✅ 没有超扣问题
+  - ✅ 数据一致性保证
+  - ✅ 没有阻塞等待
+  - ⚠️ 事务4需要重试
+end note
+
+== 对比总结 ==
+
+note over TX1, DB2
+  **悲观锁 vs 乐观锁对比**
+
+  | 维度 | 悲观锁 (FOR UPDATE) | 乐观锁 (Version) |
+  |------|---------------------|------------------|
+  | **假设** | 冲突频繁 | 冲突罕见 |
+  | **锁定时机** | 读取时立即锁定 | 更新时检测冲突 |
+  | **并发性能** | 较低（阻塞等待） | 较高（无阻塞） |
+  | **冲突处理** | 排队等待 | 重试机制 |
+  | **实现复杂度** | 简单 | 需要重试逻辑 |
+  | **适用场景** | 写多读少、金融 | 读多写少、库存 |
+  | **死锁风险** | 有（需要顺序加锁） | 无 |
+  | **资源占用** | 高（长时间持锁） | 低（短暂检测） |
+
+  **PayPal选择悲观锁的原因**:
+  1. ✅ 金融场景，准确性>性能
+  2. ✅ 余额操作频繁，冲突概率高
+  3. ✅ 简单可靠，易于理解和维护
+  4. ✅ 避免频繁重试（用户体验）
+  5. ✅ 事务时间短（毫秒级），锁等待可接受
+end note
+
+== 死锁场景与预防 ==
+
+participant "事务A\n(A→B转账)" as TXA #LightBlue
+participant "事务B\n(B→A转账)" as TXB #LightPink
+database "PostgreSQL" as DB3 #SkyBlue
+
+note over TXA, DB3
+  **死锁场景**:
+  事务A：A账户 → B账户（转100元）
+  事务B：B账户 → A账户（转50元）
+end note
+
+TXA -> DB3: 1. BEGIN TRANSACTION
+TXB -> DB3: 1. BEGIN TRANSACTION
+
+TXA -> DB3: 2. SELECT ... FOR UPDATE\nWHERE user_id = 'A'
+activate DB3
+DB3 --> TXA: ✅ 锁定账户A
+
+TXB -> DB3: 2. SELECT ... FOR UPDATE\nWHERE user_id = 'B'
+activate DB3
+DB3 --> TXB: ✅ 锁定账户B
+
+note right of DB3
+  **此时状态**:
+  - 事务A持有账户A的锁
+  - 事务B持有账户B的锁
+end note
+
+TXA -> DB3: 3. SELECT ... FOR UPDATE\nWHERE user_id = 'B'
+
+note right of DB3
+  **事务A等待**:
+  - 想锁定账户B
+  - 但账户B被事务B持有
+  - 进入等待
+end note
+
+TXB -> DB3: 3. SELECT ... FOR UPDATE\nWHERE user_id = 'A'
+
+note right of DB3
+  **死锁检测**:
+  - 事务B想锁定账户A
+  - 但账户A被事务A持有
+  - 形成循环等待 → 死锁！
+
+  PostgreSQL检测到死锁:
+  - 选择一个事务回滚（通常是后来的）
+  - 另一个事务继续执行
+end note
+
+DB3 --> TXB: ❌ ERROR: deadlock detected
+
+deactivate DB3
+TXB -> DB3: ROLLBACK
+
+deactivate DB3
+TXA -> TXA: 继续执行...
+TXA -> DB3: UPDATE ...
+TXA -> DB3: COMMIT
+
+note over TXA, DB3
+  **死锁预防方案**:
+
+  **1. 按顺序加锁（推荐）**:
+  ```sql
+  -- 总是按user_id升序加锁
+  SELECT ... FOR UPDATE
+  FROM accounts
+  WHERE user_id IN ('A', 'B')
+  ORDER BY user_id;
+  ```
+  - 事务A：先锁A，再锁B
+  - 事务B：先锁A，再锁B
+  - 不会形成循环等待
+
+  **2. 设置锁超时**:
+  ```sql
+  SET lock_timeout = '10s';
+  ```
+  - 10秒后自动回滚
+  - 客户端重试
+
+  **3. 减少锁持有时间**:
+  - 尽快执行UPDATE
+  - 尽快COMMIT
+  - 不在事务中执行耗时操作
+end note
+
+@enduml

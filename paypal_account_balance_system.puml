@@ -1,0 +1,250 @@
+@startuml PayPal Account Balance System
+' ==================== Metadata ====================
+' @category: database
+' @tags: #paypal-core, #account-balance, #payment-processing, #postgresql, #distributed-lock, #concurrency-control, #acid, #interview-must-know, #high-consistency, #pessimistic-lock, #audit-trail, #double-entry-accounting, #balance-management, #transaction-isolation, #database-design
+' @application: PayPal
+' @tech-stack: PostgreSQL, Redis, Kafka
+' @pattern: Pessimistic Locking, Audit Trail, Double-Entry Accounting
+' @description: PayPal账户余额系统 - 强一致性并发控制和审计追踪，防止余额不一致
+' @interview-focus: HIGH
+' ==================================================
+
+title PayPal Account Balance System - 强一致性并发控制
+
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+' ================================
+' 场景1: 单个转账（基础流程）
+' ================================
+
+actor "User A\n(转出方)" as UserA
+participant "API Gateway" as Gateway #LightBlue
+participant "Balance Service" as BalanceService #Gold
+database "PostgreSQL\n(Primary)" as PrimaryDB #SkyBlue
+database "Redis\n(缓存)" as Redis #Red
+queue "Kafka\n(事件流)" as Kafka #Orange
+participant "对账服务\n(Cron Job)" as ReconciliationService #Lavender
+database "PostgreSQL\n(Replica)" as ReplicaDB #LightSkyBlue
+
+== 场景1: 基础转账流程（单个事务） ==
+
+UserA -> Gateway: POST /transfer\n{from: A, to: B, amount: 100}
+Gateway -> BalanceService: 1. 转账请求
+
+activate BalanceService
+BalanceService -> PrimaryDB: 2. BEGIN TRANSACTION\nISOLATION LEVEL SERIALIZABLE
+
+note right of PrimaryDB
+  **事务隔离级别**:
+  - SERIALIZABLE（最高级别）
+  - 防止幻读、脏读、不可重复读
+  - 确保余额绝对准确
+end note
+
+BalanceService -> PrimaryDB: 3. 锁定转出账户（悲观锁）\nSELECT * FROM accounts\nWHERE user_id = 'A'\nFOR UPDATE
+activate PrimaryDB
+PrimaryDB --> BalanceService: ✅ 账户A已锁定\n{balance: 1000, version: 5}
+
+note right of BalanceService
+  **悲观锁（SELECT FOR UPDATE）**:
+  1. 立即锁定行（排他锁）
+  2. 其他事务必须等待
+  3. 保证强一致性
+  4. 适合金融场景
+end note
+
+BalanceService -> PrimaryDB: 4. 检查余额\nIF balance >= 100
+
+alt 余额充足
+    BalanceService -> PrimaryDB: 5. 锁定转入账户\nSELECT * FROM accounts\nWHERE user_id = 'B'\nFOR UPDATE
+    PrimaryDB --> BalanceService: ✅ 账户B已锁定\n{balance: 500, version: 3}
+
+    BalanceService -> PrimaryDB: 6. 更新转出账户\nUPDATE accounts\nSET balance = balance - 100,\n    version = version + 1,\n    updated_at = NOW()\nWHERE user_id = 'A'\nAND balance >= 100
+
+    BalanceService -> PrimaryDB: 7. 更新转入账户\nUPDATE accounts\nSET balance = balance + 100,\n    version = version + 1,\n    updated_at = NOW()\nWHERE user_id = 'B'
+
+    note right of PrimaryDB
+      **余额变更规则**:
+      - 转出：balance - amount
+      - 转入：balance + amount
+      - 同时更新version（乐观锁辅助）
+      - 记录updated_at时间戳
+    end note
+
+    BalanceService -> PrimaryDB: 8. 记录余额变更日志\nINSERT INTO balance_transactions\n(account_id, amount, balance_before,\nbalance_after, txn_type, txn_id)
+
+    note right of PrimaryDB
+      **审计日志（Append-only）**:
+      用户A: amount=-100, before=1000, after=900
+      用户B: amount=+100, before=500, after=600
+
+      特性：
+      - 不可修改（Append-only）
+      - 完整审计追踪
+      - 用于对账和回溯
+    end note
+
+    BalanceService -> PrimaryDB: 9. 创建交易记录\nINSERT INTO transactions\n(txn_id, from_user, to_user,\namount, status, created_at)
+
+    BalanceService -> PrimaryDB: 10. COMMIT TRANSACTION
+    deactivate PrimaryDB
+
+    note right of BalanceService
+      **COMMIT后的状态**:
+      - 账户A余额：1000 → 900
+      - 账户B余额：500 → 600
+      - 总金额守恒：1500 = 1500 ✅
+      - 所有锁释放
+    end note
+
+    BalanceService -> Redis: 11. 更新缓存\nSET balance:A 900\nSET balance:B 600\nEXPIRE 300 (5分钟)
+
+    note right of Redis
+      **缓存策略**:
+      - Write-Through（写穿）
+      - 先写DB，再更新缓存
+      - TTL=5分钟（防止不一致）
+      - 缓存失效后重新查DB
+    end note
+
+    BalanceService -> Kafka: 12. 发送转账事件\nTransferCompletedEvent\n{txn_id, from, to, amount}
+
+    note right of Kafka
+      **异步处理**:
+      - 通知服务（Email/SMS）
+      - 风控分析（异常检测）
+      - 数据仓库（报表）
+      - 不影响主流程性能
+    end note
+
+    BalanceService --> Gateway: 200 OK\n{txn_id: "txn-123", status: "SUCCESS"}
+    deactivate BalanceService
+    Gateway --> UserA: ✅ 转账成功
+
+else 余额不足
+    BalanceService -> PrimaryDB: ROLLBACK TRANSACTION
+    deactivate PrimaryDB
+    BalanceService --> Gateway: 400 Bad Request\n{error: "Insufficient balance"}
+    deactivate BalanceService
+    Gateway --> UserA: ❌ 余额不足
+end
+
+== 场景2: 并发转账（锁竞争） ==
+
+UserA -> Gateway: 转账请求1\n{from: A, to: B, amount: 50}
+UserA -> Gateway: 转账请求2\n{from: A, to: C, amount: 60}
+
+note right of UserA
+  **并发场景**:
+  用户A同时发起两笔转账
+  账户A余额：100
+  转账1：50元给B
+  转账2：60元给C
+
+  问题：如何保证余额不超扣？
+end note
+
+Gateway -> BalanceService: 请求1: 转账给B
+Gateway -> BalanceService: 请求2: 转账给C
+
+BalanceService -> PrimaryDB: 请求1: BEGIN TRANSACTION
+BalanceService -> PrimaryDB: 请求2: BEGIN TRANSACTION
+
+BalanceService -> PrimaryDB: 请求1: SELECT ... FOR UPDATE\nWHERE user_id = 'A'
+activate PrimaryDB
+PrimaryDB --> BalanceService: 请求1: ✅ 锁定成功\n{balance: 100}
+
+BalanceService -> PrimaryDB: 请求2: SELECT ... FOR UPDATE\nWHERE user_id = 'A'
+note right of PrimaryDB
+  **请求2阻塞等待**:
+  - 请求1持有排他锁
+  - 请求2必须等待
+  - 等待超时时间：10秒
+  - 超时返回锁超时错误
+end note
+
+BalanceService -> PrimaryDB: 请求1: UPDATE accounts\nSET balance = 100 - 50 = 50
+BalanceService -> PrimaryDB: 请求1: INSERT balance_transactions...
+BalanceService -> PrimaryDB: 请求1: COMMIT
+deactivate PrimaryDB
+
+note right of BalanceService
+  **请求1提交后**:
+  - 账户A余额：100 → 50
+  - 释放锁
+end note
+
+PrimaryDB --> BalanceService: 请求2: ✅ 获得锁\n{balance: 50}
+
+BalanceService -> BalanceService: 请求2: 检查余额\n50 < 60 → 余额不足
+
+BalanceService -> PrimaryDB: 请求2: ROLLBACK
+BalanceService --> Gateway: 请求1: 200 OK ✅
+BalanceService --> Gateway: 请求2: 400 Bad Request ❌
+
+note right of BalanceService
+  **结果**:
+  - 请求1成功（50元给B）
+  - 请求2失败（余额不足）
+  - 余额一致性得到保证
+  - 没有超扣问题
+end note
+
+== 场景3: 异步对账（余额验证） ==
+
+activate ReconciliationService
+ReconciliationService -> ReconciliationService: 1. 定时任务触发\n（每天凌晨3点）
+
+ReconciliationService -> ReplicaDB: 2. 计算每个账户的余额\nSELECT account_id,\n  SUM(amount) as calculated_balance\nFROM balance_transactions\nGROUP BY account_id
+
+note right of ReplicaDB
+  **余额重算逻辑**:
+  - 从balance_transactions表重新计算
+  - SUM所有余额变更记录
+  - 与accounts表的balance对比
+
+  理论：
+  calculated_balance应该等于account.balance
+end note
+
+ReplicaDB --> ReconciliationService: 返回所有账户的计算余额
+
+ReconciliationService -> PrimaryDB: 3. 对比实际余额\nSELECT user_id, balance\nFROM accounts
+
+PrimaryDB --> ReconciliationService: 返回所有账户的实际余额
+
+ReconciliationService -> ReconciliationService: 4. 比对差异\nFOR each account:\n  IF calculated != actual:\n    FLAG as discrepancy
+
+alt 发现差异
+    ReconciliationService -> Kafka: 5. 发送告警事件\nBalanceDiscrepancyDetected\n{user_id, expected, actual, diff}
+
+    note right of Kafka
+      **告警流程**:
+      - 发送邮件给运维团队
+      - 创建Jira工单
+      - 触发PagerDuty告警
+      - 记录详细日志
+    end note
+
+    ReconciliationService -> PrimaryDB: 6. 记录差异日志\nINSERT INTO reconciliation_log\n(user_id, expected, actual,\ndiff, detected_at)
+else 无差异
+    ReconciliationService -> PrimaryDB: 5. 记录对账成功\nINSERT INTO reconciliation_log\n(status: 'SUCCESS',\ntotal_accounts, timestamp)
+end
+
+deactivate ReconciliationService
+
+note right of ReconciliationService
+  **对账的重要性**:
+  1. 发现系统Bug（如并发问题）
+  2. 检测数据不一致
+  3. 满足合规要求（审计）
+  4. 早期发现问题，及时修复
+
+  **执行频率**:
+  - 日常对账：每天
+  - 实时监控：5分钟
+  - 深度审计：每月
+end note
+
+@enduml

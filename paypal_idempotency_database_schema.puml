@@ -1,0 +1,353 @@
+@startuml PayPal Idempotency Database Schema
+' ==================== Metadata ====================
+' @category: database
+' @tags: #paypal-core, #idempotency, #database-design, #postgresql, #data-model
+' @application: PayPal
+' @tech-stack: PostgreSQL
+' @pattern: Database Schema, Idempotency
+' @description: PayPal幂等性系统数据库Schema设计
+' @interview-focus: HIGH
+' ==================================================
+
+!include common_style.puml
+
+title PayPal幂等性系统 - 数据库Schema设计
+
+' ================================
+' 核心表定义
+' ================================
+
+entity "idempotency_keys" as IdemKeys {
+    ==主键==
+    * **id**: BIGSERIAL PRIMARY KEY
+    --
+    ==业务字段==
+    * **idempotency_key**: VARCHAR(255) UNIQUE NOT NULL
+    * **request_hash**: CHAR(64)
+    * **status**: VARCHAR(50) NOT NULL
+    ** 枚举: PROCESSING, SUCCESS, FAILED
+    --
+    ==结果字段==
+    * **result_json**: JSONB
+    ** 存储完整的响应结果
+    * **http_status_code**: INTEGER
+    * **error_message**: TEXT
+    * **error_code**: VARCHAR(100)
+    --
+    ==关联字段==
+    * **transaction_id**: BIGINT
+    ** FK → transactions.id
+    * **user_id**: BIGINT NOT NULL
+    * **merchant_id**: BIGINT
+    --
+    ==审计字段==
+    * **created_at**: TIMESTAMP NOT NULL
+    * **updated_at**: TIMESTAMP NOT NULL
+    * **expires_at**: TIMESTAMP NOT NULL
+    ** 默认: created_at + 24小时
+    * **processed_at**: TIMESTAMP
+    --
+    ==元数据==
+    * **request_metadata**: JSONB
+    ** IP地址、User-Agent等
+    * **retry_count**: INTEGER DEFAULT 0
+}
+
+entity "transactions" as Transactions {
+    ==主键==
+    * **id**: BIGSERIAL PRIMARY KEY
+    * **transaction_id**: VARCHAR(100) UNIQUE NOT NULL
+    ** 业务层生成的事务ID
+    --
+    ==幂等性关联==
+    * **idempotency_key**: VARCHAR(255)
+    ** FK → idempotency_keys.idempotency_key
+    --
+    ==交易信息==
+    * **user_id**: BIGINT NOT NULL
+    * **merchant_id**: BIGINT
+    * **amount**: DECIMAL(19,4) NOT NULL
+    * **currency**: CHAR(3) NOT NULL
+    ** ISO 4217货币代码
+    * **status**: VARCHAR(50) NOT NULL
+    ** PENDING, PROCESSING, SUCCESS, FAILED
+    * **payment_method**: VARCHAR(50)
+    ** CREDIT_CARD, BANK_TRANSFER, WALLET
+    --
+    ==状态机==
+    * **state_machine_version**: INTEGER
+    * **previous_status**: VARCHAR(50)
+    * **status_changed_at**: TIMESTAMP
+    --
+    ==审计==
+    * **created_at**: TIMESTAMP NOT NULL
+    * **updated_at**: TIMESTAMP NOT NULL
+    * **completed_at**: TIMESTAMP
+}
+
+entity "accounts" as Accounts {
+    ==主键==
+    * **id**: BIGSERIAL PRIMARY KEY
+    * **user_id**: BIGINT UNIQUE NOT NULL
+    --
+    ==余额信息==
+    * **balance**: DECIMAL(19,4) NOT NULL DEFAULT 0
+    ** CHECK (balance >= 0)
+    * **currency**: CHAR(3) NOT NULL
+    * **pending_balance**: DECIMAL(19,4) DEFAULT 0
+    ** 冻结/待处理金额
+    * **available_balance**: DECIMAL(19,4)
+    ** GENERATED: balance - pending_balance
+    --
+    ==版本控制（乐观锁）==
+    * **version**: BIGINT NOT NULL DEFAULT 0
+    ** 每次更新+1，用于并发控制
+    --
+    ==审计==
+    * **created_at**: TIMESTAMP NOT NULL
+    * **updated_at**: TIMESTAMP NOT NULL
+    * **last_transaction_at**: TIMESTAMP
+}
+
+entity "balance_transactions" as BalanceTransactions {
+    ==主键==
+    * **id**: BIGSERIAL PRIMARY KEY
+    --
+    ==关联==
+    * **account_id**: BIGINT NOT NULL
+    ** FK → accounts.id
+    * **transaction_id**: BIGINT
+    ** FK → transactions.id
+    --
+    ==余额变更==
+    * **amount**: DECIMAL(19,4) NOT NULL
+    ** 正数=入账，负数=出账
+    * **balance_before**: DECIMAL(19,4) NOT NULL
+    * **balance_after**: DECIMAL(19,4) NOT NULL
+    ** CHECK (balance_after = balance_before + amount)
+    --
+    ==类型==
+    * **transaction_type**: VARCHAR(50) NOT NULL
+    ** PAYMENT, REFUND, CHARGEBACK, ADJUSTMENT
+    * **description**: TEXT
+    --
+    ==审计（不可变）==
+    * **created_at**: TIMESTAMP NOT NULL
+    ** 只有created_at，无updated_at（Append-only）
+}
+
+entity "audit_log" as AuditLog {
+    ==主键==
+    * **id**: BIGSERIAL PRIMARY KEY
+    --
+    ==关联==
+    * **idempotency_key**: VARCHAR(255)
+    * **transaction_id**: BIGINT
+    * **user_id**: BIGINT
+    --
+    ==操作信息==
+    * **operation**: VARCHAR(100) NOT NULL
+    ** CHECK_IDEMPOTENCY, CREATE_PAYMENT, UPDATE_STATUS
+    * **status**: VARCHAR(50)
+    * **result**: VARCHAR(50)
+    --
+    ==详细信息==
+    * **request_payload**: JSONB
+    * **response_payload**: JSONB
+    * **error_details**: JSONB
+    --
+    ==元数据==
+    * **ip_address**: INET
+    * **user_agent**: TEXT
+    * **service_name**: VARCHAR(100)
+    * **server_hostname**: VARCHAR(255)
+    --
+    ==时间==
+    * **created_at**: TIMESTAMP NOT NULL
+    ** 分区键：按月分区
+}
+
+' ================================
+' 关系定义
+' ================================
+
+IdemKeys ||--o{ Transactions : "1对多\n一个幂等性键\n可能关联多个\n交易记录\n(重试场景)"
+Transactions }o--|| Accounts : "多对1\n多个交易\n属于一个账户"
+Accounts ||--o{ BalanceTransactions : "1对多\n一个账户\n多次余额变更"
+Transactions ||--o{ BalanceTransactions : "1对多\n一个交易\n可能有多次\n余额变更"
+IdemKeys ||--o{ AuditLog : "1对多\n审计日志"
+
+' ================================
+' 索引设计
+' ================================
+
+note top of IdemKeys
+    **索引设计**:
+    - **PRIMARY KEY** (id)
+    - **UNIQUE INDEX** (idempotency_key)
+    - **INDEX** (user_id, created_at DESC)
+    - **INDEX** (status, created_at) WHERE status = 'PROCESSING'
+    - **INDEX** (expires_at) WHERE expires_at > NOW()
+    - **PARTIAL INDEX** on hot data
+
+    **分区策略**:
+    - 按created_at月度分区
+    - 保留热数据30天
+    - 归档冷数据到S3
+
+    **清理策略**:
+    - 定时任务: 删除expires_at < NOW() - 30天
+    - 每天凌晨3点执行
+    - 批量删除: 10000条/batch
+end note
+
+note top of Transactions
+    **索引设计**:
+    - **PRIMARY KEY** (id)
+    - **UNIQUE INDEX** (transaction_id)
+    - **INDEX** (idempotency_key)
+    - **INDEX** (user_id, created_at DESC)
+    - **INDEX** (status, created_at)
+
+    **分区策略**:
+    - 按user_id哈希分片（16个分片）
+    - 每个分片按created_at月度分区
+
+    **分片键选择**:
+    user_id % 16 → shard_id
+end note
+
+note top of Accounts
+    **索引设计**:
+    - **PRIMARY KEY** (id)
+    - **UNIQUE INDEX** (user_id)
+
+    **并发控制**:
+    UPDATE accounts
+    SET balance = balance - :amount,
+        version = version + 1
+    WHERE user_id = :user_id
+    AND version = :expected_version
+    AND balance >= :amount;
+
+    **悲观锁（推荐）**:
+    SELECT * FROM accounts
+    WHERE user_id = :user_id
+    FOR UPDATE;
+end note
+
+note top of BalanceTransactions
+    **索引设计**:
+    - **PRIMARY KEY** (id)
+    - **INDEX** (account_id, created_at DESC)
+    - **INDEX** (transaction_id)
+
+    **特性**:
+    - Append-only (不可修改)
+    - 用于审计和对账
+    - 按月分区
+
+    **对账查询**:
+    SELECT SUM(amount) as calculated_balance
+    FROM balance_transactions
+    WHERE account_id = :id;
+
+    应该等于 accounts.balance
+end note
+
+note top of AuditLog
+    **索引设计**:
+    - **PRIMARY KEY** (id)
+    - **INDEX** (idempotency_key, created_at)
+    - **INDEX** (user_id, created_at)
+    - **INDEX** (created_at) - 分区键
+
+    **分区策略**:
+    - 按created_at月度分区
+    - 保留7年（合规要求）
+    - 老数据压缩存储
+end note
+
+' ================================
+' 典型SQL查询
+' ================================
+
+legend right
+    **关键SQL操作**
+
+    **1. 检查幂等性键（读）**:
+    <code>
+    SELECT status, result_json, http_status_code
+    FROM idempotency_keys
+    WHERE idempotency_key = :key
+    AND expires_at > NOW();
+    </code>
+
+    **2. 创建幂等性键（原子性）**:
+    <code>
+    INSERT INTO idempotency_keys
+    (idempotency_key, user_id, status, expires_at)
+    VALUES (:key, :user_id, 'PROCESSING', NOW() + INTERVAL '24 hours')
+    ON CONFLICT (idempotency_key) DO NOTHING
+    RETURNING id;
+    </code>
+    → 如果返回0行，说明键已存在（并发冲突）
+
+    **3. 创建交易 + 更新幂等性键（事务）**:
+    <code>
+    BEGIN;
+
+    -- 创建交易
+    INSERT INTO transactions (transaction_id, idempotency_key, ...)
+    VALUES (:txn_id, :idem_key, ...)
+    RETURNING id;
+
+    -- 更新余额（悲观锁）
+    UPDATE accounts
+    SET balance = balance - :amount,
+        version = version + 1
+    WHERE user_id = :user_id
+    AND balance >= :amount
+    FOR UPDATE;
+
+    -- 记录余额变更
+    INSERT INTO balance_transactions (account_id, amount, ...)
+    VALUES (...);
+
+    -- 更新幂等性键状态
+    UPDATE idempotency_keys
+    SET status = 'SUCCESS',
+        result_json = :result,
+        transaction_id = :txn_id,
+        processed_at = NOW()
+    WHERE idempotency_key = :idem_key;
+
+    COMMIT;
+    </code>
+
+    **4. 清理过期键（定时任务）**:
+    <code>
+    DELETE FROM idempotency_keys
+    WHERE expires_at < NOW() - INTERVAL '30 days'
+    LIMIT 10000;
+    </code>
+endlegend
+
+' ================================
+' 数据一致性保证
+' ================================
+
+note bottom of IdemKeys
+    **ACID保证**:
+    1. **原子性**: 事务内完成所有写操作
+    2. **一致性**: 约束检查（UNIQUE、CHECK）
+    3. **隔离性**: Serializable（最高级别）
+    4. **持久性**: WAL + 主从复制
+
+    **分布式一致性**:
+    - Redis缓存: 最终一致性
+    - PostgreSQL: 强一致性
+    - 以数据库为准，缓存可重建
+end note
+
+@enduml

@@ -1,0 +1,299 @@
+@startuml PayPal Refund System
+' ==================== Metadata ====================
+' @category: distributed-systems
+' @tags: #paypal-core, #refund, #chargeback, #payment-processing, #idempotency, #state-machine, #reconciliation, #audit-trail, #distributed-transaction, #saga, #compensation, #interview-relevant, #trade-offs
+' @application: PayPal
+' @tech-stack: PostgreSQL, Redis, Kafka
+' @pattern: Saga Pattern, Idempotency, State Machine, Compensation Transaction
+' @description: PayPal退款系统 - 全额退款、部分退款、争议退款(Chargeback)的完整流程
+' @interview-focus: MEDIUM
+' ==================================================
+
+!include common_style.puml
+
+title PayPal Refund System - 退款与Chargeback处理
+
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+actor "Merchant\n(商户)" as Merchant
+participant "API Gateway" as Gateway #LightBlue
+participant "Refund Service" as RefundService #Gold
+participant "Payment Service" as PaymentService #LightGreen
+database "PostgreSQL" as DB #SkyBlue
+database "Redis" as Redis #Red
+queue "Kafka" as Kafka #Orange
+participant "3rd Party\nPayment Provider" as Provider #Lavender
+
+== 场景1: 全额退款（Full Refund） ==
+
+Merchant -> Gateway: POST /refunds\n{payment_id: "pay-123",\nrefund_amount: 100,\nreason: "Customer request"}
+
+note right of Merchant
+  **退款触发原因**:
+  - 客户申请退款
+  - 商品未收到
+  - 商品损坏
+  - 订单取消
+end note
+
+Gateway -> RefundService: 1. 创建退款请求
+
+activate RefundService
+RefundService -> DB: 2. 查询原支付记录\nSELECT * FROM transactions\nWHERE payment_id = 'pay-123'
+
+DB --> RefundService: {amount: 100, status: SUCCESS,\nuser_id: 'U1', merchant_id: 'M1',\nthird_party_txn_id: 'ext-456'}
+
+note right of RefundService
+  **退款前验证**:
+  1. 原支付是否存在
+  2. 原支付是否成功
+  3. 是否已全额退款
+  4. 退款金额是否合法
+end note
+
+RefundService -> RefundService: 3. 验证退款金额\n100 <= 100 ✅
+
+RefundService -> DB: 4. BEGIN TRANSACTION
+
+RefundService -> DB: 5. 创建退款记录\nINSERT INTO refunds\n(refund_id, payment_id,\namount, status, reason)\nVALUES ('ref-789', 'pay-123',\n100, 'PENDING', 'Customer request')
+
+note right of DB
+  **退款状态机**:
+  PENDING → PROCESSING → SUCCESS
+          → PROCESSING → FAILED
+end note
+
+RefundService -> DB: 6. 更新支付状态\nUPDATE transactions\nSET refund_status = 'REFUNDED',\n    refund_amount = 100\nWHERE payment_id = 'pay-123'
+
+RefundService -> DB: 7. COMMIT TRANSACTION
+
+RefundService -> Provider: 8. 调用第三方退款API\nrefund(txn_id: 'ext-456',\namount: 100)
+
+note right of Provider
+  **第三方退款**:
+  - 信用卡退款（1-5工作日）
+  - 银行转账退款（即时）
+  - 数字钱包退款（即时）
+end note
+
+alt 第三方退款成功
+    Provider --> RefundService: ✅ 退款成功\n{refund_id: 'ext-ref-999'}
+
+    RefundService -> DB: 9. BEGIN TRANSACTION
+
+    RefundService -> DB: 10. 更新退款状态\nUPDATE refunds\nSET status = 'SUCCESS',\n    third_party_refund_id = 'ext-ref-999',\n    completed_at = NOW()\nWHERE refund_id = 'ref-789'
+
+    RefundService -> DB: 11. 更新商户余额（扣款）\nUPDATE merchant_accounts\nSET balance = balance - 100\nWHERE merchant_id = 'M1'\nAND balance >= 100
+
+    note right of DB
+      **商户余额扣减**:
+      - 退款从商户账户扣除
+      - 使用悲观锁（FOR UPDATE）
+      - 如果余额不足，暂缓退款
+    end note
+
+    RefundService -> DB: 12. 更新用户余额（退款）\nUPDATE accounts\nSET balance = balance + 100\nWHERE user_id = 'U1'
+
+    RefundService -> DB: 13. 记录余额变更\nINSERT INTO balance_transactions\n(account_id, amount, txn_type,\nbalance_before, balance_after)\nVALUES (..., 100, 'REFUND', ...)
+
+    RefundService -> DB: 14. COMMIT TRANSACTION
+
+    RefundService -> Kafka: 15. 发送退款成功事件\nRefundCompletedEvent
+
+    note right of Kafka
+      **事件消费者**:
+      - 通知服务（邮件/短信）
+      - 订单服务（更新订单状态）
+      - 数据仓库（报表）
+    end note
+
+    RefundService --> Gateway: 200 OK\n{refund_id: 'ref-789',\nstatus: 'SUCCESS'}
+    deactivate RefundService
+    Gateway --> Merchant: ✅ 退款成功
+
+else 第三方退款失败
+    Provider --> RefundService: ❌ 退款失败\n{error: "Insufficient funds"}
+
+    RefundService -> DB: 9. 更新退款状态\nUPDATE refunds\nSET status = 'FAILED',\n    error_message = 'Insufficient funds'\nWHERE refund_id = 'ref-789'
+
+    RefundService -> Kafka: 10. 发送退款失败事件\nRefundFailedEvent
+
+    RefundService --> Gateway: 400 Bad Request\n{error: "Refund failed"}
+    deactivate RefundService
+    Gateway --> Merchant: ❌ 退款失败
+end
+
+== 场景2: 部分退款（Partial Refund） ==
+
+Merchant -> Gateway: POST /refunds\n{payment_id: "pay-123",\nrefund_amount: 50,\nreason: "Partial return"}
+
+note right of Merchant
+  **部分退款场景**:
+  - 客户退回部分商品
+  - 价格调整
+  - 折扣补偿
+end note
+
+Gateway -> RefundService: 1. 创建退款请求
+
+activate RefundService
+RefundService -> DB: 2. 查询原支付和退款历史\nSELECT * FROM transactions t\nLEFT JOIN refunds r\nON t.payment_id = r.payment_id\nWHERE t.payment_id = 'pay-123'
+
+DB --> RefundService: 原金额: 100\n已退款: 30\n可退款: 70
+
+RefundService -> RefundService: 3. 验证退款金额\n50 <= 70 ✅
+
+note right of RefundService
+  **部分退款验证**:
+  1. 累计退款金额不能超过原支付金额
+  2. 计算公式：
+     可退款 = 原支付金额 - 已退款金额
+  3. 允许多次部分退款
+end note
+
+RefundService -> DB: 4. 创建退款记录\nINSERT INTO refunds\n(refund_id, payment_id,\namount, type)\nVALUES ('ref-790', 'pay-123',\n50, 'PARTIAL')
+
+RefundService -> Provider: 5. 调用第三方退款API\nrefund(amount: 50)
+
+Provider --> RefundService: ✅ 退款成功
+
+RefundService -> DB: 6. 更新支付记录\nUPDATE transactions\nSET refund_amount = refund_amount + 50\nWHERE payment_id = 'pay-123'
+
+note right of DB
+  **累计退款金额**:
+  - 原refund_amount: 30
+  - 新refund_amount: 30 + 50 = 80
+  - 剩余可退: 100 - 80 = 20
+end note
+
+RefundService -> DB: 7. 更新余额（同全额退款流程）
+
+RefundService --> Gateway: 200 OK\n{refund_id: 'ref-790',\nremaining_refundable: 20}
+deactivate RefundService
+Gateway --> Merchant: ✅ 部分退款成功
+
+== 场景3: 争议退款（Chargeback） ==
+
+actor "Cardholder\n(持卡人)" as Cardholder
+participant "Card Network\n(卡组织)" as CardNetwork #LightPink
+
+note over Cardholder, CardNetwork
+  **Chargeback场景**:
+  持卡人向银行发起争议
+  - 未授权交易（盗刷）
+  - 商品未收到
+  - 商品与描述不符
+  - 重复扣款
+end note
+
+Cardholder -> CardNetwork: 1. 发起Chargeback\n(争议支付 pay-123)
+
+CardNetwork -> Provider: 2. Chargeback通知
+
+Provider -> RefundService: 3. Webhook回调\nChargeback Notification\n{payment_id: 'pay-123',\nreason: 'FRAUD',\namount: 100}
+
+activate RefundService
+RefundService -> DB: 4. BEGIN TRANSACTION
+
+RefundService -> DB: 5. 创建Chargeback记录\nINSERT INTO chargebacks\n(chargeback_id, payment_id,\namount, reason, status)\nVALUES ('cb-111', 'pay-123',\n100, 'FRAUD', 'PENDING')
+
+note right of DB
+  **Chargeback状态机**:
+  PENDING → UNDER_REVIEW → ACCEPTED
+          → UNDER_REVIEW → REJECTED
+end note
+
+RefundService -> DB: 6. 冻结商户资金\nUPDATE merchant_accounts\nSET pending_balance = pending_balance + 100\nWHERE merchant_id = 'M1'
+
+note right of DB
+  **资金冻结**:
+  - 从可用余额转到冻结余额
+  - 商户不能提现
+  - 等待争议结果
+end note
+
+RefundService -> DB: 7. 更新支付状态\nUPDATE transactions\nSET status = 'CHARGEBACK_PENDING'\nWHERE payment_id = 'pay-123'
+
+RefundService -> DB: 8. COMMIT TRANSACTION
+
+RefundService -> Kafka: 9. 发送Chargeback事件\nChargebackInitiatedEvent
+
+RefundService --> Merchant: 📧 邮件通知商户\nChargeback Alert
+
+note right of Merchant
+  **商户应对**:
+  - 提供证据（发货记录）
+  - 提供沟通记录
+  - 45天内响应
+  - 否则自动判定为败诉
+end note
+
+deactivate RefundService
+
+... 45天后，争议结果 ...
+
+alt Chargeback被拒绝（商户胜诉）
+    CardNetwork -> Provider: Chargeback Rejected
+
+    Provider -> RefundService: Webhook: Chargeback Rejected
+
+    activate RefundService
+    RefundService -> DB: 10. 更新Chargeback状态\nUPDATE chargebacks\nSET status = 'REJECTED'\nWHERE chargeback_id = 'cb-111'
+
+    RefundService -> DB: 11. 解冻商户资金\nUPDATE merchant_accounts\nSET pending_balance = pending_balance - 100\nWHERE merchant_id = 'M1'
+
+    RefundService -> DB: 12. 恢复支付状态\nUPDATE transactions\nSET status = 'SUCCESS'\nWHERE payment_id = 'pay-123'
+
+    RefundService -> Kafka: 13. 发送事件\nChargebackRejectedEvent
+
+    RefundService --> Merchant: 📧 好消息：争议被拒绝
+    deactivate RefundService
+
+else Chargeback被接受（商户败诉）
+    CardNetwork -> Provider: Chargeback Accepted
+
+    Provider -> RefundService: Webhook: Chargeback Accepted
+
+    activate RefundService
+    RefundService -> DB: 10. 更新Chargeback状态\nUPDATE chargebacks\nSET status = 'ACCEPTED'\nWHERE chargeback_id = 'cb-111'
+
+    RefundService -> DB: 11. 从商户账户扣款\nUPDATE merchant_accounts\nSET balance = balance - 100,\n    pending_balance = pending_balance - 100\nWHERE merchant_id = 'M1'
+
+    RefundService -> DB: 12. 退款给用户\nUPDATE accounts\nSET balance = balance + 100\nWHERE user_id = 'U1'
+
+    RefundService -> DB: 13. 记录余额变更\nINSERT INTO balance_transactions...
+
+    RefundService -> DB: 14. 更新支付状态\nUPDATE transactions\nSET status = 'CHARGEDBACK'\nWHERE payment_id = 'pay-123'
+
+    RefundService -> Kafka: 15. 发送事件\nChargebackAcceptedEvent
+
+    RefundService --> Merchant: 📧 坏消息：争议被接受\n已从账户扣款
+    deactivate RefundService
+end
+
+== 幂等性保证 ==
+
+note over Merchant, DB
+  **退款幂等性设计**:
+
+  **场景**：商户重复点击退款按钮
+
+  **解决方案**：
+  1. 客户端生成幂等性键（Idempotency-Key）
+  2. Redis缓存退款结果（24小时）
+  3. 数据库UNIQUE约束（payment_id + idempotency_key）
+
+  **SQL**：
+  ```sql
+  INSERT INTO refunds (
+    refund_id, payment_id, idempotency_key, amount
+  ) VALUES (
+    'ref-789', 'pay-123', 'uuid-abc', 100
+  ) ON CONFLICT (payment_id, idempotency_key) DO NOTHING;
+  ```
+
+  如果返回0行 → 重复请求，返回缓存结果
+end note
+
+@enduml
